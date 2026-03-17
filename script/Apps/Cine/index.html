@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -212,6 +213,16 @@ body.search-active { overflow: hidden; }
 .announcement-banner p { margin: 0; line-height: 1.4; flex-grow: 1; font-size: 0.95rem; font-weight: 500; }
 .announcement-banner .close-btn { background: none; border: none; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer; padding: 0 0 0 1rem; flex-shrink: 0; }
 .announcement-banner .close-btn:hover { color: var(--text-primary); }
+
+/* Providers Styling */
+.provider-container { display: flex; gap: 1.5rem; overflow-x: auto; padding: 1rem 0; margin-bottom: 2rem; }
+.provider-container::-webkit-scrollbar { display: none; }
+.provider-card { flex-shrink: 0; min-width: 100px; text-align: center; cursor: pointer; transition: transform 0.3s ease; }
+.provider-card:hover { transform: scale(1.1) translateY(-5px); }
+.provider-card img { width: 100px; height: 100px; border-radius: 20px; object-fit: cover; box-shadow: 0 10px 20px rgba(0,0,0,0.5); border: 2px solid transparent; transition: border-color 0.3s ease;}
+.provider-card:hover img { border-color: var(--accent-color); }
+.provider-card span { display: block; margin-top: 0.8rem; font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
+
 .settings-container { max-width: 800px; margin: 2rem auto; padding: 2rem; background-color: var(--primary-card-bg); border-radius: 8px; }
 .setting-group { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); position: relative; }
 .setting-item { background-color: var(--bg-color); border-radius: 8px; padding: 1.2rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
@@ -330,12 +341,13 @@ body.vip-active .modal-button.proceed { color: var(--bg-color); }
 .episode-item.watched .episode-action { color: var(--tag-fan-favorite-bg); border-color: var(--tag-fan-favorite-bg); }
 .episode-item.watched:hover { opacity: 1; }
 .iframe-player-overlay { background-color: #000; z-index: 4000; }
-.iframe-container { width: 100%; height: 100%; display: flex; flex-direction: column; background-color: #000; }
-.iframe-header { display: flex; align-items: center; padding: 0.5rem 1rem; background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent); position: absolute; top: 0; left: 0; width: 100%; z-index: 1; transition: opacity 0.3s ease; gap: 1.5rem;}
-.iframe-container:hover .iframe-header { opacity: 1; }
-.iframe-close-btn { background: none; border: none; color: var(--text-secondary); font-size: 1rem; font-weight: 600; padding: 0.5rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: color 0.2s ease; }
-.iframe-close-btn:hover { color: var(--text-primary); }
-#iframe-title { margin: 0; font-size: 1.1rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.iframe-container { width: 100%; height: 100%; display: flex; flex-direction: column; background-color: #000; position: relative; }
+.iframe-header { display: flex; align-items: center; padding: 0.5rem 1.5rem; background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.4) 60%, transparent); position: absolute; top: 0; left: 0; width: 100%; z-index: 10; transition: opacity 0.4s ease, transform 0.4s ease; gap: 1.5rem; box-sizing: border-box;}
+.iframe-header.hidden { opacity: 0; pointer-events: none; transform: translateY(-10px); }
+.iframe-close-btn { background: rgba(13, 17, 23, 0.6); border: 1px solid var(--border-color); backdrop-filter: blur(5px); color: var(--text-secondary); font-size: 1rem; font-weight: 600; padding: 0.5rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease; border-radius: 6px;}
+.iframe-close-btn:hover { color: var(--text-primary); background: rgba(13, 17, 23, 0.9); }
+#iframe-title { margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.player-server-selector { margin-left: auto; display: flex; align-items: center; background: rgba(13, 17, 23, 0.6); backdrop-filter: blur(5px); padding: 0.3rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); }
 #movie-iframe { width: 100%; height: 100%; flex-grow: 1; border: none; }
 #exit-confirmation-modal .modal-content { background: #1c1c1e; max-width: 400px; border: 1px solid rgba(255, 255, 255, 0.1); padding: 0; overflow: hidden; position: relative; }
 #exit-confirmation-modal .modal-content .exit-modal-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(10px) brightness(0.4); transform: scale(1.2); z-index: 1; }
@@ -384,6 +396,7 @@ body.vip-active .modal-button.proceed { color: var(--bg-color); }
   .hero-content { padding: 1.5rem; width: 100%; max-width: 100%; }
   .hero-title { font-size: 2.5rem; }
   .hero-description { font-size: 0.9rem; line-height: 1.4; -webkit-line-clamp: 2; }
+  .player-server-selector { margin-left: 0; width: 100%; justify-content: flex-end;}
 }
 .loader-container { display: flex; justify-content: center; padding: 2rem; }
 .loader-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -412,6 +425,7 @@ body.vip-active .modal-button.proceed { color: var(--bg-color); }
             <li><a href="#" class="sidebar-link active" data-view="dashboard"><i class="fas fa-home fa-fw"></i><span>Dashboard</span></a></li>
             <li><a href="#" class="sidebar-link" data-view="series"><i class="fas fa-tv fa-fw"></i><span>Series</span></a></li>
             <li><a href="#" class="sidebar-link" data-view="movies"><i class="fas fa-film fa-fw"></i><span>Movies</span></a></li>
+            <li><a href="#" class="sidebar-link" data-view="anime"><i class="fas fa-dragon fa-fw"></i><span>Anime</span></a></li>
             <li><a href="#" class="sidebar-link" data-view="trending"><i class="fas fa-fire fa-fw"></i><span>Trending</span></a></li>
             <li><a href="#" class="sidebar-link" data-view="upcoming"><i class="fas fa-calendar-alt fa-fw"></i><span>Upcoming</span></a></li>
             <li class="nav-separator"></li>
@@ -459,6 +473,8 @@ body.vip-active .modal-button.proceed { color: var(--bg-color); }
             <section id="upcoming" class="view-content"></section>
             <section id="series" class="view-content"></section>
             <section id="movies" class="view-content"></section>
+            <section id="anime" class="view-content"></section>
+            <section id="provider-view" class="view-content"></section>
             <section id="partners" class="view-content">
                 <div class="partners-container">
                     <div class="partners-header">
@@ -571,9 +587,13 @@ body.vip-active .modal-button.proceed { color: var(--bg-color); }
     </div>
     <div id="iframe-player-overlay" class="modal-overlay" style="display: none;">
         <div class="iframe-container">
-            <div class="iframe-header">
+            <div class="iframe-header" id="iframe-header">
                 <button id="iframe-close-btn" class="iframe-close-btn"><i class="fas fa-arrow-left"></i> Back</button>
                 <h3 id="iframe-title">Now Playing</h3>
+                <div class="player-server-selector">
+                    <span style="color:var(--text-secondary);font-size:0.85rem;margin-right:0.5rem;" class="desktop-only">Server:</span>
+                    <select id="player-server-select" class="server-select"></select>
+                </div>
             </div>
             <iframe id="movie-iframe" src="" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
         </div>
@@ -630,6 +650,19 @@ body.vip-active .modal-button.proceed { color: var(--bg-color); }
     <script>
 const API_KEY = '3a73619bbb8fc6d47742d1b5b2b707b5';
 const baseURL = 'https://api.themoviedb.org/3';
+
+// ==========================================
+// PROXY CONFIGURATION
+// By default, uses a reliable public CORS proxy. 
+// Change PROXY_URL to your Ultraviolet URL prefix if configured.
+const PROXY_URL = 'https://corsproxy.io/?'; 
+
+async function fetchProxy(url) {
+    const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`;
+    return fetch(PROXY_URL + encodeURIComponent(fullUrl));
+}
+// ==========================================
+
 const vipUsers = [{ user: "codyAdmin", pass: "Kt4jUvMt" }];
 const announcements = ["Cine-Hub v3.0: Now powered by a massive dynamic library!"];
 const globalCache = {};
@@ -654,9 +687,19 @@ const tvServers = [
     { name: 'EmbedSu', url: 'https://embed.su/embed/tv/{tmdb}/{s}/{e}' }
 ];
 
+const streamProviders = [
+    { id: 8, name: 'Netflix', logo: 'https://image.tmdb.org/t/p/original/t2yyOv40HZeVlLjYsCsPHnWLk4W.jpg' },
+    { id: 119, name: 'Amazon Prime', logo: 'https://image.tmdb.org/t/p/original/emthp39XA2YScoYL1p0srx82qM.jpg' },
+    { id: 337, name: 'Disney+', logo: 'https://image.tmdb.org/t/p/original/7rwgEs15tFwyR9NPQ5vqvuN2zic.jpg' },
+    { id: 350, name: 'Apple TV+', logo: 'https://image.tmdb.org/t/p/original/6uhKBfmtzFqOcLousHwZuzcrjhK.jpg' },
+    { id: 283, name: 'Crunchyroll', logo: 'https://image.tmdb.org/t/p/original/mXeC4TrcgdU6ltE9bCBCEORwSQR.jpg' },
+    { id: 384, name: 'HBO Max', logo: 'https://image.tmdb.org/t/p/original/r8mshEzS2vN2M422qB49N6E3yR9.jpg' }
+];
+
 document.addEventListener('DOMContentLoaded', () => {
   let currentPreviewItem = null, youtubePlayer = null, currentlyPlaying = null, isVip = false;
   let userData = { continueWatching: [], watchlist: [], watched: [] };
+  let uiTimeout; // Player UI timeout tracker
 
   const DOMElements = {
       body: document.body,
@@ -688,7 +731,9 @@ document.addEventListener('DOMContentLoaded', () => {
       previewServerContainer: document.getElementById('preview-server-container'),
       moreLikeThisGrid: document.getElementById('more-like-this-grid'),
       iframePlayerOverlay: document.getElementById('iframe-player-overlay'),
+      iframeHeader: document.getElementById('iframe-header'),
       iframeCloseBtn: document.getElementById('iframe-close-btn'),
+      playerServerSelect: document.getElementById('player-server-select'),
       movieIframe: document.getElementById('movie-iframe'),
       iframeTitle: document.getElementById('iframe-title'),
       hamburgerBtn: document.getElementById('hamburger-btn'),
@@ -707,8 +752,7 @@ document.addEventListener('DOMContentLoaded', () => {
       promptGoToVipBtn: document.getElementById('prompt-go-to-vip-btn'),
       mobileSearchToggle: document.getElementById('mobile-search-toggle'),
       searchContainer: document.querySelector('.search-container'),
-      iosPrompt: document.getElementById('ios-install-prompt'),
-      iosPromptClose: document.querySelector('.ios-prompt-close')
+      iosPrompt: document.getElementById('ios-install-prompt')
   };
 
   const lazyLoadObserver = new IntersectionObserver((entries, observer) => {
@@ -830,10 +874,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return formatted;
   }
 
+  // Improved fetching for "Load So Much Movies"
   async function fetchMultiplePages(urlTemplate, pages = 3) {
       try {
           const promises = [];
-          for(let i=1; i<=pages; i++) promises.push(fetch(urlTemplate.replace('{PAGE}', i)).then(r => r.json()));
+          for(let i=1; i<=pages; i++) promises.push(fetchProxy(urlTemplate.replace('{PAGE}', i)).then(r => r.json()));
           const results = await Promise.all(promises);
           return results.flatMap(res => res.results || []);
       } catch(e) { return []; }
@@ -849,7 +894,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       try {
           const tmdbType = type === 'series' ? 'tv' : 'movie';
-          const res = await fetch(`${baseURL}/${tmdbType}/${id}?api_key=${API_KEY}`);
+          const res = await fetchProxy(`/3/${tmdbType}/${id}?api_key=${API_KEY}`);
           const data = await res.json();
           if(data.id) {
               const formatted = formatTMDB(data, tmdbType);
@@ -862,7 +907,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function fetchTVEpisodes(seriesId, seasonNum) {
       try {
-          const res = await fetch(`${baseURL}/tv/${seriesId}/season/${seasonNum}?api_key=${API_KEY}`);
+          const res = await fetchProxy(`/3/tv/${seriesId}/season/${seasonNum}?api_key=${API_KEY}`);
           const data = await res.json();
           return (data.episodes || []).map(ep => ({
               name: `Ep ${ep.episode_number}: ${ep.name}`,
@@ -925,27 +970,29 @@ document.addEventListener('DOMContentLoaded', () => {
       DOMElements.dynamicCategoriesContainer.innerHTML = '<div class="loader-container"><div class="loader-spinner"></div></div>';
       renderAnnouncements();
       try {
+          // Dynamic hero banner item
           const heroPool = [ { id: 93405, type: 'tv' }, { id: 939243, type: 'movie' }, { id: 533535, type: 'movie' } ];
           const randomHero = heroPool[Math.floor(Math.random() * heroPool.length)];
-          const heroRes = await fetch(`${baseURL}/${randomHero.type}/${randomHero.id}?api_key=${API_KEY}`);
+          const heroRes = await fetchProxy(`/3/${randomHero.type}/${randomHero.id}?api_key=${API_KEY}`);
           const heroData = await heroRes.json();
           renderHeroBanner(formatTMDB(heroData, randomHero.type));
 
+          // Fetch MASSIVE categories (3 pages each = 60 items per category)
           const [trendingRes, moviesRes, actionRes, animationRes, horrorRes, tvRes] = await Promise.all([
-              fetch(`${baseURL}/trending/all/day?api_key=${API_KEY}`).then(r => r.json()),
-              fetch(`${baseURL}/movie/popular?api_key=${API_KEY}`).then(r => r.json()),
-              fetch(`${baseURL}/discover/movie?api_key=${API_KEY}&with_genres=28`).then(r => r.json()),
-              fetch(`${baseURL}/discover/movie?api_key=${API_KEY}&with_genres=16`).then(r => r.json()),
-              fetch(`${baseURL}/discover/movie?api_key=${API_KEY}&with_genres=27`).then(r => r.json()),
-              fetch(`${baseURL}/tv/popular?api_key=${API_KEY}`).then(r => r.json())
+              fetchMultiplePages(`/3/trending/all/day?api_key=${API_KEY}&page={PAGE}`, 3),
+              fetchMultiplePages(`/3/movie/popular?api_key=${API_KEY}&page={PAGE}`, 3),
+              fetchMultiplePages(`/3/discover/movie?api_key=${API_KEY}&with_genres=28&page={PAGE}`, 3),
+              fetchMultiplePages(`/3/discover/movie?api_key=${API_KEY}&with_genres=16&page={PAGE}`, 3),
+              fetchMultiplePages(`/3/discover/movie?api_key=${API_KEY}&with_genres=27&page={PAGE}`, 3),
+              fetchMultiplePages(`/3/tv/popular?api_key=${API_KEY}&page={PAGE}`, 3)
           ]);
 
-          const trending = trendingRes.results.map(i => formatTMDB(i));
-          const movies = moviesRes.results.map(i => formatTMDB(i, 'movie'));
-          const action = actionRes.results.map(i => formatTMDB(i, 'movie'));
-          const animation = animationRes.results.map(i => formatTMDB(i, 'movie'));
-          const horror = horrorRes.results.map(i => formatTMDB(i, 'movie'));
-          const tv = tvRes.results.map(i => formatTMDB(i, 'tv'));
+          const trending = trendingRes.map(i => formatTMDB(i));
+          const movies = moviesRes.map(i => formatTMDB(i, 'movie'));
+          const action = actionRes.map(i => formatTMDB(i, 'movie'));
+          const animation = animationRes.map(i => formatTMDB(i, 'movie'));
+          const horror = horrorRes.map(i => formatTMDB(i, 'movie'));
+          const tv = tvRes.map(i => formatTMDB(i, 'tv'));
 
           const cwPromises = (userData.continueWatching || []).slice(0, 15).map(cw => loadStoredItem(cw));
           const wlPromises = (userData.watchlist || []).map(wl => loadStoredItem(wl));
@@ -962,12 +1009,34 @@ document.addEventListener('DOMContentLoaded', () => {
           createCategorySection("Trending Now", trending);
           createCategorySection("Featured Cinema", movies, DOMElements.dynamicCategoriesContainer, true);
           createCategorySection("Action & Adventure", action);
+          
+          // ADDING STREAM HOSTERS SECTION dynamically
+          const providersContainer = document.createElement('div');
+          providersContainer.className = 'category-container';
+          providersContainer.innerHTML = `
+              <h2>Stream Hosters</h2>
+              <div class="provider-container">
+                  ${streamProviders.map(p => `
+                      <div class="provider-card" data-id="${p.id}" data-name="${p.name}">
+                          <img src="${p.logo}" alt="${p.name}">
+                          <span>${p.name}</span>
+                      </div>
+                  `).join('')}
+              </div>
+          `;
+          DOMElements.dynamicCategoriesContainer.appendChild(providersContainer);
+          providersContainer.querySelectorAll('.provider-card').forEach(card => {
+              card.addEventListener('click', () => {
+                  renderProviderView(card.dataset.id, card.dataset.name);
+              });
+          });
+
           createCategorySection("Animation / Safe for Kids", animation);
           createCategorySection("Horror & Suspense", horror);
           createCategorySection("Top TV Series", tv);
 
       } catch (e) {
-          DOMElements.dynamicCategoriesContainer.innerHTML = '<p style="text-align:center;color:red;">Error loading content.</p>';
+          DOMElements.dynamicCategoriesContainer.innerHTML = '<p style="text-align:center;color:red;">Error loading content. Please check proxy or API.</p>';
       }
   }
 
@@ -995,7 +1064,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const fragment = document.createDocumentFragment();
       items.forEach((item, index) => {
           if (!item) return;
-          const card = createCard(item, { animationDelay: index * 50 }, isTvBoxStyle);
+          const card = createCard(item, { animationDelay: (index % 10) * 50 }, isTvBoxStyle);
           if (isMainGrid) {
               if (index % 7 === 0 && index !== 0) card.classList.add('card-wide');
               else if (index % 13 === 0 && index !== 0) card.classList.add('card-large');
@@ -1105,14 +1174,20 @@ document.addEventListener('DOMContentLoaded', () => {
       DOMElements.previewVideoContainer.innerHTML = ''; 
       DOMElements.previewVolumeBtn.style.display = 'none';
 
+      // Setup Server Selector based on Persistent LocalStorage Pref
       let srvSelect = document.createElement('select');
       srvSelect.className = 'server-select';
       srvSelect.id = 'global-server-select';
       const srvList = item.type === 'series' ? tvServers : movieServers;
+      const savedPref = localStorage.getItem('cineHubServerPref') || 0;
       srvList.forEach((s, i) => {
           let opt = document.createElement('option');
           opt.value = i; opt.text = s.name;
+          if(i == savedPref) opt.selected = true;
           srvSelect.appendChild(opt);
+      });
+      srvSelect.addEventListener('change', (e) => {
+          localStorage.setItem('cineHubServerPref', e.target.value);
       });
       DOMElements.previewServerContainer.innerHTML = '<span style="color:var(--text-secondary); font-size:0.9rem; margin-right: 0.5rem;">Select Server:</span>';
       DOMElements.previewServerContainer.appendChild(srvSelect);
@@ -1120,12 +1195,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!item.previewVideoUrlFetched) {
           try {
               const tmdbType = item.type === 'series' ? 'tv' : 'movie';
-              const vidRes = await fetch(`${baseURL}/${tmdbType}/${item.tmdbId}/videos?api_key=${API_KEY}`);
+              const vidRes = await fetchProxy(`/3/${tmdbType}/${item.tmdbId}/videos?api_key=${API_KEY}`);
               const vidData = await vidRes.json();
               const trailer = vidData.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
               if (trailer) item.previewVideoUrl = `https://www.youtube.com/watch?v=${trailer.key}`;
               if(item.runtime === '120 min' || item.runtime === '45 min') {
-                  const detailsRes = await fetch(`${baseURL}/${tmdbType}/${item.tmdbId}?api_key=${API_KEY}`);
+                  const detailsRes = await fetchProxy(`/3/${tmdbType}/${item.tmdbId}?api_key=${API_KEY}`);
                   const details = await detailsRes.json();
                   if(details.runtime) item.runtime = `${details.runtime} min`;
                   else if(details.episode_run_time && details.episode_run_time.length) item.runtime = `${details.episode_run_time[0]} min`;
@@ -1156,7 +1231,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (item.type === 'series') {
           if (!item.episodes) {
-              const res = await fetch(`${baseURL}/tv/${item.tmdbId}?api_key=${API_KEY}`);
+              const res = await fetchProxy(`/3/tv/${item.tmdbId}?api_key=${API_KEY}`);
               const data = await res.json();
               item.episodes = {}; item.seasonImages = {};
               (data.seasons || []).forEach(s => {
@@ -1170,7 +1245,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
           DOMElements.moreLikeThisGrid.innerHTML = '';
           try {
-              const res = await fetch(`${baseURL}/movie/${item.tmdbId}/recommendations?api_key=${API_KEY}`);
+              const res = await fetchProxy(`/3/movie/${item.tmdbId}/recommendations?api_key=${API_KEY}`);
               const data = await res.json();
               data.results.slice(0, 6).forEach(r => {
                   const rec = formatTMDB(r, 'movie');
@@ -1184,11 +1259,12 @@ document.addEventListener('DOMContentLoaded', () => {
       DOMElements.previewModal.style.display = 'flex';
   }
 
-  function getSelectedServerUrl(item, season, episode) {
-      const select = document.getElementById('global-server-select');
-      const idx = select ? select.value : 0;
+  function getSelectedServerUrl(item, season, episode, overrideIndex = null) {
+      const savedIdx = localStorage.getItem('cineHubServerPref') || 0;
+      const idx = overrideIndex !== null ? overrideIndex : savedIdx;
       const srvList = item.type === 'series' ? tvServers : movieServers;
-      let url = srvList[idx].url;
+      const safeIdx = Math.min(idx, srvList.length - 1);
+      let url = srvList[safeIdx].url;
       url = url.replace('{tmdb}', item.tmdbId);
       if (item.type === 'series') url = url.replace('{s}', season).replace('{e}', episode);
       return url;
@@ -1219,7 +1295,7 @@ document.addEventListener('DOMContentLoaded', () => {
           episodeItem.addEventListener('click', () => {
               ep.type = 'episode';
               const url = getSelectedServerUrl(series, seasonNum, ep.episode_number);
-              playMovie(ep, { seriesId: series.id, episodeId: episodeId, title: `S${seasonNum} E${ep.episode_number}: ${ep.name}`, thumbnailUrl: imgUrl }, url);
+              playMovie(ep, { seriesId: series.id, episodeId: episodeId, title: `S${seasonNum} E${ep.episode_number}: ${ep.name}`, thumbnailUrl: imgUrl, seasonNum: seasonNum, episodeNum: ep.episode_number }, url);
           });
           DOMElements.episodesList.appendChild(episodeItem);
       });
@@ -1257,7 +1333,7 @@ document.addEventListener('DOMContentLoaded', () => {
               if (firstSeason && item.episodes[firstSeason] && item.episodes[firstSeason].length > 0) {
                   const firstEp = item.episodes[firstSeason][0];
                   const url = getSelectedServerUrl(item, firstSeason, firstEp.episode_number);
-                  playMovie(firstEp, { seriesId: item.id, episodeId: `${item.id}_s${firstSeason}_e${firstEp.episode_number}`, title: `S${firstSeason} E${firstEp.episode_number}`, thumbnailUrl: firstEp.imageUrl || item.imageUrl }, url);
+                  playMovie(firstEp, { seriesId: item.id, episodeId: `${item.id}_s${firstSeason}_e${firstEp.episode_number}`, title: `S${firstSeason} E${firstEp.episode_number}`, thumbnailUrl: firstEp.imageUrl || item.imageUrl, seasonNum: firstSeason, episodeNum: firstEp.episode_number }, url);
               }
           }
       } else {
@@ -1266,16 +1342,56 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   }
 
+  function resetUiTimer() {
+      DOMElements.iframeHeader.classList.remove('hidden');
+      clearTimeout(uiTimeout);
+      uiTimeout = setTimeout(() => {
+          DOMElements.iframeHeader.classList.add('hidden');
+      }, 5000);
+  }
+
   function playMovie(item, data, url) {
       if (!url || url === '#') return;
       if (youtubePlayer) { youtubePlayer.destroy(); youtubePlayer = null; }
       currentlyPlaying = { item, data };
       lockScroll();
+      
+      // Init Server Switcher in Player Overlay
+      DOMElements.playerServerSelect.innerHTML = '';
+      const activeSrvList = data.seriesId ? tvServers : movieServers;
+      const currentSavedPref = localStorage.getItem('cineHubServerPref') || 0;
+      activeSrvList.forEach((s, i) => {
+          let opt = document.createElement('option');
+          opt.value = i; opt.text = s.name;
+          if(i == currentSavedPref) opt.selected = true;
+          DOMElements.playerServerSelect.appendChild(opt);
+      });
+
       DOMElements.movieIframe.src = url;
       DOMElements.iframeTitle.textContent = data.title || 'Now Playing';
       DOMElements.iframePlayerOverlay.style.display = 'flex';
       DOMElements.previewModal.style.display = 'none';
+
+      // Start UI timeout logic
+      resetUiTimer();
+      DOMElements.iframePlayerOverlay.addEventListener('mousemove', resetUiTimer);
+      DOMElements.iframePlayerOverlay.addEventListener('click', resetUiTimer);
+      DOMElements.iframePlayerOverlay.addEventListener('touchstart', resetUiTimer);
   }
+
+  // Bind change action to in-player server switcher
+  DOMElements.playerServerSelect.addEventListener('change', (e) => {
+      const newIndex = e.target.value;
+      localStorage.setItem('cineHubServerPref', newIndex);
+      if(currentlyPlaying) {
+          const cData = currentlyPlaying;
+          // if it's series item reference might be missing from cData.item (since we pass episode as item), so we use preview context
+          const properItemContext = currentPreviewItem || cData.item; 
+          let url = getSelectedServerUrl(properItemContext, cData.data.seasonNum, cData.data.episodeNum, newIndex);
+          DOMElements.movieIframe.src = url;
+          resetUiTimer();
+      }
+  });
 
   function addToContinueWatching(item) {
       if (!item || isWatched(item.id)) return;
@@ -1293,15 +1409,41 @@ document.addEventListener('DOMContentLoaded', () => {
       DOMElements.previewWatchlistBtn.title = isInWatchlist(itemId) ? "Remove from My List" : "Add to My List";
   }
 
-  function markAsWatched(data) {
+  // Fully functioning Series completion check
+  async function checkSeriesCompletion(seriesId) {
+      try {
+          const response = await fetchProxy(`/3/tv/${seriesId}?api_key=${API_KEY}`);
+          const data = await response.json();
+          const totalEpisodes = data.number_of_episodes;
+          // Check how many unique episodes user has watched that belong to this series
+          const watchedCount = userData.watched.filter(id => id.toString().startsWith(`${seriesId}_s`)).length;
+          
+          if (watchedCount >= totalEpisodes) {
+              if (!userData.watched.includes(seriesId.toString())) {
+                  userData.watched.push(seriesId.toString());
+              }
+              // Completely wipe it from continue watching
+              userData.continueWatching = userData.continueWatching.filter(cw => (typeof cw === 'string' ? cw : cw.id) != seriesId);
+              saveUserData();
+          }
+      } catch(e) { console.error("Error verifying series completion", e); }
+  }
+
+  async function markAsWatched(data) {
       if (!data) return;
       const idToMark = data.episodeId || data.movieId;
       if (idToMark && !userData.watched.includes(idToMark)) userData.watched.push(idToMark);
+      
       const contentId = data.seriesId || data.movieId;
-      if (contentId && isWatched(contentId)) {
-          userData.continueWatching = userData.continueWatching.filter(cw => (typeof cw === 'string' ? cw : cw.id) != contentId);
+      if (contentId) {
+          if (data.seriesId) {
+              await checkSeriesCompletion(data.seriesId);
+          } else {
+              userData.continueWatching = userData.continueWatching.filter(cw => (typeof cw === 'string' ? cw : cw.id) != contentId);
+          }
       }
       saveUserData();
+      if (document.getElementById('dashboard').classList.contains('active')) renderDashboardContent();
   }
 
   function isWatched(id) {
@@ -1338,6 +1480,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handleExitPlayer() {
       DOMElements.iframePlayerOverlay.style.display = 'none'; DOMElements.movieIframe.src = '';
+      clearTimeout(uiTimeout);
       currentlyPlaying = null;
       if (currentPreviewItem) {
           showPreviewModal(currentPreviewItem);
@@ -1360,14 +1503,16 @@ document.addEventListener('DOMContentLoaded', () => {
       container.innerHTML = `<h2>${viewId.charAt(0).toUpperCase() + viewId.slice(1)}</h2><div class="content-grid"><div class="loader-spinner" style="margin:auto;"></div></div>`;
       const grid = container.querySelector('.content-grid');
       let urlTemplate = '', type = 'movie';
-      if (viewId === 'trending') { urlTemplate = `${baseURL}/trending/all/week?api_key=${API_KEY}&page={PAGE}`; type = null; }
-      else if (viewId === 'series') { urlTemplate = `${baseURL}/tv/popular?api_key=${API_KEY}&page={PAGE}`; type = 'tv'; }
-      else if (viewId === 'movies') { urlTemplate = `${baseURL}/movie/popular?api_key=${API_KEY}&page={PAGE}`; type = 'movie'; }
+      if (viewId === 'trending') { urlTemplate = `/3/trending/all/week?api_key=${API_KEY}&page={PAGE}`; type = null; }
+      else if (viewId === 'series') { urlTemplate = `/3/tv/popular?api_key=${API_KEY}&page={PAGE}`; type = 'tv'; }
+      else if (viewId === 'movies') { urlTemplate = `/3/movie/popular?api_key=${API_KEY}&page={PAGE}`; type = 'movie'; }
+      else if (viewId === 'anime') { urlTemplate = `/3/discover/tv?api_key=${API_KEY}&with_genres=16&with_original_language=ja&page={PAGE}`; type = 'tv'; } // Added Anime Logic
+
       try {
-          const results = await fetchMultiplePages(urlTemplate, 4);
+          const results = await fetchMultiplePages(urlTemplate, 6); // Fetching 6 pages = 120 items for MASSIVE lists!
           const items = results.map(i => formatTMDB(i, type || i.media_type));
           generateCards(items, grid);
-      } catch(e) { grid.innerHTML = 'Error loading content.'; }
+      } catch(e) { grid.innerHTML = 'Error loading content. Please check proxy or API.'; }
       container.dataset.loaded = "true";
   }
 
@@ -1377,20 +1522,29 @@ document.addEventListener('DOMContentLoaded', () => {
       container.innerHTML = '<div class="loader-spinner" style="margin:2rem auto;"></div>'; 
       const today = new Date().toISOString().split('T')[0];
       try {
-          const res1 = await fetch(`${baseURL}/discover/movie?api_key=${API_KEY}&primary_release_date.gte=${today}&sort_by=popularity.desc&page=1`);
-          const res2 = await fetch(`${baseURL}/discover/movie?api_key=${API_KEY}&primary_release_date.gte=${today}&sort_by=popularity.desc&page=2`);
-          const data1 = await res1.json();
-          const data2 = await res2.json();
-          const combined = [...data1.results, ...data2.results];
+          const combined = await fetchMultiplePages(`/3/discover/movie?api_key=${API_KEY}&primary_release_date.gte=${today}&sort_by=popularity.desc&page={PAGE}`, 4);
           const upcomingItems = combined.map(i => {
               const item = formatTMDB(i, 'movie');
               item.type = 'upcoming'; return item;
           });
           container.innerHTML = '';
-          createCategorySection("Highly Anticipated", upcomingItems.slice(0, 15), container);
-          createCategorySection("Coming Soon", upcomingItems.slice(15, 35), container);
-      } catch(e) { container.innerHTML = 'Error loading content.'; }
+          createCategorySection("Highly Anticipated", upcomingItems.slice(0, 20), container);
+          createCategorySection("Coming Soon", upcomingItems.slice(20, 50), container);
+      } catch(e) { container.innerHTML = 'Error loading content. Please check proxy or API.'; }
       container.dataset.loaded = "true";
+  }
+
+  async function renderProviderView(providerId, providerName) {
+      switchView('provider-view');
+      const container = document.getElementById('provider-view');
+      container.innerHTML = `<h2>Available on ${providerName}</h2><div class="content-grid"><div class="loader-spinner" style="margin:auto;"></div></div>`;
+      const grid = container.querySelector('.content-grid');
+      const urlTemplate = `/3/discover/movie?api_key=${API_KEY}&with_watch_providers=${providerId}&watch_region=US&page={PAGE}`;
+      try {
+          const results = await fetchMultiplePages(urlTemplate, 5); 
+          const items = results.map(i => formatTMDB(i, 'movie'));
+          generateCards(items, grid);
+      } catch(e) { grid.innerHTML = 'Error loading provider content.'; }
   }
 
   function switchView(viewId) {
@@ -1403,8 +1557,9 @@ document.addEventListener('DOMContentLoaded', () => {
           case 'upcoming': renderUpcomingView(); break;
           case 'series': renderGridView('series'); break;
           case 'movies': renderGridView('movies'); break;
+          case 'anime': renderGridView('anime'); break;
       }
-      if (viewId !== 'settings' && viewId !== 'buy-vip' && viewId !== 'partners') if(activeView) activeView.dataset.loaded = "true";
+      if (viewId !== 'settings' && viewId !== 'buy-vip' && viewId !== 'partners' && viewId !== 'provider-view') if(activeView) activeView.dataset.loaded = "true";
       window.scrollTo(0, 0);
   }
 
@@ -1463,7 +1618,7 @@ document.addEventListener('DOMContentLoaded', () => {
           setTimeout(() => { DOMElements.searchOverlay.style.opacity = '1'; }, 10); 
           searchTimer = setTimeout(async () => {
               try {
-                  const res = await fetch(`${baseURL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}`);
+                  const res = await fetchProxy(`/3/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}`);
                   const data = await res.json();
                   const results = data.results.filter(i => i.media_type !== 'person').map(i => formatTMDB(i));
                   if (results.length > 0) { 
