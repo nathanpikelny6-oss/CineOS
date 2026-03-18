@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cine-Play OS Ultimate</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --ps-bg: #0b0c10;
+            --ps-card: rgba(20, 20, 25, 0.7);
+            --ps-blue: #2b65f6;
+            --ps-glow: rgba(43, 101, 246, 0.6);
+            --text-main: #f0f0f0;
+            --text-muted: #888891;
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; user-select: none; }
+
+        body {
+            background-color: var(--ps-bg);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Redesigned Boot Screen */
+        #boot-screen {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, #111 0%, #000 100%);
+            z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 1.2s ease, visibility 1.2s;
+        }
+        .boot-logo-container { position: relative; display: flex; flex-direction: column; align-items: center; }
+        .boot-logo {
+            font-size: 4.5rem; font-weight: 300; letter-spacing: 6px;
+            color: #fff; display: flex; align-items: center; gap: 20px;
+            opacity: 0; transform: scale(0.8);
+            animation: cinematicPop 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        .boot-logo i { color: var(--ps-blue); text-shadow: 0 0 20px var(--ps-glow); }
+        .boot-line {
+            margin-top: 30px; width: 200px; height: 2px; background: var(--ps-blue);
+            box-shadow: 0 0 15px var(--ps-blue); border-radius: 2px;
+            transform-origin: center; transform: scaleX(0);
+            animation: lineExpand 2s cubic-bezier(0.8, 0, 0.2, 1) 0.5s forwards;
+        }
+
+        @keyframes cinematicPop {
+            0% { opacity: 0; transform: scale(0.8) translateY(30px); filter: blur(15px); }
+            40% { opacity: 1; transform: scale(1.05) translateY(0); filter: blur(0px); text-shadow: 0 0 40px rgba(255,255,255,0.6); }
+            100% { opacity: 1; transform: scale(1) translateY(0); text-shadow: 0 0 15px rgba(255,255,255,0.2); }
+        }
+        @keyframes lineExpand {
+            0% { transform: scaleX(0); opacity: 1; }
+            50% { transform: scaleX(1); opacity: 0.8; }
+            100% { transform: scaleX(0); opacity: 0; left: 100%; }
+        }
+
+        /* nav selector modal */
+        #nav-modal {
+            display: none; position: fixed; inset: 0; 
+            background: rgba(0,0,0,0.8); z-index: 10000;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            justify-content: center; align-items: center; flex-direction: column;
+        }
+        .nav-modal-content { text-align: center; max-width: 600px; }
+        .nav-modal-content h2 { font-weight: 300; font-size: 28px; margin-bottom: 40px; }
+        .nav-options { display: flex; gap: 30px; justify-content: center; }
+        .nav-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+            padding: 30px 40px; border-radius: 16px; color: white; cursor: pointer;
+            transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; gap: 15px; width: 200px;
+        }
+        .nav-btn i { font-size: 40px; color: var(--text-muted); transition: 0.3s; }
+        
+        body.mouse-mode .nav-btn:hover, .nav-btn.focused { 
+            background: rgba(255,255,255,0.15); border-color: white; transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        body.mouse-mode .nav-btn:hover i, .nav-btn.focused i { color: white; }
+
+        /* main layout */
+        #app {
+            width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            transition: background-image 0.8s ease;
+            display: flex; flex-direction: column; position: relative;
+        }
+        #app::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at top, rgba(0,0,0,0.2) 0%, #000 95%);
+            z-index: 1; pointer-events: none;
+        }
+
+        .top-bar {
+            height: 100px; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 50px; z-index: 20; position: relative; flex-shrink: 0;
+        }
+        .tabs { display: flex; gap: 40px; align-items: center; margin-left: 20px; }
+        .tab { 
+            font-size: 16px; color: var(--text-muted); cursor: pointer; 
+            transition: 0.3s; padding: 8px 0; position: relative; font-weight: 500;
+        }
+        .tab::after {
+            content: ''; position: absolute; bottom: -5px; left: 0; width: 0%; height: 2px;
+            background: white; transition: 0.3s;
+        }
+        .tab.active { color: white; }
+        .tab.active::after { width: 100%; }
+        .tab.focused { color: white; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+        
+        .sys-icons { display: flex; gap: 25px; color: white; font-size: 18px; align-items: center; opacity: 0.8; }
+        .sys-icons span { font-size: 14px; font-weight: bold; margin-left: -10px; }
+        #input-toggle { transition: 0.3s; cursor: pointer; }
+        #input-toggle:hover, #input-toggle.focused { color: var(--ps-blue); transform: scale(1.2); text-shadow: 0 0 10px var(--ps-glow); }
+
+        #content-area { flex: 1; position: relative; z-index: 10; display: flex; flex-direction: column; min-height: 0; }
+
+        /* Home View Extended */
+        .home-scroll-view {
+            display: flex; flex-direction: column; width: 100%; height: 100%;
+            overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; padding-bottom: 60px;
+        }
+
+        .game-info { padding: 0 70px; margin-bottom: 30px; margin-top: auto; transition: opacity 0.3s; min-height: 120px; flex-shrink: 0; }
+        .game-logo-text { font-size: 46px; font-weight: 800; letter-spacing: -1px; margin-bottom: 10px; text-shadow: 0 4px 20px rgba(0,0,0,0.8); }
+        .game-desc { color: var(--text-muted); font-size: 15px; max-width: 500px; line-height: 1.5; margin-bottom: 25px; }
+        
+        .play-btn {
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            padding: 14px 40px; border-radius: 30px;
+            color: white; font-size: 16px; font-weight: 600; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 10px; transition: all 0.2s;
+        }
+        
+        body.mouse-mode .play-btn:hover, .play-btn.focused { 
+            background: white; color: black; transform: scale(1.05); box-shadow: 0 5px 20px rgba(255,255,255,0.4); 
+        }
+
+        .home-row { margin-bottom: 35px; flex-shrink: 0; }
+        .carousel-container { padding-left: 70px; overflow: visible; height: 190px; }
+        .carousel-track { display: flex; gap: 20px; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        
+        .card {
+            width: 140px; height: 140px; border-radius: 20px;
+            background: var(--ps-card); border: 1px solid var(--glass-border);
+            display: flex; justify-content: center; align-items: center;
+            transition: all 0.3s ease; flex-shrink: 0; position: relative; overflow: hidden; cursor: pointer;
+        }
+        .card-bg { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0.6; transition: 0.3s; }
+        .card i { font-size: 30px; color: white; z-index: 2; opacity: 0.5; }
+        
+        .card.active { 
+            width: 180px; height: 180px; border: 2px solid white; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6); transform: translateY(-20px);
+        }
+        .card.active .card-bg { opacity: 1; }
+        .card.active i { opacity: 1; text-shadow: 0 0 15px rgba(255,255,255,0.5); }
+        body.mouse-mode .card:hover:not(.active) { border-color: rgba(255,255,255,0.6); }
+
+        .section-title { 
+            font-size: 24px; font-weight: 700; margin: 0 0 15px 70px; 
+            color: white; display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; 
+        }
+
+        /* Spinning Marquee Restored */
+        .marquee-container { overflow: hidden; white-space: nowrap; width: 100%; position: relative; padding-top: 10px; padding-bottom: 20px; }
+        .marquee-track { display: inline-flex; gap: 20px; animation: scrollMarquee 45s linear infinite; padding-left: 70px; }
+        body.mouse-mode .marquee-track:hover { animation-play-state: paused; }
+        .marquee-card { width: 150px; height: 150px; border-radius: 16px; background-size: cover; background-position: center; border: 1px solid var(--glass-border); flex-shrink: 0; transition: transform 0.3s; cursor: pointer; }
+        body.mouse-mode .marquee-card:hover, .marquee-card.focused { transform: scale(1.08) translateY(-5px); border-color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        @keyframes scrollMarquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        /* ---- REDESIGNED STORE ---- */
+        .grid-view {
+            display: none; width: 100%; height: 100%; flex-direction: column;
+            overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth;
+        }
+        
+        .store-top-layout {
+            display: flex; gap: 25px; margin: 20px 70px 40px 70px; flex-shrink: 0; height: 380px;
+        }
+        
+        .store-hero {
+            flex: 2; border-radius: 24px; position: relative; overflow: hidden;
+            display: flex; align-items: flex-end; padding: 40px;
+            background: #000; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 1px solid var(--glass-border); cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .store-random-box {
+            flex: 1; border-radius: 24px; position: relative; overflow: hidden;
+            background: var(--ps-card); border: 1px solid var(--ps-blue); cursor: pointer;
+            display: flex; flex-direction: column; justify-content: flex-end; padding: 35px;
+            transition: all 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .store-random-bg {
+            position: absolute; inset: 0; background-size: cover; background-position: center;
+            transition: background-image 0.5s ease-in-out; opacity: 0.5;
+            mask-image: linear-gradient(to bottom, transparent 20%, black 100%);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 20%, black 100%);
+        }
+
+        .store-hero-bg {
+            position: absolute; inset: 0; background-size: cover; background-position: center 20%;
+            opacity: 0.7; transition: opacity 1s, background-image 0.8s; 
+            mask-image: linear-gradient(to bottom, black 30%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 30%, transparent 100%);
+        }
+        
+        .store-hero-content, .store-random-content { position: relative; z-index: 2; width: 100%; }
+        
+        .store-hero-tag { 
+            color: var(--ps-blue); font-size: 13px; font-weight: 800; 
+            margin-bottom: 10px; display: inline-block; letter-spacing: 1.5px; text-transform: uppercase;
+        }
+        .store-hero-title { font-size: 44px; font-weight: 800; margin-bottom: 15px; line-height: 1.1; text-shadow: 0 4px 20px rgba(0,0,0,0.8); }
+        .store-hero-price { font-size: 16px; color: #ccc; margin-bottom: 25px; font-weight: 500;}
+
+        .store-random-content h3 { color: white; font-size: 26px; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+        .store-random-content p { color: var(--text-main); font-size: 15px; text-shadow: 0 2px 5px rgba(0,0,0,0.8); }
+
+        /* Store Controller Focus Styles for top section */
+        .store-focusable.focused, body.mouse-mode .store-focusable:hover { 
+            border-color: white; transform: scale(1.02); z-index: 5;
+        }
+        .store-random-box.focused, body.mouse-mode .store-random-box:hover { box-shadow: 0 10px 40px rgba(43, 101, 246, 0.5); background: rgba(43, 101, 246, 0.1); }
+        .store-hero.focused, body.mouse-mode .store-hero:hover { box-shadow: 0 20px 60px rgba(255, 255, 255, 0.2); }
+
+        .store-section-title { 
+            font-size: 28px; font-weight: 700; margin: 10px 0 20px 70px; 
+            color: white; display: flex; align-items: center; gap: 10px; flex-shrink: 0; letter-spacing: -0.5px; 
+        }
+        
+        .main-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            grid-auto-flow: dense;
+            gap: 30px; padding: 0 70px 80px 70px; flex-shrink: 0;
+        }
+        
+        .grid-item {
+            background: var(--ps-card); border-radius: 20px; overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); cursor: pointer; 
+            border: 1px solid var(--glass-border); display: flex; flex-direction: column;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2); height: 100%;
+        }
+        .grid-item.wide { grid-column: span 2; }
+        .grid-item.large { grid-column: span 2; grid-row: span 2; }
+        .span-full { grid-column: 1 / -1; margin-top: 30px; margin-left: 0; margin-bottom: 5px; pointer-events: none;}
+
+        .grid-item-img-container { width: 100%; aspect-ratio: 4/3; overflow: hidden; position: relative; }
+        .grid-item.wide .grid-item-img-container { aspect-ratio: 21/9; }
+        .grid-item.large .grid-item-img-container { flex: 1; aspect-ratio: unset; min-height: 250px; }
+        
+        .grid-item-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; opacity: 0.9; }
+        .grid-item-details {
+            padding: 18px; display: flex; flex-direction: column; gap: 12px;
+            background: rgba(20, 20, 25, 0.95); flex-grow: 1; justify-content: flex-end;
+        }
+        .grid-item-title { font-weight: 700; font-size: 16px; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .grid-item-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+        .grid-item-cat { color: var(--text-muted); font-size: 12px; }
+        .grid-item-btn {
+            background: rgba(255,255,255,0.1); color: var(--ps-blue);
+            padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700;
+            transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        
+        body.mouse-mode .grid-item:hover, .grid-item.focused { 
+            transform: scale(1.04) translateY(-5px); 
+            border-color: rgba(255,255,255,0.3); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 15px rgba(43, 101, 246, 0.3); z-index: 5;
+        }
+        body.mouse-mode .grid-item:hover .grid-item-img, .grid-item.focused .grid-item-img { transform: scale(1.08); opacity: 1; }
+        body.mouse-mode .grid-item:hover .grid-item-btn, .grid-item.focused .grid-item-btn {
+            background: var(--ps-blue); color: white;
+        }
+
+        /* SEARCH STYLES */
+        #search-box-container { padding: 40px 70px 20px 70px; flex-shrink: 0; }
+        #search-input {
+            width: 100%; background: var(--ps-card); border: 1px solid var(--glass-border);
+            color: white; font-size: 24px; font-weight: 500; padding: 20px 30px; outline: none; transition: 0.3s;
+            border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); user-select: auto;
+        }
+        #search-input::placeholder { color: var(--text-muted); }
+        #search-input:focus, #search-input.focused {
+            border-color: var(--ps-blue); box-shadow: 0 10px 40px var(--ps-glow); background: rgba(20, 20, 25, 0.9);
+        }
+
+        #toast-container { position: fixed; top: 40px; right: 40px; z-index: 20000; display: flex; flex-direction: column; gap: 15px; pointer-events: none; }
+        .toast { 
+            background: rgba(20, 20, 25, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            padding: 16px 28px; border-radius: 40px; border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 12px;
+            animation: slideIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 20px rgba(43, 101, 246, 0.3);
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        @keyframes slideIn { from { transform: translateX(120%) scale(0.9); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
+
+        #session-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(30px); z-index: 15000;
+            flex-direction: column; justify-content: center; align-items: center;
+        }
+        .session-timer { font-size: 6rem; font-weight: 100; margin: 30px 0; letter-spacing: -2px; }
+        .end-btn { background: white; color: black; border: none; padding: 15px 50px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; transition: 0.2s; }
+        body.mouse-mode .end-btn:hover { background: #ff3b30; color: white; transform: scale(1.05); }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
+        body.mouse-mode ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+    </style>
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <div id="nav-modal">
+        <div class="nav-modal-content">
+            <h2>Select Input Method</h2>
+            <div class="nav-options">
+                <div class="nav-btn" id="btn-keyboard" onclick="setNavMode('keyboard')" onmouseover="if(useMouse) hoverNav('keyboard')">
+                    <i class="fas fa-gamepad"></i>
+                    <span>Controller / Keys</span>
+                </div>
+                <div class="nav-btn" id="btn-mouse" onclick="setNavMode('mouse')" onmouseover="if(useMouse) hoverNav('mouse')">
+                    <i class="fas fa-mouse-pointer"></i>
+                    <span>Mouse</span>
+                </div>
+            </div>
+        </div>
+    </div> 
+
+    <div id="boot-screen">
+        <div class="boot-logo-container">
+            <div class="boot-logo"><i class="fab fa-playstation"></i> CINE-PLAY</div>
+            <div class="boot-line"></div>
+        </div>
+    </div>
+
+    <div id="app">
+        <div class="top-bar">
+            <div class="tabs">
+                <div class="tab active" data-id="games" onclick="if(useMouse) switchTab('games')">Home</div>
+                <div class="tab" data-id="purchased" onclick="if(useMouse) switchTab('purchased')">Game Library</div>
+                <div class="tab" data-id="store" onclick="if(useMouse) switchTab('store')">Play Store</div>
+                <div class="tab" data-id="search" onclick="if(useMouse) switchTab('search')"><i class="fas fa-search" style="margin-right: 5px;"></i>Search</div>
+            </div>
+            <div class="sys-icons">
+                <i class="fas fa-cog"></i>
+                <i class="fas fa-mouse-pointer" id="input-toggle" onclick="toggleNavMode()" title="Toggle Input Mode"></i>
+                <i class="fas fa-user-circle" style="font-size: 24px; margin-left: 5px;"></i>
+                <span id="clock">12:00</span>
+            </div>
+        </div>
+
+        <div id="content-area">
+            
+            <div class="home-scroll-view" id="carousel-view">
+                
+                <div style="height: 50vh; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 20px;">
+                    <div class="game-info">
+                        <div class="game-logo-text" id="hero-title">Select Title</div>
+                        <div class="game-desc" id="hero-sub">Loading system assets...</div>
+                        <button class="play-btn" id="hero-btn" onclick="handleAction()">
+                            <i class="fas fa-play" id="btn-icon"></i> <span id="btn-text">Play</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="home-row" id="row-yours">
+                    <div class="section-title" id="main-carousel-title">Your Games</div>
+                    <div class="carousel-container">
+                        <div class="carousel-track" id="track"></div>
+                    </div>
+                </div>
+
+                <div class="home-row" id="row-rand">
+                    <div class="section-title">Try Something New!</div>
+                    <div class="marquee-container">
+                        <div class="marquee-track" id="marquee-track"></div>
+                    </div>
+                </div>
+
+                <div class="home-row" id="row-rec">
+                    <div class="section-title">What We Recommend</div>
+                    <div class="carousel-container">
+                        <div class="carousel-track" id="track-rec"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-view" id="store-view">
+                <div class="store-top-layout">
+                    <div class="store-hero store-focusable" id="store-hero" onclick="purchaseFeatured()">
+                        <div class="store-hero-bg" id="hero-bg-layer"></div>
+                        <div class="store-hero-content">
+                            <div class="store-hero-tag">Featured Title</div>
+                            <div class="store-hero-title" id="featured-title">Loading...</div>
+                            <div class="store-hero-price">Available Now • PS5 Enhanced</div>
+                            <button class="play-btn" style="background: white; color: black; padding: 10px 30px; border:none; pointer-events: none;">GET</button>
+                        </div>
+                    </div>
+                    
+                    <div class="store-random-box store-focusable" id="store-random-box" onclick="buyStoreRandomGame()">
+                        <div class="store-random-bg" id="store-random-bg"></div>
+                        <div class="store-random-content">
+                            <h3><i class="fas fa-dice"></i> Random Game</h3>
+                            <p>Can't decide? Click to instantly grab the game shown!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="main-grid" id="store-grid"></div>
+            </div>
+
+            <div class="grid-view" id="search-view">
+                <div id="search-box-container">
+                    <input type="text" id="search-input" placeholder="Games, Apps, Articles and More" autocomplete="off">
+                </div>
+                <div class="store-section-title" id="search-status" style="font-size: 18px; color: var(--text-muted); margin-top: 10px;">Enter a query to search</div>
+                <div class="main-grid" id="search-grid"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <input type="file" id="file-input" style="display: none;" accept=".html">
+
+    <div id="session-overlay">
+        <div style="color:var(--ps-blue); font-weight: bold; font-size: 20px; letter-spacing: 2px;">NOW PLAYING</div>
+        <div class="session-timer" id="session-timer">00:00:00</div>
+        <button class="end-btn" onclick="killGame()">Close Game</button>
+    </div>
+    
+    <script>
+        const API_ZONES = "https://cdn.jsdelivr.net/gh/gn-math/assets@main/zones.json";
+        const CDN_COVER = "https://cdn.jsdelivr.net/gh/gn-math/covers@main";
+        const CDN_HTML = "https://cdn.jsdelivr.net/gh/gn-math/html@main";
+
+        // NOAH_GAMES logic ported exactly from file 1
+        const NOAH_GAMES = [
+            { title: "Alien Hominid", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/393.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/382.png" },
+            { title: "Customer Support", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/383.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/383.jpg" },
+            { title: "The Deadseat", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/395.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/384.jpg" },
+            { title: "Fireboy & Watergirl: Forest Temple", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/385.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/385.jpg" },
+            { title: "Deltatraveler", url: "https://script.google.com/macros/s/AKfycbx137PRDh0Of0SDaXqu2fKaJ8Ht8Os5Nabi3xeIWYs_dCA0jP4SKRjQ9P9nC1xeruWK/exec?game=388", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/386.jpg" },
+            { title: "Needy Streamer Overload", url: "https://script.google.com/macros/s/AKfycbx137PRDh0Of0SDaXqu2fKaJ8Ht8Os5Nabi3xeIWYs_dCA0jP4SKRjQ9P9nC1xeruWK/exec?game=389", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/387.jpg" },
+            { title: "Pizza Tower", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/394.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/388.png" },
+            { title: "TileTopia", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/391.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/389.png" },
+            { title: "Earn to Die", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/378.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/378.jpg" },
+            { title: "Earn to Die 2", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/379.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/379.jpg" },
+            { title: "Bart Blast", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/380.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/380.jpg" },
+            { title: "Bendy and the Ink Machine", url: "https://script.google.com/macros/s/AKfycby_6uwHt90FuvgGfTLTHhveJVw0nEJ_bMxq8GTaA1KjFfpmu0g08RlArFt61GAw7WOw/exec?game=374", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/374.jpg" },
+            { title: "Gacha Life", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/375.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/375.jpg" },
+            { title: "Gacha Verse", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/376.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/376.jpg" },
+            { title: "Tung Sahur Horror", url: "https://script.google.com/macros/s/AKfycby_6uwHt90FuvgGfTLTHhveJVw0nEJ_bMxq8GTaA1KjFfpmu0g08RlArFt61GAw7WOw/exec?game=377", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/377.jpg" },
+            { title: "Horror Tale", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/373.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/373.jpg" },
+            { title: "Dumb Ways to Die", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/372.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/images/372.jpg" },
+            { title: "Bloons Tower Defense 5", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/371.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/371.jpg" },
+            { title: "Brotato", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/366.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/366.jpg" },
+            { title: "Earthbound", url: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor@master/games/339.html", image: "https://cdn.jsdelivr.net/gh/NoahsAmazingTutoringHelp/Noahs-Calculus-Tutor/images/340.jpg" }
+        ];
+
+        let DB = []; 
+        let currentTab = 'games';
+        
+        let activeIndex = 0; 
+        let recIndex = 0;
+        let storeIndex = 0; 
+        let searchIndex = 0;
+        
+        // Controller state tracking
+        let navLayer = 'home_yours'; 
+        
+        let purchasedIds = JSON.parse(localStorage.getItem('ps_purchased')) || [];
+        let homeIds = JSON.parse(localStorage.getItem('ps_home')) || [];
+        let customData = JSON.parse(localStorage.getItem('ps_custom')) || [];
+        
+        let rendered = 0;
+        let useMouse = true; 
+        let featGames = [];
+        let featIdx = 0;
+        let searchResults = [];
+        let recommendedGames = [];
+        let currentStoreRandomGame = null;
+        let storeCycler = null;
+
+        const STORE_CATEGORIES = ["Trending Now", "Action & Adventure", "Puzzle & Strategy", "RPG Epics", "Casual Indie"];
+
+        let activeWin = null;
+        let startT = null;
+        let tInterval = null;
+
+        function getAll() { return [...DB, ...customData]; }
+
+        window.onload = function() {
+            document.body.classList.add('mouse-mode');
+
+            // CRITICAL FIX: Global wheel prevent for controller, low sensitivity for horizontal tracks
+            let wheelCooldown = false;
+            document.getElementById('content-area').addEventListener('wheel', (e) => {
+                if (!useMouse) {
+                    e.preventDefault();
+                    return;
+                }
+                const trackContainer = e.target.closest('.carousel-container');
+                if (trackContainer && !e.target.closest('.marquee-container')) {
+                    e.preventDefault(); // Stop vertical scroll while hovering the horizontal track
+                    
+                    if (wheelCooldown || Math.abs(e.deltaY) < 15) return;
+                    wheelCooldown = true;
+                    setTimeout(() => wheelCooldown = false, 600); // 600ms = heavily reduced sensitivity
+
+                    const isRec = trackContainer.querySelector('#track-rec');
+                    if (isRec) {
+                        if (e.deltaY > 0 && recIndex < recommendedGames.length - 1) recIndex++;
+                        else if (e.deltaY < 0 && recIndex > 0) recIndex--;
+                        updateRecFocus();
+                    } else {
+                        const list = getActiveList();
+                        if (e.deltaY > 0 && activeIndex < list.length - 1) activeIndex++;
+                        else if (e.deltaY < 0 && activeIndex > 0) activeIndex--;
+                        updateCarouselFocus();
+                    }
+                }
+            }, { passive: false });
+
+            // Ported API logic combining both ZONES + NOAH_GAMES
+            fetch(API_ZONES + "?cachebust=" + Date.now())
+                .then(r => r.json())
+                .then(data => {
+                    const fetchedDB = data.map(g => ({
+                        id: 'id_' + g.name.replace(/\s+/g, '_').toLowerCase(),
+                        name: g.name,
+                        desc: "Full Game • PS5 Enhanced Edition",
+                        img: g.cover ? g.cover.replace("{COVER_URL}", CDN_COVER).replace("{HTML_URL}", CDN_HTML) : '',
+                        url: g.url ? g.url.replace("{HTML_URL}", CDN_HTML) : '',
+                        price: 'Free',
+                        featured: Math.random() < 0.2 
+                    }));
+
+                    const noahDB = NOAH_GAMES.map(g => ({
+                        id: 'id_noah_' + g.title.replace(/\s+/g, '_').toLowerCase(),
+                        name: g.title,
+                        desc: "Noah's Collection • Classic",
+                        img: g.image,
+                        url: g.url,
+                        price: 'Free',
+                        featured: Math.random() < 0.2
+                    }));
+
+                    // Deduplicate logic just like in file 1
+                    DB = [...fetchedDB, ...noahDB];
+                    const seen = new Set();
+                    DB = DB.filter(g => {
+                        const key = g.name.toLowerCase().trim();
+                        if(seen.has(key)) return false;
+                        seen.add(key);
+                        return true;
+                    });
+
+                    initBoot();
+                })
+                .catch(e => {
+                    console.error("api dead", e);
+                    // Fallback to Noah games just in case the fetch fails entirely
+                    DB = NOAH_GAMES.map(g => ({
+                        id: 'id_noah_' + g.title.replace(/\s+/g, '_').toLowerCase(),
+                        name: g.title,
+                        desc: "Noah's Collection • Classic",
+                        img: g.image,
+                        url: g.url,
+                        price: 'Free',
+                        featured: Math.random() < 0.2
+                    }));
+                    initBoot();
+                });
+
+            document.getElementById('store-view').addEventListener('scroll', (e) => {
+                if(e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight - 300) renderMoreStore();
+            });
+
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                const q = e.target.value.toLowerCase().trim();
+                if(!q) {
+                    searchResults = [];
+                    document.getElementById('search-status').innerText = "Enter a query to search";
+                    renderSearchGrid();
+                    return;
+                }
+                searchResults = getStoreData().filter(g => g.name.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q));
+                document.getElementById('search-status').innerText = searchResults.length ? `Found ${searchResults.length} results` : "No results found";
+                searchIndex = 0;
+                renderSearchGrid();
+            });
+        };
+
+        function initBoot() {
+            setTimeout(() => {
+                document.getElementById('boot-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('boot-screen').style.visibility = 'hidden';
+                    if(!localStorage.getItem('navSet')) {
+                        document.getElementById('nav-modal').style.display = 'flex';
+                        hoverNav('keyboard'); 
+                    } else {
+                        setNavMode(localStorage.getItem('navSet'));
+                        startupDash();
+                    }
+                }, 1200);
+            }, 2500); 
+        }
+
+        function hoverNav(mode) {
+            document.getElementById('btn-keyboard').classList.remove('focused');
+            document.getElementById('btn-mouse').classList.remove('focused');
+            document.getElementById(`btn-${mode}`).classList.add('focused');
+        }
+
+        function toggleNavMode() {
+            const newMode = useMouse ? 'keyboard' : 'mouse';
+            setNavMode(newMode);
+            popMsg(newMode === 'mouse' ? "Mouse Navigation Enabled" : "Controller Navigation Enabled");
+        }
+
+        function setNavMode(mode) {
+            useMouse = (mode === 'mouse');
+            localStorage.setItem('navSet', mode);
+            
+            const icon = document.getElementById('input-toggle');
+            if(useMouse) {
+                document.body.classList.add('mouse-mode');
+                document.querySelectorAll('.focused').forEach(el => el.classList.remove('focused'));
+                icon.className = "fas fa-mouse-pointer";
+            } else {
+                document.body.classList.remove('mouse-mode');
+                icon.className = "fas fa-gamepad";
+                updateUIState(); 
+            }
+
+            document.getElementById('nav-modal').style.display = 'none';
+            if(DB.length > 0 && rendered === 0) startupDash(); 
+        }
+
+        function startupDash() {
+            setupFeatured();
+            generateRecommended();
+            renderMarquee();
+            startStoreRandomCycler();
+            renderCards();
+            updateUIState();
+        }
+
+        // GENERATE UNIQUE RECOMMENDED & MARQUEE GAMES
+        function generateRecommended() {
+            const unowned = getStoreData().filter(g => !homeIds.includes(g.id) && !purchasedIds.includes(g.id));
+            recommendedGames = unowned.sort(() => 0.5 - Math.random()).slice(0, 15);
+            renderRecommended();
+        }
+
+        function renderMarquee() {
+            const marqueeTrack = document.getElementById('marquee-track');
+            if(!marqueeTrack) return;
+            marqueeTrack.innerHTML = '';
+            
+            const allGames = getStoreData();
+            // Shuffle so it shows new games every load
+            const shuffled = [...allGames].sort(() => 0.5 - Math.random()).slice(0, 20);
+            
+            let marqueeHtml = '';
+            shuffled.forEach(g => {
+                marqueeHtml += `<div class="marquee-card" style="background-image: url('${g.img || ''}')" onclick="buyStuffById('${g.id}')"></div>`;
+            });
+            marqueeTrack.innerHTML = marqueeHtml + marqueeHtml; // duplicate for smooth scrolling
+        }
+
+        // STORE RANDOM GAME LOGIC
+        function startStoreRandomCycler() {
+            clearInterval(storeCycler);
+            const unowned = getStoreData().filter(g => !purchasedIds.includes(g.id));
+            if (!unowned.length) return;
+            
+            currentStoreRandomGame = unowned[Math.floor(Math.random() * unowned.length)];
+            const bgEl = document.getElementById('store-random-bg');
+            if(bgEl) bgEl.style.backgroundImage = `url('${currentStoreRandomGame.img}')`;
+
+            storeCycler = setInterval(() => {
+                const unowned = getStoreData().filter(g => !purchasedIds.includes(g.id));
+                if (!unowned.length) { clearInterval(storeCycler); return; }
+                currentStoreRandomGame = unowned[Math.floor(Math.random() * unowned.length)];
+                if(bgEl) bgEl.style.backgroundImage = `url('${currentStoreRandomGame.img}')`;
+            }, 3000);
+        }
+
+        function buyStoreRandomGame() {
+            if(!currentStoreRandomGame) return;
+            buyStuff(currentStoreRandomGame);
+            currentStoreRandomGame = null; // Clear so it doesn't double trigger
+            startStoreRandomCycler(); // Pick a new one
+            generateRecommended();
+        }
+
+        // CONTROLLER NAVIGATION CORE
+        document.addEventListener('keydown', (e) => {
+            if(document.getElementById('session-overlay').style.display === 'flex') {
+                if(e.key === 'Escape') killGame();
+                return;
+            }
+            if(document.getElementById('nav-modal').style.display === 'flex') {
+                if(e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                    const isKb = document.getElementById('btn-keyboard').classList.contains('focused');
+                    hoverNav(isKb ? 'mouse' : 'keyboard');
+                }
+                if(e.key === 'Enter') setNavMode(document.getElementById('btn-keyboard').classList.contains('focused') ? 'keyboard' : 'mouse');
+                return;
+            }
+            
+            if(useMouse) return; 
+
+            if (navLayer === 'tabs') {
+                const arr = ['games', 'purchased', 'store', 'search'];
+                let curr = arr.indexOf(currentTab);
+                if (e.key === 'ArrowRight') switchTab(arr[(curr + 1) % arr.length]);
+                if (e.key === 'ArrowLeft') switchTab(arr[(curr - 1 + arr.length) % arr.length]);
+                if (e.key === 'ArrowDown') { 
+                    if(currentTab === 'store') navLayer = 'store';
+                    else if(currentTab === 'search') navLayer = 'search_input';
+                    else navLayer = 'home_yours'; 
+                    updateUIState(); 
+                }
+            } 
+            // HOME VIEW NAVIGATION
+            else if (navLayer === 'home_hero') {
+                if (e.key === 'ArrowUp') { navLayer = 'tabs'; updateUIState(); }
+                if (e.key === 'ArrowDown') { navLayer = 'home_yours'; updateUIState(); }
+                if (e.key === 'Enter') handleAction();
+            } 
+            else if (navLayer === 'home_yours') {
+                const list = getActiveList();
+                if (e.key === 'ArrowUp') { navLayer = 'home_hero'; updateUIState(); }
+                if (e.key === 'ArrowDown') { 
+                    if (currentTab === 'games' && recommendedGames.length > 0) navLayer = 'home_rec'; 
+                    updateUIState(); 
+                }
+                if (e.key === 'ArrowRight' && activeIndex < list.length - 1) { activeIndex++; updateCarouselFocus(); }
+                if (e.key === 'ArrowLeft' && activeIndex > 0) { activeIndex--; updateCarouselFocus(); }
+                if (e.key === 'Enter') executeItem(list[activeIndex]);
+            }
+            else if (navLayer === 'home_rec') {
+                if (e.key === 'ArrowUp') { navLayer = 'home_yours'; updateUIState(); }
+                if (e.key === 'ArrowRight' && recIndex < recommendedGames.length - 1) { recIndex++; updateRecFocus(); }
+                if (e.key === 'ArrowLeft' && recIndex > 0) { recIndex--; updateRecFocus(); }
+                if (e.key === 'Enter') {
+                    buyStuff(recommendedGames[recIndex]);
+                    generateRecommended();
+                }
+            }
+            // STORE NAVIGATION (Spatial Fix)
+            else if (navLayer === 'store') {
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    moveFocusStore(e.key);
+                }
+                if (e.key === 'Enter') {
+                    const focusedItem = document.querySelector('.store-focusable.focused');
+                    if (focusedItem) focusedItem.click();
+                }
+            } 
+            else if (navLayer === 'search_input') {
+                if (e.key === 'ArrowUp') { navLayer = 'tabs'; document.getElementById('search-input').blur(); updateUIState(); }
+                if (e.key === 'ArrowDown' && searchResults.length > 0) { 
+                    navLayer = 'search_grid'; document.getElementById('search-input').blur(); updateUIState(); 
+                }
+            } else if (navLayer === 'search_grid') {
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    moveFocusSearch(e.key);
+                }
+                if (e.key === 'Enter') handleSearchItemClick(searchResults[searchIndex]);
+            }
+        });
+
+        // SPATIAL NAVIGATION HELPER TO FIX DENSE GRID WONKINESS
+        function moveFocusStore(dir) {
+            const items = Array.from(document.querySelectorAll('.store-focusable'));
+            if(!items.length) return;
+            
+            // Map storeIndex to the actual nodes array position if needed
+            let cur = items[storeIndex];
+            if(!cur) { storeIndex = 0; focusStore(0); return; }
+            
+            const r1 = cur.getBoundingClientRect();
+            let best = -1, minD = Infinity;
+
+            items.forEach((item, i) => {
+                if(i === storeIndex) return;
+                const r2 = item.getBoundingClientRect();
+                let match = false;
+                let dx = (r2.left + r2.width/2) - (r1.left + r1.width/2);
+                let dy = (r2.top + r2.height/2) - (r1.top + r1.height/2);
+
+                if(dir === 'ArrowUp' && dy < -20 && Math.abs(dx) < r1.width) match = true;
+                if(dir === 'ArrowDown' && dy > 20 && Math.abs(dx) < r1.width) match = true;
+                if(dir === 'ArrowLeft' && dx < -20 && Math.abs(dy) < r1.height/2) match = true;
+                if(dir === 'ArrowRight' && dx > 20 && Math.abs(dy) < r1.height/2) match = true;
+
+                if(!match) { // generous fallbacks
+                    if(dir === 'ArrowUp' && dy < -20) match = true;
+                    if(dir === 'ArrowDown' && dy > 20) match = true;
+                    if(dir === 'ArrowLeft' && dx < -20) match = true;
+                    if(dir === 'ArrowRight' && dx > 20) match = true;
+                }
+
+                if(match) {
+                    let dist = (dir === 'ArrowUp' || dir === 'ArrowDown') ? (dx*dx*4 + dy*dy) : (dx*dx + dy*dy*4);
+                    if(dist < minD) { minD = dist; best = i; }
+                }
+            });
+
+            if(best !== -1) {
+                storeIndex = best; focusStore(storeIndex);
+            } else if (dir === 'ArrowUp') {
+                navLayer = 'tabs'; updateUIState();
+            }
+        }
+
+        function moveFocusSearch(dir) {
+            const items = document.querySelectorAll('#search-grid .grid-item');
+            if(!items.length) return;
+            const cur = items[searchIndex];
+            if(!cur) { searchIndex = 0; focusSearch(0); return; }
+            const r1 = cur.getBoundingClientRect();
+            let best = -1, minD = Infinity;
+
+            items.forEach((item, i) => {
+                if(i === searchIndex) return;
+                const r2 = item.getBoundingClientRect();
+                let match = false;
+                let dx = (r2.left + r2.width/2) - (r1.left + r1.width/2);
+                let dy = (r2.top + r2.height/2) - (r1.top + r1.height/2);
+
+                if(dir === 'ArrowUp' && dy < -20) match = true;
+                if(dir === 'ArrowDown' && dy > 20) match = true;
+                if(dir === 'ArrowLeft' && dx < -20) match = true;
+                if(dir === 'ArrowRight' && dx > 20) match = true;
+
+                if(match) {
+                    let dist = (dir === 'ArrowUp' || dir === 'ArrowDown') ? (dx*dx*4 + dy*dy) : (dx*dx + dy*dy*4);
+                    if(dist < minD) { minD = dist; best = i; }
+                }
+            });
+
+            if(best !== -1) {
+                searchIndex = best; focusSearch(searchIndex);
+            } else if (dir === 'ArrowUp') {
+                navLayer = 'search_input'; updateUIState();
+            }
+        }
+
+        function getActiveList() {
+            if (currentTab === 'purchased') return getAll().filter(g => purchasedIds.includes(g.id));
+            const addCard = { name: "Upload Title", desc: "Install package via USB/HTML", icon: "fas fa-folder-plus", id: "sys_import" };
+            return [addCard, ...getAll().filter(g => homeIds.includes(g.id))];
+        }
+        function getStoreData() { return getAll().filter(g => g.id !== 'sys_import'); }
+
+        function switchTab(t) {
+            currentTab = t; activeIndex = 0; storeIndex = 0; searchIndex = 0; recIndex = 0;
+            document.querySelectorAll('.tab').forEach(el => el.classList.toggle('active', el.dataset.id === t));
+            
+            document.getElementById('carousel-view').style.display = 'none';
+            document.getElementById('store-view').style.display = 'none';
+            document.getElementById('search-view').style.display = 'none';
+            document.getElementById('app').style.backgroundImage = 'none';
+
+            if (t === 'store') {
+                document.getElementById('store-view').style.display = 'flex';
+                if(rendered === 0) {
+                    document.getElementById('store-grid').innerHTML = '';
+                    renderMoreStore();
+                }
+            } else if (t === 'search') {
+                document.getElementById('search-view').style.display = 'flex';
+                if(useMouse) { document.getElementById('search-input').focus(); }
+                else { navLayer = 'search_input'; }
+            } else {
+                document.getElementById('carousel-view').style.display = 'flex';
+                document.getElementById('main-carousel-title').innerText = t === 'games' ? "Your Games" : "Library";
+                document.getElementById('row-rec').style.display = t === 'games' ? 'block' : 'none';
+                document.getElementById('row-rand').style.display = t === 'games' ? 'block' : 'none';
+                renderCards();
+            }
+            if(!useMouse && t !== 'store' && t !== 'search') navLayer = 'home_yours';
+            updateUIState();
+        }
+
+        function renderCards() {
+            const track = document.getElementById('track');
+            const list = getActiveList();
+            track.innerHTML = '';
+            
+            if (activeIndex >= list.length) activeIndex = Math.max(0, list.length - 1);
+
+            list.forEach((g, i) => {
+                const div = document.createElement('div');
+                div.className = `card ${i === activeIndex && navLayer === 'home_yours' ? 'active' : ''}`;
+                div.id = `carousel-card-${i}`;
+                
+                let inner = '';
+                if(g.img) inner += `<div class="card-bg" style="background-image: url('${g.img}')"></div>`;
+                if(g.icon) inner += `<i class="${g.icon}"></i>`;
+                else if(!g.img) inner += `<i class="fas fa-gamepad"></i>`;
+                
+                div.innerHTML = inner;
+
+                if(useMouse) {
+                    div.onmouseenter = () => { 
+                        if(activeIndex !== i || navLayer !== 'home_yours') {
+                            activeIndex = i; navLayer = 'home_yours';
+                            updateCarouselFocus(); 
+                            updateUIState();
+                        }
+                    };
+                    div.onclick = () => executeItem(g);
+                }
+
+                track.appendChild(div);
+            });
+
+            updateCarouselFocus(true);
+        }
+
+        function renderRecommended() {
+            const track = document.getElementById('track-rec');
+            if(!track) return;
+            track.innerHTML = '';
+            
+            if (recIndex >= recommendedGames.length) recIndex = Math.max(0, recommendedGames.length - 1);
+
+            recommendedGames.forEach((g, i) => {
+                const div = document.createElement('div');
+                div.className = `card ${i === recIndex && navLayer === 'home_rec' ? 'active' : ''}`;
+                div.id = `rec-card-${i}`;
+                
+                let inner = '';
+                if(g.img) inner += `<div class="card-bg" style="background-image: url('${g.img}')"></div>`;
+                else inner += `<i class="fas fa-gamepad"></i>`;
+                
+                div.innerHTML = inner;
+
+                if(useMouse) {
+                    div.onmouseenter = () => { 
+                        if(recIndex !== i || navLayer !== 'home_rec') {
+                            recIndex = i; navLayer = 'home_rec';
+                            updateRecFocus(); 
+                            updateUIState();
+                        }
+                    };
+                    div.onclick = () => { buyStuff(g); generateRecommended(); };
+                }
+
+                track.appendChild(div);
+            });
+            updateRecFocus(true);
+        }
+
+        function updateCarouselFocus(skipClasses = false) {
+            const track = document.getElementById('track');
+            if(!skipClasses && navLayer === 'home_yours') {
+                document.querySelectorAll('#track .card').forEach((c, idx) => {
+                    c.classList.toggle('active', idx === activeIndex);
+                });
+            }
+            if(navLayer === 'home_yours') updateTopUI(getActiveList()[activeIndex]);
+            const nodes = document.querySelectorAll('#track .card');
+            if(nodes[activeIndex]) {
+                const offset = activeIndex * 160; 
+                track.style.transform = `translateX(-${offset}px)`;
+                if(!useMouse) nodes[activeIndex].scrollIntoView({behavior:'smooth', block:'center'});
+            }
+        }
+
+        function updateRecFocus(skipClasses = false) {
+            const track = document.getElementById('track-rec');
+            if(!skipClasses && navLayer === 'home_rec') {
+                document.querySelectorAll('#track-rec .card').forEach((c, idx) => {
+                    c.classList.toggle('active', idx === recIndex);
+                });
+            }
+            if(navLayer === 'home_rec') updateTopUI(recommendedGames[recIndex]);
+            const nodes = document.querySelectorAll('#track-rec .card');
+            if(nodes[recIndex]) {
+                const offset = recIndex * 160; 
+                track.style.transform = `translateX(-${offset}px)`;
+                if(!useMouse) nodes[recIndex].scrollIntoView({behavior:'smooth', block:'center'});
+            }
+        }
+
+        function updateTopUI(game) {
+            if (!game) return;
+
+            document.getElementById('hero-title').innerText = game.name;
+            document.getElementById('hero-sub').innerText = game.desc;
+            
+            if(game.img) document.getElementById('app').style.backgroundImage = `url(${game.img})`;
+            else document.getElementById('app').style.backgroundImage = `none`;
+
+            const btnText = document.getElementById('btn-text');
+            const btnIcon = document.getElementById('btn-icon');
+            
+            if (game.id === 'sys_import') {
+                btnText.innerText = "Install Media"; btnIcon.className = "fas fa-download";
+            } else {
+                const isH = homeIds.includes(game.id);
+                const isOwned = purchasedIds.includes(game.id) || isH;
+                
+                if(navLayer === 'home_rec') {
+                     btnText.innerText = "GET"; btnIcon.className = "fas fa-shopping-cart";
+                } else if (currentTab === 'games') {
+                    btnText.innerText = "Remove from Home"; btnIcon.className = "fas fa-trash";
+                } else {
+                    btnText.innerText = isH ? "Remove from Home" : "Add to Home";
+                    btnIcon.className = isH ? "fas fa-trash" : "fas fa-plus";
+                }
+            }
+        }
+
+        function updateUIState() {
+            if(useMouse) return; 
+            
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('focused', navLayer === 'tabs' && t.classList.contains('active')));
+            document.getElementById('hero-btn').classList.toggle('focused', navLayer === 'home_hero');
+            
+            if (currentTab === 'games' || currentTab === 'purchased') {
+                document.querySelectorAll('#track .card').forEach((c, idx) => c.classList.toggle('active', idx === activeIndex && navLayer === 'home_yours'));
+                document.querySelectorAll('#track-rec .card').forEach((c, idx) => c.classList.toggle('active', idx === recIndex && navLayer === 'home_rec'));
+                
+                if(navLayer === 'home_yours') updateCarouselFocus();
+                if(navLayer === 'home_rec') updateRecFocus();
+                if(navLayer === 'home_hero') document.getElementById('hero-title').scrollIntoView({behavior:'smooth', block:'center'});
+            }
+
+            if (currentTab === 'store') {
+                if(navLayer === 'store') focusStore(storeIndex);
+                else document.querySelectorAll('.store-focusable').forEach(c => c.classList.remove('focused'));
+            } else if (currentTab === 'search') {
+                const sInput = document.getElementById('search-input');
+                if(navLayer === 'search_input') { sInput.classList.add('focused'); sInput.focus(); } 
+                else { sInput.classList.remove('focused'); sInput.blur(); }
+
+                if(navLayer === 'search_grid') focusSearch(searchIndex);
+                else document.querySelectorAll('#search-grid .grid-item').forEach(c => c.classList.remove('focused'));
+            }
+        }
+
+        function executeItem(g) {
+            if (g.id === 'sys_import') document.getElementById('file-input').click();
+            else runExe(g);
+        }
+
+        function handleAction() {
+            let g;
+            if(navLayer === 'home_yours' || navLayer === 'home_hero') g = getActiveList()[activeIndex];
+            else if (navLayer === 'home_rec') g = recommendedGames[recIndex];
+            
+            if (!g) return;
+            if (g.id === 'sys_import') { document.getElementById('file-input').click(); } 
+            else if (navLayer === 'home_rec') {
+                buyStuff(g);
+                generateRecommended();
+            } else {
+                if (homeIds.includes(g.id)) {
+                    homeIds = homeIds.filter(id => id !== g.id);
+                    popMsg("Removed from Home Screen");
+                } else {
+                    homeIds.push(g.id);
+                    popMsg("Added to Home Screen");
+                }
+                localStorage.setItem('ps_home', JSON.stringify(homeIds));
+                if(currentTab === 'games') activeIndex = Math.max(0, activeIndex - 1);
+                renderCards();
+            }
+        }
+
+        function setupFeatured() {
+            featGames = getStoreData().filter(g => g.featured);
+            if(!featGames.length) return;
+            updateHeroSlide();
+            setInterval(() => {
+                if(currentTab === 'store') {
+                    featIdx = (featIdx + 1) % featGames.length;
+                    updateHeroSlide();
+                }
+            }, 7000);
+        }
+
+        function updateHeroSlide() {
+            const g = featGames[featIdx];
+            if(!g) return;
+            const bg = document.getElementById('hero-bg-layer');
+            bg.style.opacity = '0';
+            setTimeout(() => {
+                bg.style.backgroundImage = `url(${g.img})`;
+                document.getElementById('featured-title').innerText = g.name;
+                bg.style.opacity = '0.7';
+            }, 600);
+        }
+
+        function purchaseFeatured() { buyStuff(featGames[featIdx]); }
+
+        function renderMoreStore() {
+            const grid = document.getElementById('store-grid');
+            const db = getStoreData();
+            if(rendered >= db.length) return;
+
+            const slice = db.slice(rendered, rendered + 24); 
+            const frag = document.createDocumentFragment();
+
+            slice.forEach((g, i) => {
+                const absIdx = rendered + i;
+                
+                if (absIdx % 8 === 0) {
+                    const catName = STORE_CATEGORIES[(absIdx / 8) % STORE_CATEGORIES.length];
+                    const header = document.createElement('div');
+                    header.className = 'store-section-title span-full';
+                    header.innerHTML = `${catName}`;
+                    frag.appendChild(header);
+                }
+
+                let sizeClass = '';
+                if (absIdx !== 0 && absIdx % 7 === 0) sizeClass = 'wide';
+                else if (absIdx !== 0 && absIdx % 11 === 0) sizeClass = 'large';
+
+                const owned = purchasedIds.includes(g.id);
+                const item = document.createElement('div');
+                // Added store-focusable
+                item.className = `grid-item store-focusable ${sizeClass}`;
+                item.id = `store-card-${absIdx}`;
+                
+                item.onclick = () => buyStuff(g);
+                item.onmouseenter = () => { if(useMouse) {
+                    // find storeIndex corresponding to this element in the .store-focusable list
+                    const items = Array.from(document.querySelectorAll('.store-focusable'));
+                    storeIndex = items.indexOf(item);
+                }};
+
+                item.innerHTML = `
+                    <div class="grid-item-img-container">
+                        <img src="${g.img || ''}" class="grid-item-img" loading="lazy" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzIyMiIvPjwvc3ZnPg=='">
+                    </div>
+                    <div class="grid-item-details">
+                        <div class="grid-item-title">${g.name}</div>
+                        <div class="grid-item-footer">
+                            <span class="grid-item-cat">Game</span>
+                            <span class="grid-item-btn">${owned ? 'OPEN' : 'GET'}</span>
+                        </div>
+                    </div>
+                `;
+                frag.appendChild(item);
+            });
+            grid.appendChild(frag);
+            rendered += slice.length;
+        }
+
+        function focusStore(idx) {
+            if(useMouse) return; 
+            const items = Array.from(document.querySelectorAll('.store-focusable'));
+            if(idx >= items.length - 5) renderMoreStore();
+            items.forEach(c => c.classList.remove('focused'));
+            
+            const c = items[idx];
+            if (c) {
+                c.classList.add('focused');
+                c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function renderSearchGrid() {
+            const grid = document.getElementById('search-grid');
+            grid.innerHTML = '';
+            
+            searchResults.forEach((g, i) => {
+                const owned = purchasedIds.includes(g.id);
+                const item = document.createElement('div');
+                item.className = 'grid-item';
+                item.id = `search-card-${i}`;
+                
+                item.onclick = () => handleSearchItemClick(g);
+                item.onmouseenter = () => { if(useMouse) searchIndex = i; };
+
+                item.innerHTML = `
+                    <div class="grid-item-img-container">
+                        <img src="${g.img || ''}" class="grid-item-img" loading="lazy" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzIyMiIvPjwvc3ZnPg=='">
+                    </div>
+                    <div class="grid-item-details">
+                        <div class="grid-item-title">${g.name}</div>
+                        <div class="grid-item-footer">
+                            <span class="grid-item-cat">Game</span>
+                            <span class="grid-item-btn">${owned ? 'OPEN' : 'GET'}</span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(item);
+            });
+            
+            if (!useMouse && navLayer === 'search_grid') focusSearch(searchIndex);
+        }
+
+        function handleSearchItemClick(g) {
+            if(purchasedIds.includes(g.id) || homeIds.includes(g.id) || g.id === 'sys_import' || g.id.startsWith('c_')) {
+                runExe(g);
+            } else {
+                buyStuff(g);
+                renderSearchGrid(); 
+            }
+        }
+
+        function focusSearch(idx) {
+            if(useMouse) return; 
+            document.querySelectorAll('#search-grid .grid-item').forEach(c => c.classList.remove('focused'));
+            const c = document.getElementById(`search-card-${idx}`);
+            if (c) {
+                c.classList.add('focused');
+                c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function buyStuffById(id) {
+            const g = getStoreData().find(x => x.id === id);
+            if(g) buyStuff(g);
+        }
+
+        function buyStuff(g) {
+            if(purchasedIds.includes(g.id)) { popMsg("Already in Library", "error"); return; }
+            purchasedIds.push(g.id);
+            localStorage.setItem('ps_purchased', JSON.stringify(purchasedIds));
+            popMsg(`${g.name} added to Library!`);
+            
+            // Check main store
+            const sIdx = getStoreData().findIndex(x => x.id === g.id);
+            const c = document.getElementById(`store-card-${sIdx}`);
+            if(c) {
+                const btn = c.querySelector('.grid-item-btn');
+                if(btn) btn.innerText = "OPEN";
+            }
+            if(currentTab === 'games' || currentTab === 'purchased') {
+                renderCards();
+                generateRecommended();
+            }
+        }
+
+        // REDESIGNED BOOTING SYSTEM -> NO BLOBS, ONLY ABOUT:BLANK DOCUMENT WRITES
+        async function runExe(g) {
+            popMsg("Booting Title...");
+            try {
+                let txt = "";
+                if (g.htmlContent) { 
+                    txt = g.htmlContent; 
+                } 
+                else if (g.url) {
+                    const res = await fetch(g.url);
+                    if(!res.ok) throw new Error("fetch fail");
+                    txt = await res.text();
+                } else return;
+
+                activeWin = window.open('about:blank', '_blank');
+                if(!activeWin) { popMsg("Browser blocked popup.", "error"); return; }
+
+                activeWin.document.open();
+                activeWin.document.write(txt);
+                activeWin.document.close();
+
+                document.getElementById('session-overlay').style.display = 'flex';
+                startT = Date.now();
+                tickTime();
+                tInterval = setInterval(tickTime, 1000);
+            } catch (err) {
+                console.error(err);
+                popMsg("Connection error.", "error");
+            }
+        }
+
+        function tickTime() {
+            if(!startT) return;
+            const d = new Date(Date.now() - startT);
+            document.getElementById('session-timer').innerText = 
+                `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}:${String(d.getUTCSeconds()).padStart(2,'0')}`;
+        }
+
+        function killGame() {
+            if(activeWin) activeWin.close();
+            activeWin = null;
+            clearInterval(tInterval);
+            startT = null;
+            document.getElementById('session-overlay').style.display = 'none';
+        }
+
+        // REDESIGNED FILE UPLOADER TO GENERATE DIRECT HTML CONTENT RATHER THAN BLOB URLS
+        document.getElementById('file-input').addEventListener('change', (e) => {
+            const f = e.target.files[0];
+            if (f) {
+                const n = prompt("Enter Game Title:", f.name.split('.')[0]);
+                if(!n) return;
+                const r = new FileReader();
+                r.onload = (evt) => {
+                    customData.push({
+                        id: 'c_' + Date.now(), name: n, desc: "Sideloaded Title",
+                        img: "", htmlContent: evt.target.result, price: 'Free', featured: false
+                    });
+                    localStorage.setItem('ps_custom', JSON.stringify(customData));
+                    popMsg("Title Installed!");
+                    renderCards();
+                    document.getElementById('file-input').value = ''; 
+                };
+                r.readAsText(f);
+            }
+        });
+
+        function popMsg(txt, type="info") {
+            const box = document.getElementById('toast-container');
+            const t = document.createElement('div');
+            t.className = 'toast';
+            const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
+            const color = type === 'error' ? '#ff3b30' : 'var(--ps-blue)';
+            
+            t.innerHTML = `<i class="fas ${icon}" style="font-size: 20px; color:${color};"></i> <span>${txt}</span>`;
+            box.appendChild(t);
+            
+            setTimeout(() => {
+                t.style.opacity = '0'; t.style.transform = 'translateX(120%) scale(0.9)';
+                setTimeout(()=>t.remove(), 400);
+            }, 3500);
+        }
+
+        setInterval(() => {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }, 1000);
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+    </script>
+</body>
+</html>
