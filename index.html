@@ -1,576 +1,210 @@
---- START OF FILE index .html ---
-
-<html>
-<head>
-<script type="text/javascript">
-const lsijVersion=1;
-class Flags{
-constructor(url,terms){
-this.url=url;
-this.matched={};
-this.terms=[];
-terms.forEach((term)=>{
-let s=term.replace(/[\]{}?^$().*\\+|[]/g,'\\$&');
-s=s.replace(/\\\*/g,'.*');
-s=s.replace(/\\\?/g,'.');
-let regex=new RegExp('\\b'+s+'\\b','gi');
-this.terms.push({term:term,regex:regex});
-});
-}
-report(flags){
-if(!flags.length)return;
-const xhr=new XMLHttpRequest();
-xhr.open('POST',document.location.origin+'/c4a83a407eda09592f60e9c8a50b3575a6ff9f3055aa2dca0e544ab5883299d0/log_flag',true);
-xhr.send(JSON.stringify({url:this.url.href,flags:flags,at_epoch_ms:Date.now()}));
-}
-matchTerms(input,flagAll){
-const matches=[];
-this.terms.forEach((term)=>{
-const hits=input.match(term.regex);
-if(!hits||!hits.length)return;
-let added=false;
-if(typeof(this.matched[term.term])==='undefined')added=true;
-let count=hits.length;
-if(!added)count-=this.matched[term.term];
-this.matched[term.term]=hits.length;
-if(added||flagAll)matches.push([term.term,count]);
-});
-return matches;
-}
-scanIntentValue(value){
-const matches=this.matchTerms(value,true);
-const changes=[];
-matches.forEach((match)=>{
-match[2]=true;
-changes.push(match);
-});
-if(changes.length)this.report(changes);
-}
-scanIntentValues(values){
-values.forEach((value)=>{this.scanIntentValue(value);});
-}
-scanIntentEvent(event){
-switch(event.target.tagName.toLowerCase()){
-case 'input':
-let type=event.target.type||'text';
-type=type.toLowerCase();
-if(type==='password')return;
-this.scanIntentValue(event.target.value);
-break;
-case 'textarea':
-this.scanIntentValue(event.target.value);
-break;
-}
-}
-scanIntent(event){
-if(typeof(gatherIntent)==='function'){
-const intent=gatherIntent();
-if(intent.length)this.scanIntentValues(intent);
-}
-}
-onChange(event){this.scanIntentEvent(event);}
-onKeyup(event){this.scanIntentEvent(event);}
-bindDOM(){
-document.addEventListener('change',this.onChange.bind(this));
-document.addEventListener('keyup',this.onKeyup.bind(this));
-setInterval(()=>{this.scanIntent();},1000);
-}
-}
-const initFlagScanning=function(terms){
-if(!terms.length)return;
-const a=document.createElement('A');
-a.href=window.location.href;
-const flags=new Flags(a,terms);
-if(typeof(initGatherIntent)==='function')initGatherIntent();
-flags.bindDOM();
-};
-initFlagScanning(["metasploit","ddos"]);
-function checkCurrentSite(yt,url){
-const xhr=new XMLHttpRequest();
-const body=JSON.stringify({url:url||window.location.href,youtube:yt});
-const checkUrl=document.location.origin+'/c4a83a407eda09592f60e9c8a50b3575a6ff9f3055aa2dca0e544ab5883299d0/log';
-xhr.open('POST',checkUrl,true);
-xhr.send(body);
-xhr.onreadystatechange=function(){
-if(this.status===200&&xhr.responseText){
-const score=JSON.parse(xhr.responseText);
-if(score.redirect){
-window.location.href=score.redirect;
-hardBlock();
-}
-}
-};
-}
-let hardBlockPolicy;
-function getHardBlockPolicy(){
-if(typeof(trustedTypes)!=='undefined'&&!hardBlockPolicy){
-hardBlockPolicy=trustedTypes.createPolicy('hardBlock',{createHTML:(string)=>string});
-}
-return hardBlockPolicy;
-}
-function hardBlock(){
-stopVideo();
-const stopInt=setInterval(stopVideo,500);
-setTimeout(()=>{
-const policy=getHardBlockPolicy();
-if(policy){
-document.body.innerHTML=policy.createHTML('<img src="/c4a83a407eda09592f60e9c8a50b3575a6ff9f3055aa2dca0e544ab5883299d0/blocked-image-search.png" style="width: 100%; height: 100%">');
-}else{
-document.body.innerHTML='<img src="/c4a83a407eda09592f60e9c8a50b3575a6ff9f3055aa2dca0e544ab5883299d0/blocked-image-search.png" style="width: 100%; height: 100%">';
-}
-clearInterval(stopInt);
-},3000)
-}
-function stopVideo(){
-const ea=document.getElementsByTagName('video');
-for(i in ea){
-if(typeof(ea[i].pause)!=='function'){continue;}
-if(!ea[i].paused){ea[i].pause();}
-}
-}
-function googleVideo(){
-if(window.location.href.match(/google\.com\/search\?/)){
-const vidMatcher=/google\.com\/search\?.*vid:([^#\&\?]{11})/;
-let prevVideo;
-new MutationObserver(function(){
-let video;
-let m=window.location.href.match(vidMatcher);
-if(m){video=m[1];}
-if(video===prevVideo){return;}
-prevVideo=video;
-checkCurrentSite(true,'https://www.youtube.com/watch?v='+video);
-}).observe(document,{subtree:true,childList:true});
-}
-}
-function onLoad(){
-if(window.top===window.self){googleVideo();}
-}
-onLoad();
-</script>
-<style>
-body{transition:opacity ease-in 0.2s;} 
-body[unresolved]{opacity:0;display:block;overflow:hidden;position:relative;} 
-html{box-sizing:border-box;display:flex;min-height:100%;min-height:100vh;width:100%;}
-*,*::before,*::after{box-sizing:inherit;}
-body{background:linear-gradient(to bottom,#444652,#28282E);display:flex;font:14px/1.3 "Roboto",sans-serif;min-height:100%;min-height:100vh;margin:0;width:100%;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
-.blockScreen{align-items:center;color:#666e80;display:flex;flex-direction:column;justify-content:center;min-height:100%;min-height:100vh;position:relative;text-align:center;width:100%;z-index:0;}
-.blockScreen a{color:#666e80;}
-.blockScreen svg{margin:16px 0 8px;}
-.blockScreen .svgAccessBlocked-paths{stroke:#00AFD7;stroke:#FF8200;}
-.blockScreen .blockScreen-customSchoolName{color:white;font:400 18px/1 "Roboto",sans-serif;margin:0 16px;}
-.blockScreen .lockoutScreen-stripe{display:none;}
-.blockScreen .lockoutScreen-svg{display:none;}
-.blockScreen .blockScreen-stripe{background:#00AFD7;background:#FF8200;color:rgba(255,255,255,0.8);flex:0 1 auto;margin:32px 0;padding:24px 16px;width:100%;}
-.blockScreen .blockScreenStripe-website{font:30px "Roboto",sans-serif;color:white;}
-.blockScreen .blockScreen-systemMessage,.blockScreen .blockScreen-customBodyText{margin:0 16px 8px;max-width:640px;}
-.blockScreen .blockScreen-override{background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:white;display:inline-block;line-height:34px;margin:16px;min-width:80px;padding:0 16px;text-align:center;text-decoration:none;transition:all 0.2s;}
-.blockScreen .blockScreen-override:hover{background:rgba(255,255,255,0.04);}
-.blockScreen .blockScreen-customFooterText{bottom:16px;font-size:12px;left:0;padding:0 16px;position:absolute;width:100%;}
-.hidden{display:none !important;}
-.code{display:none;}
-.lockoutScreen .blockScreen-svg{display:none;}
-.lockoutScreen .lockoutScreen-svg{display:block;}
-.lockoutScreen .blockScreen-stripe{display:none;}
-.lockoutScreen .lockoutScreen-stripe{background:#00AFD7;background:#FF8200;color:rgba(255,255,255,0.8);display:block;flex:0 1 auto;font-size:32px;margin:32px 0;padding:24px 16px;width:100%;}
-.lockoutScreen .lockoutScreen-stripe .lockoutScreen-stripeContent{margin:0 auto;max-width:700px;}
-.lockoutScreen .blockScreen-controls{margin:16px 0;}
-.lockoutScreen .code{background:transparent;border:1px solid #666e80;border-bottom-left-radius:4px;border-right:0;border-top-left-radius:4px;color:#666e80;display:inline-block;font:14px/1.3 "Roboto",sans-serif;line-height:34px;margin-right:-4px;padding:0 16px;vertical-align:top;}
-.lockoutScreen .blockScreen-override{background:#666e80;border-color:#666e80;border-top-left-radius:0;border-bottom-left-radius:0;display:inline-block;margin:0;}
-.lockoutScreen .blockScreen-override:hover{background:rgba(255,255,255,0.2);}
-</style>
-</head>
-<body>
-<div class="blockScreen">
-<svg class="blockScreen-svg" height="66" viewBox="0 0 66 66" width="66" xmlns="http://www.w3.org/2000/svg">
-<g class="svgAccessBlocked-paths" fill="none" fill-rule="evenodd" stroke="#00AFD7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-<path d="M33 1C15.327 1 1 15.327 1 33c0 17.673 14.327 32 32 32 17.673 0 32-14.327 32-32"></path>
-<path d="M21.288 21.387v-4.344c0-3.624 2.936-6.562 6.564-6.562h17v10.93c1.35.26 2.37 1.446 2.37 2.883v.822c0 1.44-1.037 2.638-2.4 2.887-.437 6.106-5.53 10.924-11.752 10.924-6.213 0-11.302-4.816-11.75-10.9-1.435-.19-2.542-1.414-2.542-2.91v-.823c0-1.48 1.093-2.702 2.51-2.906zM27.435 38.926l-2.772 5.656h-6.598c-3.385 0-6.398 2.85-6.398 6.196v6.06m42.666-.134v-6.06c0-3.34-2.74-6.062-6.118-6.062h-7.413l-2.77-5.656M53.148 10.48H65v8.297H53.148zM55.52 3.37h7.11v7.11h-7.11z"></path>
-</g>
-</svg>
-<div class="blockScreen-customSchoolName" id="blockScreen-customSchoolName">Restricted Access Network</div>
-<div class="blockScreen-stripe">
-<div class="blockScreenStripe-top"><span>Oops</span>,</div>
-<div class="blockScreenStripe-website"><span id="host">restricted-site.com</span></div>
-<div class="blockScreenStripe-bottom"><span>is not available because</span> <span id="reason">it is categorized as Mature - Games</span>.</div>
-</div>
-<div class="blockScreen-systemMessage" style="color: rgb(255, 130, 0);">
-<span>You are logged in as</span> <span id="username">student@district.edu</span> (<span>IP address</span>: <span id="ip">10.0.0.5</span>).
-</div>
-<div class="blockScreen-customBodyText" id="blockScreen-customBodyText" style="color: white;">If you feel this site has been restricted in error, please contact your network administrator.</div>
-<div class="blockScreen-controls">
-<input class="code" id="code" placeholder="Code">
-<a href="#" class="blockScreen-override hidden" id="override"><span>Override</span></a>
-</div>
-<div class="blockScreen-customFooterText" id="blockScreen-customFooterText">Administrator Console Access v4.2</div>
-</div>
-<textarea id="secret-html-payload" style="display:none;">
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
+  <head>
+   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Cine-OS</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+   <title>Cine-OS V2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<!-- Marked and MathJax for Ciri -->
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script>
-  window.MathJax = {
-    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
-    svg: { fontCache: 'global' }
-  };
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="style.css">
+  </head>
 
-<style>
-@font-face{font-family:'Azonix';src:url('https://db.onlinewebfonts.com/t/04e1f7fb2b58d60eb24df50a9807fa36.woff2') format('woff2');}
-:root{--glass-bg:rgba(15,15,15,0.4);--glass-border:rgba(255,255,255,0.05);--accent-cyan:#00f3ff;--accent-danger:#ff4444;--font-main:'Rajdhani',sans-serif;--font-header:'Azonix','Orbitron',sans-serif;--z-bg:0;--z-snow:1;--z-desktop:10;--z-windows:500;--z-dock:1000;--z-triggers:2000;--z-modal:3000;--z-lock:90000;--z-boot:99999;}
-*{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-user-drag:none;}
-body{background:#000;overflow:hidden;height:100vh;width:100vw;font-family:var(--font-main);color:white;}
-#boot-layer{position:fixed;inset:0;background:#000;z-index:var(--z-boot);display:none;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.6s ease;}
-#boot-content{text-align:center;}
-.boot-logo{font-family:var(--font-header);font-size:3rem;color:#fff;letter-spacing:10px;margin-bottom:10px;text-shadow:0 0 30px rgba(255,255,255,0.5);}
-.boot-sub{font-family:var(--font-main);color:#888;font-size:1.2rem;letter-spacing:4px;margin-bottom:50px;text-transform:uppercase;}
-#boot-btn{padding:15px 50px;background:transparent;border:1px solid rgba(255,255,255,0.3);color:#fff;font-family:var(--font-header);font-size:18px;cursor:pointer;letter-spacing:2px;transition:0.3s;border-radius:4px;box-shadow:0 0 15px rgba(0,0,0,0.5);}
-#boot-btn:hover{background:#fff;color:#000;box-shadow:0 0 50px #fff;}
-#boot-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;z-index:1;}
-#bg-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:var(--z-bg);opacity:0.9;}
-#snow-fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:var(--z-snow);}
-#lock-screen{position:fixed;inset:0;z-index:var(--z-lock);background:#000;display:flex;opacity:0;pointer-events:none;transition:transform 0.6s cubic-bezier(0.7,0,0.3,1), opacity 0.4s;}
-#lock-screen.active{opacity:1;pointer-events:all;transform:translateY(0);}
-#lock-screen.slide-up{transform:translateY(-100%);opacity:1;pointer-events:none;}
-#lock-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;}
-#lock-ui{position:absolute;right:8%;top:50%;transform:translateY(-50%);z-index:10;color:#fff;text-align:right;text-shadow:0 5px 25px rgba(0,0,0,0.9);border-right:3px solid rgba(255,255,255,0.7);padding-right:30px;}
-.l-greet{font-family:'Rajdhani',sans-serif;font-size:1.4rem;letter-spacing:6px;font-weight:700;}
-.l-day{font-family:'Azonix',sans-serif;font-size:5rem;margin:15px 0;line-height:1;letter-spacing:4px;text-transform:uppercase;}
-.l-date{font-family:'Rajdhani',sans-serif;font-size:1.6rem;letter-spacing:3px;margin-bottom:8px;text-transform:uppercase;}
-.l-time{font-family:'Rajdhani',sans-serif;font-size:1.4rem;letter-spacing:2px;}
-#hud-top{position:absolute;top:8%;left:50%;transform:translateX(-50%);text-align:center;z-index:5;pointer-events:none;text-shadow:0 10px 40px rgba(0,0,0,0.8);}
-.hud-day{font-family:var(--font-header);font-size:5rem;color:rgba(255,255,255,0.9);letter-spacing:15px;}
-#dock-container{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);height:52px;background:transparent;z-index:var(--z-dock);display:flex;justify-content:center;align-items:center;gap:12px;transition:transform 0.4s;}
-.dock-hidden{transform:translate(-50%,150%) !important;}
-.dock-item{width:40px;height:40px;border-radius:12px;display:flex;justify-content:center;align-items:center;transition:all 0.2s ease;cursor:pointer;position:relative;}
-.dock-item:hover{background:rgba(255,255,255,0.08);transform:translateY(-5px);}
-.dock-item img{width:28px;height:28px;object-fit:contain;border-radius:6px;}
-.dock-sep{width:1px;height:24px;background:rgba(255,255,255,0.15);margin:0 4px;}
-.os-menu{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);width:550px;height:600px;background:rgba(15,15,18,0.85);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.08);border-radius:16px;z-index:var(--z-modal);display:none;opacity:0;transition:all 0.3s cubic-bezier(0.2,0.8,0.2,1);flex-direction:column;padding:25px;box-shadow:0 20px 60px rgba(0,0,0,0.7);}
-.os-menu.open{display:flex;opacity:1;transform:translateX(-50%) translateY(0);}
-.start-search-bar{width:100%;padding:12px 15px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:white;font-family:var(--font-main);margin-bottom:20px;display:flex;align-items:center;gap:10px;}
-.pinned-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:15px;margin-bottom:30px;}
-.pinned-item{display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;padding:12px;border-radius:12px;transition:0.2s;}
-.pinned-item:hover{background:rgba(255,255,255,0.08);}
-.pinned-item img{width:38px;height:38px;object-fit:contain;border-radius:10px;}
-.pinned-item span{font-size:12px;color:#ddd;}
-.start-footer{margin-top:auto;padding-top:15px;border-top:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;}
-.user-profile{display:flex;align-items:center;gap:10px;}
-.user-avatar{width:30px;height:30px;background:#444;border-radius:50%;display:flex;align-items:center;justify-content:center;}
-.window{position:fixed;inset:0;background:#000;border:none;display:flex;flex-direction:column;z-index:var(--z-windows);opacity:0;pointer-events:none;transform:scale(0.95);transition:all 0.3s cubic-bezier(0.19,1,0.22,1);}
-.window.active{opacity:1;pointer-events:auto;transform:scale(1);z-index:var(--z-windows);}
-/* Minimization Styles */
-.window.minimized{opacity:0; pointer-events:none; transform:scale(0.8) translateY(100vh) !important; z-index:499;}
-.win-header{position:absolute;top:0;left:0;width:100%;height:45px;background:rgba(15,15,15,0.9);backdrop-filter:blur(10px);border-bottom:1px solid #222;display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100;transform:translateY(-100%);transition:transform 0.3s ease;}
-.header-visible .win-header{transform:translateY(0);}
-.win-title{font-family:var(--font-header);font-size:13px;color:#aaa;letter-spacing:2px;}
-.win-controls{display:flex;gap:12px;}
-.win-btn{width:22px;height:22px;border-radius:4px;cursor:pointer;transition:0.2s; display:flex; justify-content:center; align-items:center; background:rgba(255,255,255,0.05);}
-.btn-min:hover{background:rgba(255,255,255,0.2);}
-.btn-close:hover{background:#ff4444; box-shadow:0 0 8px #ff4444;}
-.win-body{width:100%;height:100%;overflow:hidden;position:relative;background:#000;}
-iframe{width:100%;height:100%;border:none;display:block;}
-#top-trigger{position:fixed;top:0;left:0;width:100%;height:20px;z-index:var(--z-triggers);}
-
-/* Context Menu Updated Color Palette */
-.os-context-menu{position:fixed;display:none;background:rgba(10,10,10,0.95);backdrop-filter:blur(15px);border:1px solid #333;border-radius:10px;padding:8px 0;min-width:200px;z-index:var(--z-context);box-shadow:0 10px 30px rgba(0,0,0,0.9);font-family:var(--font-main);}
-.ctx-item{padding:10px 20px;color:#e0e0e0;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:12px;transition:0.2s;}
-.ctx-item:hover{background:#2a2a2a;color:#ffffff;}
-.ctx-separator{height:1px;background:#333;margin:4px 0;}
-
-#wallpaper-menu{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.95);width:800px;max-height:80vh;background:rgba(15,15,18,0.95);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;z-index:var(--z-modal);display:none;opacity:0;transition:all 0.3s ease;flex-direction:column;padding:30px;box-shadow:0 30px 80px rgba(0,0,0,0.9);}
-#wallpaper-menu.open{display:flex;opacity:1;transform:translate(-50%,-50%) scale(1);}
-.wp-modal-header{border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:15px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
-.wp-modal-header h2{font-family:'Orbitron';color:var(--accent-cyan);letter-spacing:2px;margin:0;}
-.segmented-control{display:flex;background:rgba(255,255,255,0.05);border-radius:8px;padding:4px;gap:4px;margin-bottom:20px;}
-.segmented-control label{flex:1;text-align:center;cursor:pointer;}
-.segmented-control input[type="radio"]{display:none;}
-.segmented-control span{display:block;padding:8px;border-radius:6px;font-family:var(--font-main);font-weight:bold;color:#aaa;transition:0.3s;}
-.segmented-control input[type="radio"]:checked + span{background:var(--accent-cyan);color:#000;}
-.wp-card{background:#000;border:1px solid rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;cursor:pointer;transition:0.3s;position:relative;aspect-ratio:16/9;}
-.wp-card:hover{border-color:var(--accent-cyan);transform:translateY(-4px);}
-.wp-card.active-wp{border:2px solid var(--accent-cyan);box-shadow:0 0 15px rgba(0,243,255,0.2);}
-.wp-card video{width:100%;height:100%;object-fit:cover;}
-.wp-info{position:absolute;bottom:0;left:0;width:100%;background:linear-gradient(to top,rgba(0,0,0,0.9),transparent);padding:10px;font-size:12px;font-weight:bold;text-shadow:0 1px 3px black;color:#fff;}
-.wp-locked{filter:grayscale(1) brightness(0.4);pointer-events:none;border-style:dashed;}
-.desktop-app{position:absolute;width:90px;height:100px;display:flex;flex-direction:column;align-items:center;cursor:pointer;z-index:var(--z-desktop);transition: transform 0.2s;}
-.desktop-app:hover {transform: scale(1.05);}
-.d-icon{width:56px;height:56px;border-radius:14px;pointer-events:none;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.8));}
-.d-label{margin-top:8px;font-size:12px;font-weight:600;color:#eee;text-align:center;pointer-events:none;text-shadow:0 2px 5px #000;width:90px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-/* Desktop Folders */
-.desktop-folder .d-folder-grid {width:56px; height:56px; background:rgba(40,40,45,0.7); border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:4px; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:4px; pointer-events:none; box-shadow:0 4px 10px rgba(0,0,0,0.6);}
-.desktop-folder .d-folder-grid img {width:100%; height:100%; object-fit:contain; border-radius:4px;}
-
-#drag-proxy{position:fixed;z-index:9999;pointer-events:none;opacity:0.8;display:none;width:56px;height:56px;}
-#drag-proxy img{width:100%;height:100%;object-fit:contain;border-radius:14px;}
-#app-drawer{position:fixed;inset:0;background:rgba(10,10,12,0.85);backdrop-filter:blur(20px);z-index:var(--z-modal);display:none;opacity:0;transition:0.3s ease;padding:80px;align-content:flex-start;}
-#app-drawer.open{display:block;opacity:1;}
-.drawer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:30px;max-width:900px;margin:0 auto;}
-.drawer-item{display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:0.2s;}
-.drawer-item:hover{transform:scale(1.1);}
-.drawer-item img{width:60px;height:60px;border-radius:16px;object-fit:contain;}
-.drawer-item span{color:#fff;font-size:13px;font-weight:600;}
-#toast-container{position:fixed;bottom:70px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
-.toast-notification{background:rgba(30,30,35,0.85);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:8px;width:340px;padding:15px;color:#fff;box-shadow:0 8px 25px rgba(0,0,0,0.5);transform:translateX(120%);transition:transform 0.4s cubic-bezier(0.2,0.8,0.2,1);pointer-events:auto;cursor:pointer;}
-.toast-notification.show{transform:translateX(0);}
-.toast-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.toast-app-info{display:flex;align-items:center;gap:8px;font-size:12px;color:#aaa;}
-.toast-icon{width:16px;height:16px;background:#222;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;}
-.toast-close{color:#888;font-size:14px;cursor:pointer;transition:0.2s;}
-.toast-close:hover{color:#fff;}
-.toast-title{font-family:var(--font-main);font-weight:bold;font-size:15px;margin-bottom:4px;letter-spacing:0.5px;}
-.toast-body{font-family:var(--font-main);font-size:13px;color:#ccc;line-height:1.4;}
-
-/* Mobile Support Overlay */
-#mobile-warning {display:none; position:fixed; inset:0; background:#0a0a0c; z-index:9999999; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px; color:#fff; font-family:var(--font-main);}
-#mobile-warning h1 {color:#fff; margin-bottom:15px; font-size:2rem; font-family:var(--font-header);}
-#mobile-warning p {color:#a0a0a0; font-size:1.1rem; max-width:400px; line-height:1.5;}
-
-/* Ciri UI Variables scoped to Ciri wrapper to avoid OS conflict */
-#ciri-wrapper { --bg-window: rgba(20, 20, 20, 0.95); --dark-gray: #1a1a1a; --mid-gray: #333; --user-gray: #4a4a4a; --text-white: #ffffff; --text-muted: #888888; --live-red: #ff3b30; }
-#ciri-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); opacity:0; pointer-events:none; transition:opacity 0.5s; z-index:9998; }
-#ciri-window { position:fixed; bottom:8vh; left:50%; transform:translate(-50%,40px) scale(0.92); width:90%; max-width:740px; height:85vh; max-height:820px; background:var(--bg-window); backdrop-filter:blur(20px); border:1px solid #333; border-radius:32px; box-shadow:0 30px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1); opacity:0; pointer-events:none; transition:all 0.5s cubic-bezier(0.2,0.8,0.2,1); z-index:9999; display:flex; flex-direction:column; align-items:center; padding:24px; box-sizing:border-box; overflow:hidden; font-family:-apple-system, sans-serif; }
-body.ciri-active #ciri-backdrop { opacity:1; pointer-events:all; }
-body.ciri-active #ciri-window { opacity:1; pointer-events:all; transform:translate(-50%,0) scale(1); }
-#ciri-boot-screen { position:absolute; inset:0; background:#0a0a0a; display:none; flex-direction:column; align-items:center; justify-content:center; z-index:10000; transition:opacity 0.8s ease, filter 0.8s ease; border-radius:32px; }
-.ciri-boot-text { font-size:42px; font-weight:800; color:#fff; font-family:monospace; border-right:3px solid #fff; white-space:nowrap; overflow:hidden; width:0; letter-spacing:-1px; }
-.ciri-boot-text.typing { animation:typeCiri 0.5s steps(5,end) forwards, blinkCiri 0.8s step-end infinite; }
-.ciri-boot-sub { font-size:12px; font-weight:700; color:#8e8e93; letter-spacing:3px; margin-top:16px; opacity:0; transform:translateY(20px) scale(0.95); transition:all 0.8s; }
-.ciri-boot-sub.show { opacity:1; transform:translateY(0) scale(1); }
-.ciri-boot-loader { margin-top:40px; display:flex; flex-direction:column; align-items:center; opacity:0; transition:opacity 0.6s ease; }
-.ciri-spinner { width:24px; height:24px; border:3px solid rgba(255,255,255,0.1); border-top-color:#fff; border-radius:50%; animation:spin 0.8s cubic-bezier(0.4,0,0.2,1) infinite; margin-bottom:16px; }
-.ciri-boot-status { font-size:13px; font-weight:700; color:#fff; margin-bottom:8px; letter-spacing:0.5px; }
-.ciri-boot-warning { font-size:11px; color:#8e8e93; max-width:280px; text-align:center; line-height:1.5; font-weight:500; }
-@keyframes typeCiri{from{width:0}to{width:115px}} @keyframes blinkCiri{50%{border-color:transparent}} @keyframes spin{to{transform:rotate(360deg)}}
-#ciri-status-pill { background:rgba(40,40,40,0.8); border-radius:20px; padding:8px 18px; display:inline-flex; align-items:center; gap:8px; border:1px solid #444; font-size:11px; font-weight:700; color:#eee; letter-spacing:0.5px; margin-bottom:10px; flex-shrink:0; text-transform:uppercase; }
-#ciri-status-icon svg { width:14px; height:14px; }
-.ciri-secure { color:#10a342; } .ciri-secure-svg { stroke:#10a342; } .ciri-unstable { color:#a0a0a0; } .ciri-unstable-svg { stroke:#a0a0a0; }
-#ciri-chat-history { width:100%; display:flex; flex-direction:column; gap:24px; overflow-y:auto; overflow-x:hidden; flex-grow:1; padding:20px 10px; }
-#ciri-chat-history::-webkit-scrollbar { width:4px; } #ciri-chat-history::-webkit-scrollbar-thumb { background:#555; border-radius:10px; }
-.ciri-message { max-width:85%; padding:18px 24px; border-radius:18px; font-size:15px; line-height:1.6; word-wrap:break-word; font-weight:400; color:#fff; animation:slideUp 0.4s; }
-.ciri-message.user { background:#333; align-self:flex-end; border-bottom-right-radius:6px; font-weight:500; }
-.ciri-message.ciri { background:#151515; align-self:flex-start; position:relative; border-bottom-left-radius:6px; border:1px solid #333; }
-details.ciri-thought { background:rgba(255,255,255,0.05); border-radius:12px; padding:12px; margin-bottom:16px; font-size:13.5px; border:1px solid #333; }
-details.ciri-thought summary { cursor:pointer; font-weight:600; color:#aaa; outline:none; }
-.ciri-thought-content { margin-top:12px; color:#aaa; font-family:monospace; white-space:pre-wrap; border-top:1px solid #333; padding-top:12px; }
-#ciri-bottom-wrapper { width:100%; display:flex; align-items:center; gap:12px; margin-top:10px; flex-shrink:0; background:rgba(30,30,30,0.85); padding:12px 16px; border-radius:24px; border:1px solid #444; backdrop-filter:blur(10px); }
-.ciri-icon-btn { background:none; border:none; color:#aaa; cursor:pointer; padding:8px; border-radius:50%; transition:0.2s; } .ciri-icon-btn:hover { background:#444; color:#fff; }
-#ciri-chat-input { flex:1; background:transparent; border:none; color:#fff; font-size:15.5px; outline:none; resize:none; max-height:120px; line-height:1.4; }
-#ciri-mode-toggle { background:#444; color:#aaa; font-size:11px; font-weight:800; cursor:pointer; padding:8px 14px; border-radius:14px; border:1px solid #555; }
-#ciri-mode-toggle.live-active { background:rgba(255,59,48,0.2); color:#ff3b30; border-color:#ff3b30; }
-#ciri-action-orb { width:48px; height:48px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #fff 0%, #aaa 20%, #333 60%, #000 100%); box-shadow:0 8px 20px rgba(0,0,0,0.5), inset -4px -4px 10px rgba(0,0,0,0.8); cursor:pointer; transition:0.3s; }
-#ciri-action-orb.thinking { animation:orbAlive 2s infinite ease-in-out; filter:contrast(1.2); }
-#ciri-img-preview-box { position:absolute; bottom:85px; left:10px; background:#222; padding:6px; border-radius:12px; display:none; align-items:center; gap:10px; border:1px solid #444; }
-#ciri-img-preview-box img { height:44px; border-radius:8px; } #ciri-img-preview-box span { color:#fff; cursor:pointer; padding-right:10px; }
-
-/* Cine-Noti Ultimate UI */
-#cine-noti { position:fixed; bottom:80px; right:24px; width:320px; background:rgba(20, 20, 24, 0.85); backdrop-filter:blur(40px) saturate(200%); -webkit-backdrop-filter:blur(40px) saturate(200%); border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:16px; box-shadow:0 24px 48px rgba(0,0,0,0.8); color:#fff; transform:translateY(150%) scale(0.9); opacity:0; transition:transform 0.6s cubic-bezier(0.2,0.8,0.2,1), opacity 0.5s ease; z-index:9999; display:flex; flex-direction:column; gap:12px; }
-#cine-noti.active { transform:translateY(0) scale(1); opacity:1; }
-#cine-noti.minimized { transform:translateX(150%) scale(0.9); opacity:0; pointer-events:none;}
-.cn-window-actions { display:flex; justify-content:flex-end; gap:8px; margin-bottom:-4px; }
-.cn-action-btn { background:rgba(255,255,255,0.1); border:none; width:24px; height:24px; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:pointer; color:#aaa; transition:0.2s; }
-.cn-action-btn:hover { background:rgba(255,255,255,0.2); color:#fff; }
-.cn-action-btn svg { width:12px; height:12px; stroke:currentColor; stroke-width:2.5; stroke-linecap:round; fill:none; }
-.cn-player-main { display:flex; align-items:center; gap:14px; }
-.cn-album-art { width:54px; height:54px; border-radius:12px; object-fit:cover; background:#111; display:flex; justify-content:center; align-items:center; font-size:24px; color:#555;}
-.cn-track-info { flex-grow:1; display:flex; flex-direction:column; justify-content:center; overflow:hidden; }
-.cn-title { font-size:15px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#fff; margin-bottom:2px; font-family:var(--font-main); }
-.cn-artist { font-size:13px; color:#aaa; font-family:var(--font-main); }
-#cn-visualizer { width:100%; height:14px; margin-top:6px; }
-.cn-controls { display:flex; justify-content:center; align-items:center; gap:20px; margin-top:4px; }
-.cn-ctrl-btn { background:none; border:none; cursor:pointer; color:#ccc; transition:0.2s; }
-.cn-ctrl-btn:hover { color:#fff; } .cn-ctrl-btn svg { width:20px; height:20px; fill:currentColor; }
-.cn-play-pause-btn { background:#fff; color:#000; width:36px; height:36px; border-radius:50%; display:flex; justify-content:center; align-items:center;}
-.cn-play-pause-btn:hover { color:#000; transform:scale(1.05); }
-#cn-restore-btn { position:fixed; bottom:80px; right:0; background:rgba(20,20,24,0.9); border:1px solid rgba(255,255,255,0.1); border-right:none; padding:14px; border-radius:16px 0 0 16px; color:white; cursor:pointer; transform:translateX(100%); transition:transform 0.5s; z-index:9998; display:flex; align-items:center; justify-content:center; }
-#cn-restore-btn.visible { transform:translateX(0); }
-</style>
-</head>
 <body id="desktop-area">
 
-<!-- Mobile Block Screen -->
 <div id="mobile-warning">
-    <h1>Unsupported Device</h1>
-    <p>Device is not fully supported, but if you want to continue double tap anywhere on this screen.</p>
+   <div class="mobile-box">
+    <i class="fas fa-exclamation-triangle"></i>
+     <h2>Device is not fully supported</h2>
+    <p>Double tap anywhere to continue</p>
+   </div>
 </div>
 
 <div id="top-trigger"></div>
-<div id="boot-layer">
+  <div id="boot-layer">
 <div id="boot-content">
-<div class="boot-logo">CINE-OS</div>
-<div class="boot-sub">Cine-Hub Softwares // V2</div>
-<button id="boot-btn" onclick="startBootSequence()">Enter CINE</button>
-<div style="margin-top:20px; font-size:0.8rem; color:#555;">Double-Tap ENTER to skip sequence</div>
+   <div class="boot-logo">CINE-OS</div>
+ <div class="boot-sub">Cine-Hub Softwares // V2</div>
+  <button id="boot-btn" onclick="startBootSequence()">Enter CINE</button>
+  <div style="margin-top:20px; font-size:0.8rem; color:#555;">Double-Tap ENTER to skip sequence</div>
 </div>
 <video id="boot-video" playsinline><source src="Videos/Boot.mp4" type="video/mp4"></video>
-</div>
+  </div>
+
 <div id="lock-screen" onclick="unlockSystem()">
-<video id="lock-video" autoplay loop muted playsinline></video>
-<div id="lock-ui">
-<div class="l-greet" id="lock-greet">GOOD AFTERNOON</div>
-<div class="l-day" id="lock-day-large">MONDAY</div>
-<div class="l-date" id="lock-date">03 MARCH</div>
-<div class="l-time" id="lock-time">04:48 PM</div>
+  <video id="lock-video" autoplay loop muted playsinline></video>
+ <div id="lock-ui">
+   <div class="l-greet" id="lock-greet">GOOD AFTERNOON</div>
+    <div class="l-day" id="lock-day-large">MONDAY</div>
+  <div class="l-date" id="lock-date">03 MARCH</div>
+  <div class="l-time" id="lock-time">04:48 PM</div>
+  </div>
 </div>
-</div>
-<video id="bg-video" loop muted playsinline><source src="Videos/default.mp4" type="video/mp4"></video>
+
+   <video id="bg-video" loop muted playsinline><source src="Videos/default.mp4" type="video/mp4"></video>
 <canvas id="snow-fx"></canvas>
 <div id="hud-top"><div class="hud-day" id="lbl-day">SUNDAY</div></div>
-<div id="drag-proxy"><img id="proxy-img" src=""></div>
+
+  <div id="drag-proxy">
+    <div id="folder-badge" style="display:none;">2</div>
+    <img id="proxy-img" src="">
+  </div>
+  
 <div id="dock-container"></div>
-<div id="windows-layer"></div>
+ <div id="windows-layer"></div>
 
 <div id="wallpaper-menu">
-<div class="wp-modal-header">
-<h2>WALLPAPER PROTOCOLS</h2>
-<i class="fas fa-times" style="cursor:pointer; font-size: 1.5rem; color:#888;" onclick="document.getElementById('wallpaper-menu').classList.remove('open')"></i>
-</div>
-<div class="segmented-control">
-<label><input type="radio" name="wpmd" value="both" checked onclick="window.wpMode='both'"><span>Both</span></label>
-<label><input type="radio" name="wpmd" value="home" onclick="window.wpMode='home'"><span>Homescreen</span></label>
-<label><input type="radio" name="wpmd" value="lock" onclick="window.wpMode='lock'"><span>Lockscreen</span></label>
-</div>
-<div style="overflow-y: auto; flex: 1; padding-right:10px;">
-<div id="wp-grid-unlocked" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;"></div>
-<h3 style="font-size: 12px; color: #666; margin-bottom: 10px; text-transform:uppercase;">Encrypted</h3>
-<div id="wp-grid-locked" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;"></div>
-</div>
+  <div class="wp-modal-header">
+   <h2>WALLPAPER PROTOCOLS</h2>
+  <i class="fas fa-times" style="cursor:pointer; font-size: 1.5rem; color:#888;" onclick="document.getElementById('wallpaper-menu').classList.remove('open')"></i>
+  </div>
+   <div class="segmented-control">
+  <label><input type="radio" name="wpmd" value="both" checked onclick="window.wpMode='both'"><span>Both</span></label>
+    <label><input type="radio" name="wpmd" value="home" onclick="window.wpMode='home'"><span>Homescreen</span></label>
+   <label><input type="radio" name="wpmd" value="lock" onclick="window.wpMode='lock'"><span>Lockscreen</span></label>
+  </div>
+   <div style="overflow-y: auto; flex: 1; padding-right:10px;">
+  <div id="wp-grid-unlocked" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;"></div>
+  <h3 style="font-size: 12px; color: #666; margin-bottom: 10px; text-transform:uppercase;">Encrypted</h3>
+   <div id="wp-grid-locked" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;"></div>
+  </div>
 </div>
 
 <div id="start-menu" class="os-menu">
-<div class="start-search-bar">
-<i class="fas fa-search" style="color:#888"></i>
-<input type="text" id="start-search-input" placeholder="Type secret code to unlock papers..." style="background:transparent; border:none; color:white; width:100%; outline:none;">
-</div>
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-<h3 style="font-size:15px; color:#fff;">Pinned</h3>
-</div>
-<div class="pinned-grid" id="pinned-grid"></div>
-<div class="start-footer">
-<div class="user-profile"><div class="user-avatar"><i class="fas fa-user" style="color:#aaa"></i></div><span style="font-size:12px;color:#ddd;">Administrator</span></div>
-<i class="fas fa-power-off" style="cursor:pointer; color:#ff4444; font-size:18px;" onclick="location.reload()"></i>
-</div>
+ <div class="start-search-bar">
+  <i class="fas fa-search" style="color:#888"></i>
+   <input type="text" id="start-search-input" placeholder="Type secret code to unlock papers..." style="background:transparent; border:none; color:white; width:100%; outline:none;">
+  </div>
+   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+  <h3 style="font-size:15px; color:#fff;">Pinned</h3>
+   </div>
+  <div class="pinned-grid" id="pinned-grid"></div>
+ <div class="start-footer">
+   <div class="user-profile"><div class="user-avatar"><i class="fas fa-user" style="color:#aaa"></i></div><span style="font-size:12px;color:#ddd;">Administrator</span></div>
+   <i class="fas fa-power-off" style="cursor:pointer; color:#ff4444; font-size:18px;" onclick="location.reload()"></i>
+  </div>
 </div>
 
 <div id="app-drawer" onclick="if(event.target.id==='app-drawer')toggleAppDrawer()">
-<div class="start-search-bar" style="max-width:600px; margin:0 auto 40px auto; background:rgba(255,255,255,0.05);">
-<i class="fas fa-search" style="color:#888"></i>
-<input type="text" placeholder="Search apps..." style="background:transparent; border:none; color:white; width:100%; outline:none;" onkeyup="filterDrawer(this.value)">
-</div>
-<div class="drawer-grid" id="drawer-grid"></div>
+  <div class="start-search-bar" style="max-width:600px; margin:0 auto 40px auto; background:rgba(255,255,255,0.05);">
+   <i class="fas fa-search" style="color:#888"></i>
+    <input type="text" placeholder="Search apps..." style="background:transparent; border:none; color:white; width:100%; outline:none;" onkeyup="filterDrawer(this.value)">
+   </div>
+  <div class="drawer-grid" id="drawer-grid"></div>
 </div>
 
-<div id="desktop-context-menu" class="os-context-menu">
-<div class="ctx-item" onclick="openWallpaperMenu(); document.getElementById('desktop-context-menu').style.display='none';"><i class="fas fa-image fa-fw"></i> Change Wallpaper</div>
-<div class="ctx-separator"></div>
-<div class="ctx-item" onclick="location.reload()"><i class="fas fa-sync fa-fw"></i> Refresh System</div>
-</div>
+ <!-- CONTEXT MENU W/ NEW BUTTONS -->
+ <div id="desktop-context-menu" class="os-context-menu">
+   <div class="ctx-item" onclick="openWallpaperMenu(); document.getElementById('desktop-context-menu').style.display='none';"><i class="fas fa-image fa-fw"></i> Change Wallpaper</div>
+  <div class="ctx-separator"></div>
+   <div class="ctx-row">
+    <button class="ctx-btn" onclick="toggleDesktopSize(true)" title="Large Icons (Hide Names)"><i class="fas fa-expand-arrows-alt"></i></button>
+    <button class="ctx-btn" onclick="toggleDesktopSize(false)" title="Default Size"><i class="fas fa-compress-arrows-alt"></i></button>
+   </div>
+  <div class="ctx-separator"></div>
+  <div class="ctx-item" onclick="location.reload()"><i class="fas fa-sync fa-fw"></i> Refresh System</div>
+ </div>
 
 <div id="toast-container"></div>
 
-<!-- Ciri Assistant Pro Wrapper -->
-<div id="ciri-wrapper">
-    <div id="ciri-backdrop" onclick="closeCiri()"></div>
-    <div id="ciri-window">
-        <div id="ciri-boot-screen">
-            <div id="ciri-boot-text" class="ciri-boot-text">CIRI.</div>
-            <div id="ciri-boot-sub" class="ciri-boot-sub">Cine-Hub SOFTWARES</div>
-            <div id="ciri-boot-loader" class="ciri-boot-loader">
-                <div id="ciri-spinner" class="ciri-spinner"></div>
-                <div id="ciri-boot-status" class="ciri-boot-status">Connecting To Gemini...</div>
-                <div class="ciri-boot-warning">If network restricts Gemini, This webOS needs to be launched through a proxy giving up LIVE mode.</div>
-            </div>
-        </div>
-        <div id="ciri-status-pill">
-            <span>CIRI</span><div id="ciri-status-icon"></div><span id="ciri-status-text"></span>
-        </div>
-        <div id="ciri-chat-history"></div>
-        <div id="ciri-bottom-wrapper">
-            <div id="ciri-img-preview-box"><img id="ciri-img-preview" src=""><span onclick="clearCiriImage()">✕</span></div>
-            <input type="file" id="ciri-file-upload" accept="image/*" style="display:none;" onchange="handleCiriFileUpload(event)">
-            <button class="ciri-icon-btn" onclick="document.getElementById('ciri-file-upload').click()">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-            </button>
-            <textarea id="ciri-chat-input" placeholder="Message Ciri..." rows="1" oninput="autoGrowCiri(this)"></textarea>
-            <div id="ciri-mode-toggle" onclick="cycleCiriMode()">FAST</div>
-            <div id="ciri-action-orb" onclick="handleCiriSend()"></div>
-        </div>
-    </div>
-</div>
+<!-- CIRI ASSISTANT PRO -->
+<div id="ciri-backdrop" onclick="closeCiri()"></div>
+  <div id="ciri-window">
+    <div id="ciri-boot-screen">
+      <div id="boot-ciri-text" class="boot-ciri">CIRI.</div>
+       <div id="boot-sub-text" class="boot-sub">Cine-Hub SOFTWARES</div>
+       <div id="boot-loader" class="boot-loader">
+         <div id="boot-spinner" class="spinner"></div>
+        <div id="boot-status-text" class="boot-status">Connecting To Gemini...</div>
+        <div class="boot-warning">If network restricts Gemini, This webOS needs to be launched through a proxy giving up LIVE mode.</div>
+      </div>
+   </div>
 
-<!-- Cine-Noti Ultimate -->
-<button id="cn-restore-btn" title="Restore Player"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg></button>
-<div id="cine-noti">
-  <div class="cn-window-actions">
-    <button class="cn-action-btn" id="cn-minimize-btn"><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
-    <button class="cn-action-btn" id="cn-close-btn"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+  <div id="status-pill">
+   <span>CIRI</span>
+    <div id="status-icon" class="status-icon"></div>
+     <span id="status-text"></span>
   </div>
-  <div class="cn-player-main">
-    <div class="cn-album-art"><i class="fas fa-music"></i></div>
-    <div class="cn-track-info">
-      <div class="cn-title">Audio Detected</div>
-      <div class="cn-artist">System Media</div>
-      <canvas id="cn-visualizer"></canvas>
+  <div id="chat-history"></div>
+
+   <div id="bottom-wrapper">
+     <div id="img-preview-box">
+      <img id="img-preview" src="" alt="preview">
+       <span onclick="clearImage()">✕</span>
+     </div>
+     <input type="file" id="file-upload" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
+     <button class="icon-btn" onclick="document.getElementById('file-upload').click()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+     </button>
+     <textarea id="chat-input" placeholder="Message Ciri..." rows="1" oninput="autoGrow(this)"></textarea>
+     <div id="mode-toggle" onclick="cycleMode()">FAST</div>
+     <div id="action-orb" onclick="handleSend()"></div>
+   </div>
+ </div>
+ <video id="screen-video" autoplay playsinline style="display:none;"></video>
+<canvas id="screen-canvas" style="display:none;"></canvas>
+
+<!-- CINE-NOTI AUDIO WIDGET -->
+<button id="restore-btn" title="Restore Player">
+  <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+</button>
+ <div id="cine-noti">
+  <div class="window-actions">
+   <button class="action-btn" id="minimize-noti-btn" title="Minimize">
+    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+   </button>
+   <button class="action-btn" id="close-noti-btn" title="Close">
+     <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+   </button>
+  </div>
+  <div class="player-main">
+   <img class="album-art" id="noti-album-art" src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=200&auto=format&fit=crop" alt="Album Art">
+    <div class="track-info">
+     <div class="title" id="noti-title">System Audio</div>
+     <div class="artist" id="noti-artist">Now Playing</div>
+     <canvas id="visualizer"></canvas>
     </div>
   </div>
-  <div class="cn-controls">
-    <button class="cn-ctrl-btn cn-play-pause-btn" id="cn-play-pause">
-      <svg id="cn-icon-play" viewBox="0 0 24 24" style="width:16px; height:16px; margin-left:2px; display:none;"><path d="M8 5v14l11-7z"/></svg>
-      <svg id="cn-icon-pause" viewBox="0 0 24 24" style="width:16px; height:16px;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-    </button>
+  <div class="time-wrapper">
+   <span id="current-time">0:00</span>
+   <div class="progress-hit-area" id="progress-hit-area">
+    <div class="progress-bg">
+     <div class="progress-fill" id="progress-fill"></div>
+    </div>
+   </div>
+   <span id="total-time">LIVE</span>
   </div>
-</div>
+  <div class="controls">
+   <button class="ctrl-btn" id="skip-back" title="Back 15s">
+    <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.85 8 12.5 8z"/></svg>
+   </button>
+   <button class="ctrl-btn play-pause-btn" id="play-pause">
+    <svg id="icon-play" viewBox="0 0 24 24" style="width:16px; height:16px; margin-left:2px; display:none;"><path d="M8 5v14l11-7z"/></svg>
+    <svg id="icon-pause" viewBox="0 0 24 24" style="width:16px; height:16px;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+   </button>
+   <button class="ctrl-btn" id="skip-forward" title="Skip 15s">
+    <svg viewBox="0 0 24 24"><path d="M11.5 8c-4.35 0-7.98 2.9-9.98 7.22l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6c-1.84-1.61-4.24-2.6-6.9-2.6z"/></svg>
+   </button>
+  </div>
+ </div>
 
+<!-- SETTINGS TEMPLATE (Hidden) -->
 <template id="code-settings">
-<!-- Keeping existing settings template exact same -->
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-:root{--accent-cyan:#00f3ff;--accent-danger:#ff4444;--glass-bg:rgba(15,15,20,0.6);--glass-border:rgba(255,255,255,0.05);--glass-hover:rgba(255,255,255,0.1);}
-*{box-sizing:border-box;user-select:none;}
-body{background:transparent;color:white;padding:25px;font-family:'Rajdhani',sans-serif;overflow-y:auto;}
-body::-webkit-scrollbar{width:8px;}
-body::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:4px;}
-h2{font-family:'Orbitron',sans-serif;border-bottom:2px solid var(--accent-cyan);padding-bottom:10px;margin-bottom:20px;letter-spacing:3px;font-size:1.6rem;}
-.cat{color:var(--accent-cyan);font-weight:700;margin-top:25px;margin-bottom:15px;letter-spacing:2px;font-size:1.1rem;text-transform:uppercase;display:flex;align-items:center;gap:10px;}
-.cat::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--glass-border),transparent);}
-.setting-card{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;background:var(--glass-bg);padding:16px 20px;border-radius:12px;border:1px solid var(--glass-border);transition:all 0.2s;}
-.setting-card:hover{border-color:rgba(0,243,255,0.4);background:var(--glass-hover);}
-.setting-info{display:flex;align-items:center;gap:15px;}
-.setting-icon{font-size:1.5rem;color:#888;width:30px;text-align:center;}
-.setting-card:hover .setting-icon{color:var(--accent-cyan);}
-.setting-text span{font-size:1.1rem;font-weight:600;letter-spacing:1px;color:#fff;}
-.setting-text small{display:block;color:#aaa;font-size:0.85rem;margin-top:4px;}
-.switch{position:relative;display:inline-block;width:46px;height:24px;}
-.switch input{opacity:0;width:0;height:0;}
-.slider{position:absolute;cursor:pointer;inset:0;background-color:#222;transition:.3s;border-radius:34px;border:1px solid #444;}
-.slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background-color:#888;transition:.3s;border-radius:50%;}
-input:checked+.slider{background-color:rgba(0,243,255,0.2);border-color:var(--accent-cyan);}
-input:checked+.slider:before{transform:translateX(22px);background-color:var(--accent-cyan);}
-.select-input{background:#111;color:#fff;border:1px solid var(--glass-border);padding:8px 12px;border-radius:6px;font-family:'Rajdhani',sans-serif;font-size:1rem;outline:none;cursor:pointer;}
-#faq-modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(5px);z-index:999;display:none;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity 0.3s;}
-#faq-modal.open{display:flex;opacity:1;}
-.faq-box{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:12px;padding:25px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto;}
-.faq-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:10px;margin-bottom:15px;}
-.faq-item{margin-bottom:20px;background:rgba(0,0,0,0.4);padding:15px;border-radius:8px;border:1px solid rgba(255,255,255,0.05);}
-.faq-item h3{color:var(--accent-cyan);margin-bottom:8px;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;}
-.faq-item p{color:#ccc;font-size:0.95rem;line-height:1.5;}
-</style>
 <div id="faq-modal">
 <div class="faq-box">
 <div class="faq-header">
 <h2 style="margin:0; border:none; padding:0;">SYSTEM FAQ</h2>
 <i class="fas fa-times" style="font-size:1.5rem; color:#888; cursor:pointer;" onclick="toggleFaq()"></i>
 </div>
-<div class="faq-item"><h3>MOVIE NOT WORKING!</h3><p>If the movies do not work for you, open the Browser app, click on Ultraviolet, and search for anything. This will fix the issue. Go back to Movies and they should play!</p></div>
-<div class="faq-item"><h3>TOO MANY GAMES</h3><p>If you downloaded too many games and want to start fresh, open a new tab in your normal browser, press Ctrl + H, and clear your cache. This resets your saved data so you can start over.</p></div>
+<div class="faq-item">
+<h3>MOVIE NOT WORKING!</h3>
+<p>If the movies do not work for you, open the Browser app, click on Ultraviolet, and search for anything. This will fix the issue. Go back to Movies and they should play!</p>
+</div>
+<div class="faq-item">
+<h3>TOO MANY GAMES</h3>
+<p>If you downloaded too many games and want to start fresh, open a new tab in your normal browser, press Ctrl + H, and clear your cache. This resets your saved data so you can start over.</p>
+</div>
 </div>
 </div>
 <h2>SYSTEM CONFIG</h2>
@@ -608,469 +242,8 @@ input:checked+.slider:before{transform:translateX(22px);background-color:var(--a
 <button onclick="window.parent.downloadLocally()" style="width:100%;padding:12px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.05);color:#ddd;border-radius:8px;cursor:pointer;font-family:var(--font-main);font-weight:bold;"><i class="fas fa-download"></i> Download Local</button>
 <button onclick="window.parent.openAboutBlank()" style="width:100%;padding:12px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.05);color:#ddd;border-radius:8px;cursor:pointer;font-family:var(--font-main);font-weight:bold;"><i class="fas fa-external-link-alt"></i> Open in about:blank</button>
 </div>
-<script>
-function toggleFaq() {
-    const modal = document.getElementById('faq-modal');
-    if(modal.classList.contains('open')) {
-        modal.classList.remove('open'); setTimeout(() => modal.style.display = 'none', 300);
-    } else {
-        modal.style.display = 'flex'; setTimeout(() => modal.classList.add('open'), 10);
-    }
-}
-document.addEventListener('keydown', function(e) {
-if(window.parent && window.parent.sysConfig && window.parent.sysConfig.panicKey && e.key && e.key.toLowerCase() === window.parent.sysConfig.panicKey.toLowerCase()){
-window.parent.location.href = "https://google.com";
-}
-});
-if(window.parent.sysConfig){
-document.getElementById('chk-bg').checked=window.parent.sysConfig.optBg;
-document.getElementById('chk-boot').checked=window.parent.sysConfig.shortBoot;
-document.getElementById('panic-input').value=window.parent.sysConfig.panicKey;
-if(window.parent.sysConfig.cloak)document.getElementById('cloak-select').value=window.parent.sysConfig.cloak;
-}
-</script>
 </template>
 
-<script>
-/* CORE OS LOGIC */
-const APPS = {
-'cine':     { title: 'CINE // HUB', path: 'script/Apps/Cine/index.html', icon: 'https://cdn.worldvectorlogo.com/logos/netflix-logo-icon.svg' },
-'term':     { title: 'Spotify', path: 'script/Apps/Spotify/index.html', icon: 'https://cdn.pixabay.com/photo/2016/10/22/00/15/spotify-1759471_1280.jpg' },
-'files':    { title: 'PS5 Emu', path: 'script/Apps/Ps5/index.html', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-OeL_be7RFaoHi3PswkuAR5XcMgBNRDynsg&s' },
-'web':      { title: 'Cine-Web', path: 'script/Apps/Web/index.html', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSeD89ZcX5W1FBtal7RerasT27q-OmZqnBixQ&s' },
-'settings': { title: 'CONFIG', internal: true, icon: 'https://cdn.iconscout.com/icon/free/png-256/free-apple-settings-icon-svg-download-png-493162.png' },
-'discord':  { title: 'Discord', path: 'https://discord.com/app', icon: 'https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png' }
-};
-const DOCK_APPS = ['web', 'files', 'settings', 'cine', 'term'];
-const PINNED_APPS = ['web', 'files', 'settings', 'cine', 'term'];
-
-var sysConfig=JSON.parse(localStorage.getItem('cine_sys_config'))||{optBg:false,shortBoot:false,panicKey:'`',homeWallpaper:'Default',lockWallpaper:'green',cloak:'none'};
-if(!sysConfig.panicKey)sysConfig.panicKey='`'; if(!sysConfig.homeWallpaper)sysConfig.homeWallpaper='Default'; if(!sysConfig.lockWallpaper)sysConfig.lockWallpaper='green';
-window.updateSysSetting=function(k,v){sysConfig[k]=v;localStorage.setItem('cine_sys_config',JSON.stringify(sysConfig));if(k==='optBg')applySystemSettings();};
-const cloaks={none:{title:"Cine-OS",icon:""},google:{title:"Google",icon:"https://www.google.com/favicon.ico"},drive:{title:"My Drive - Google Drive",icon:"https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png"},canvas:{title:"Dashboard",icon:"https://du11hjcvx0uqb.cloudfront.net/br/dist/images/favicon-e10d657a73.ico"},classroom:{title:"Classes",icon:"https://ssl.gstatic.com/classroom/favicon.png"}};
-window.updateCloak=function(k){sysConfig.cloak=k;localStorage.setItem('cine_sys_config',JSON.stringify(sysConfig));applyCloak();};
-function applyCloak(){let k=sysConfig.cloak||'none';let c=cloaks[k];let e=document.querySelectorAll("link[rel*='icon']");e.forEach(l=>l.remove());if(c&&k!=='none'){document.title=c.title;let l=document.createElement('link');l.type='image/x-icon';l.rel='shortcut icon';l.href=c.icon;document.getElementsByTagName('head')[0].appendChild(l);}else{document.title="Cine-OS";}}
-setInterval(applyCloak,2000);
-window.downloadLocally=function(){var a=document.createElement('a');var f=new Blob([document.getElementById('secret-html-payload').value],{type:'text/html'});a.href=URL.createObjectURL(f);a.download='CineOS.html';a.click();};
-window.openAboutBlank=function(){var w=window.open('about:blank','_blank');if(w){w.document.open();w.document.write(document.getElementById('secret-html-payload').value);w.document.close();}};
-function applySystemSettings(){var b=document.getElementById('bg-video');if(b){if(sysConfig.optBg){b.removeAttribute('autoplay');b.removeAttribute('loop');b.pause();b.currentTime=0;}else if(!document.getElementById('lock-screen').classList.contains('active')){b.setAttribute('autoplay','true');b.setAttribute('loop','true');b.play().catch(e=>console.log(e));}}}
-let isDesktopActive=false;
-
-// Mobile Setup
-if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768){
-    let mw = document.getElementById('mobile-warning'); mw.style.display = 'flex';
-    let lastTap = 0;
-    mw.addEventListener('touchstart', e => {
-        let now = new Date().getTime();
-        if(now - lastTap < 500) { mw.style.display = 'none'; e.preventDefault(); }
-        lastTap = now;
-    });
-}
-
-document.addEventListener("DOMContentLoaded",()=>{applyCloak();renderUI();initWallpapers();document.getElementById('boot-layer').style.display='flex';});
-function renderUI(){var dc=document.getElementById('dock-container');dc.innerHTML=`<div class="dock-item" onclick="toggleStartMenu()"><img src="https://missionsupport.archden.org/wp-content/uploads/2022/02/windows11-icon.png"></div><div class="dock-sep"></div><div class="dock-item" onclick="toggleAppDrawer()"><svg width="24" height="24" viewBox="0 0 24 24" fill="#aaa"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg></div><div class="dock-sep"></div>`;DOCK_APPS.forEach(id=>{if(APPS[id])dc.innerHTML+=`<div class="dock-item" data-id="${id}" onclick="toggleApp('${id}')"><img src="${APPS[id].icon}"></div>`;});var pg=document.getElementById('pinned-grid');pg.innerHTML='';PINNED_APPS.forEach(id=>{if(APPS[id])pg.innerHTML+=`<div class="pinned-item" onclick="toggleApp('${id}')"><img src="${APPS[id].icon}"><span>${APPS[id].title}</span></div>`;});populateDrawer(); loadDesktop();}
-let bootActive=true;let enterCount=0;
-function startBootSequence(){var c=document.getElementById('boot-content');var b=document.getElementById('boot-video');c.style.display='none';b.style.display='block';b.muted=false;b.volume=1.0;if(sysConfig.shortBoot){b.src="Videos/QuickBoot.mp4";b.load();}b.play().catch(()=>{b.muted=true;b.play();});b.onended=()=>{if(bootActive)skipBootSequence();};}
-function skipBootSequence(){if(!bootActive)return;bootActive=false;var l=document.getElementById('boot-layer');var b=document.getElementById('boot-video');if(b)b.pause();if(l){l.style.opacity='0';document.getElementById('lock-screen').classList.add('active');var lV=document.getElementById('lock-video');lV.play().catch(e=>console.log(e));setTimeout(()=>{l.style.display='none';},600);updateClock();}}
-function showNotification(title, message, duration = 8000) {
-    const container = document.getElementById('toast-container');
-    const toast = document.createElement('div'); toast.className = 'toast-notification';
-    toast.innerHTML = `<div class="toast-header"><div class="toast-app-info"><div class="toast-icon"><i class="fas fa-user-astronaut"></i></div><span>Cine (Owner)</span></div><i class="fas fa-times toast-close"></i></div><div class="toast-title">${title}</div><div class="toast-body">${message}</div>`;
-    container.appendChild(toast); setTimeout(() => toast.classList.add('show'), 100);
-    const closeToast = () => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); };
-    toast.onclick = closeToast; setTimeout(closeToast, duration);
-}
-
-let welcomeShown = false;
-window.unlockSystem=function(){var s=document.getElementById('lock-screen');s.classList.add('slide-up');setTimeout(()=>{s.classList.remove('active');isDesktopActive=true;document.getElementById('lock-video').pause();if(!sysConfig.optBg)document.getElementById('bg-video').play().catch(e=>console.log(e)); if(!welcomeShown){showNotification("Welcome To Cine V2", "If you are having problems either report it to me in the DC, Or checkout our FAQ in settings!"); welcomeShown=true;}},600);resetIdle();};
-function initWallpapers(){var bgV=document.getElementById('bg-video');var lV=document.getElementById('lock-video');if(wallpaperRegistry[sysConfig.homeWallpaper]){bgV.src=wallpaperRegistry[sysConfig.homeWallpaper].url;bgV.loop=!!wallpaperRegistry[sysConfig.homeWallpaper].loop;bgV.load();}if(wallpaperRegistry[sysConfig.lockWallpaper]){lV.src=wallpaperRegistry[sysConfig.lockWallpaper].url;lV.loop=!!wallpaperRegistry[sysConfig.lockWallpaper].loop;lV.load();}else{lV.src="Videos/green.mp4";lV.loop=true;lV.load();}}
-function updateClock(){var n=new Date();var d=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];var m=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];var hrs=n.getHours();var gr='GOOD EVENING';if(hrs<12)gr='GOOD MORNING';else if(hrs<18)gr='GOOD AFTERNOON';var lG=document.getElementById('lock-greet');if(lG)lG.innerText=gr;var h12=hrs%12||12;var ampm=hrs>=12?'PM':'AM';var min=n.getMinutes().toString().padStart(2,'0');var lT=document.getElementById('lock-time');if(lT)lT.innerText=`${h12}:${min} ${ampm}`;var fM=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];var lD=document.getElementById('lock-date');if(lD)lD.innerText=`${n.getDate().toString().padStart(2,'0')} ${fM[n.getMonth()]}`;var dL=document.getElementById('lock-day-large');if(dL)dL.innerText=d[n.getDay()];var hd=document.getElementById('lbl-day');if(hd)hd.innerText=d[n.getDay()];}setInterval(updateClock,1000);
-
-/* Smart Idle Audio Check */
-let idleTime=0; function resetIdle(){idleTime=0;} 
-document.addEventListener('mousemove',resetIdle); document.addEventListener('keypress',resetIdle); document.addEventListener('click',resetIdle); document.addEventListener('touchstart',resetIdle);
-
-let trackedMedia = null;
-function findPlayingMedia() {
-    let playing = null;
-    const checkDoc = (doc) => {
-        if(playing) return;
-        doc.querySelectorAll('audio, video').forEach(m => {
-            if(['boot-video','lock-video','bg-video','audio-source'].includes(m.id)) return;
-            if((m.currentSrc || m.src) && !m.paused && !m.muted) playing = m;
-        });
-        doc.querySelectorAll('iframe').forEach(f => {
-            try { if(f.contentWindow && f.contentWindow.document) checkDoc(f.contentWindow.document); } catch(e){}
-        });
-    };
-    checkDoc(document);
-    return playing;
-}
-
-setInterval(()=>{
-    let m = findPlayingMedia();
-    if(m) {
-        resetIdle(); // Don't lock if audio plays!
-        if(!trackedMedia) { trackedMedia = m; showCineNoti(); }
-    } else if(trackedMedia) {
-        let stillExists = false;
-        const checkDoc = (doc) => {
-            if(stillExists) return;
-            doc.querySelectorAll('audio, video').forEach(el => { if(el === trackedMedia) stillExists = true; });
-            doc.querySelectorAll('iframe').forEach(f => { try{ if(f.contentWindow && f.contentWindow.document) checkDoc(f.contentWindow.document); }catch(e){} });
-        };
-        checkDoc(document);
-        if(!stillExists || !trackedMedia.currentSrc) { hideCineNoti(); trackedMedia = null; }
-        else if (trackedMedia.paused) { syncCineNotiPause(); }
-    }
-
-    idleTime++; var s=document.getElementById('lock-screen');
-    if(idleTime>=180 && !s.classList.contains('active') && !bootActive){
-        isDesktopActive=false; s.classList.remove('slide-up'); s.classList.add('active');
-        document.getElementById('bg-video').pause(); document.getElementById('lock-video').play().catch(e=>console.log(e));
-    }
-},1000);
-
-function populateDrawer(){var dg=document.getElementById('drawer-grid');dg.innerHTML='';for(var key in APPS){var a=APPS[key];var d=document.createElement('div');d.className='drawer-item';d.onclick=(function(k){return function(){toggleApp(k);toggleAppDrawer();}})(key);d.innerHTML=`<img src="${a.icon}"><span>${a.title}</span>`;dg.appendChild(d);}}
-function filterDrawer(v){var items=document.querySelectorAll('.drawer-item');v=v.toLowerCase();items.forEach(i=>{if(i.innerText.toLowerCase().includes(v))i.style.display='flex';else i.style.display='none';});}
-function toggleAppDrawer(){var d=document.getElementById('app-drawer');if(d.classList.contains('open')){d.classList.remove('open');setTimeout(()=>d.style.display='none',300);}else{d.style.display='block';setTimeout(()=>d.classList.add('open'),10);}}
-let activeWindowId=null;
-
-function minimizeWindow(id) {
-    let w = document.getElementById(`win-${id}`);
-    if(w) { w.classList.add('minimized'); activeWindowId = null; endImmersiveMode(); }
-}
-function toggleApp(id){
-    let w = document.getElementById(`win-${id}`);
-    if (w && w.classList.contains('minimized')) {
-        w.classList.remove('minimized');
-        activeWindowId = id; startImmersiveMode(w);
-        return;
-    }
-    if(activeWindowId===id){ minimizeWindow(id); return; }
-    openWindow(id);
-}
-function openWindow(id){
-    var sm=document.getElementById('start-menu');if(sm){sm.classList.remove('open');setTimeout(()=>{sm.style.display='none';},300);}
-    var l=document.getElementById('windows-layer');var w=document.getElementById(`win-${id}`);
-    if(activeWindowId&&activeWindowId!==id){var aw=document.getElementById(`win-${activeWindowId}`);if(aw)aw.style.zIndex=499;}
-    if(!w){
-        var d=APPS[id]||{title:'APP',path:'about:blank'};
-        w=document.createElement('div');w.id=`win-${id}`;w.className='window active header-visible';w.style.zIndex=500;
-        var ih=d.internal?`<iframe id="frame-${id}"></iframe>`:`<iframe id="frame-${id}" src="${d.path}"></iframe>`;
-        w.innerHTML=`<div class="win-header" onmousedown="DragSystem.startWinDrag(event, '${id}')"><div class="win-title">${d.title}</div><div class="win-controls">
-        <div class="win-btn btn-min" onclick="minimizeWindow('${id}')" title="Minimize"><svg viewBox="0 0 24 24" width="14" height="14" stroke="white" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line></svg></div>
-        <div class="win-btn btn-close" onclick="closeWindow('${id}')" title="Close"><svg viewBox="0 0 24 24" width="14" height="14" stroke="white" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div>
-        </div></div><div class="win-body">${ih}</div>`;
-        l.appendChild(w);
-        if(d.internal){var t=document.getElementById(`code-${id}`);var f=document.getElementById(`frame-${id}`);if(t&&f){var dc=f.contentWindow.document;dc.open();dc.write(t.innerHTML);dc.close();}}
-    }else{w.classList.remove('minimized');w.classList.add('active');w.style.zIndex=500;}
-    activeWindowId=id;startImmersiveMode(w);
-}
-function closeWindow(id){var w=document.getElementById(`win-${id}`);if(w)w.remove();if(activeWindowId===id)activeWindowId=null;endImmersiveMode();}
-function startImmersiveMode(w){document.getElementById('dock-container').classList.add('dock-hidden');w.classList.remove('header-visible');}
-function endImmersiveMode(){var wl=document.getElementById('windows-layer');let hasActive = false;
-Array.from(wl.children).forEach(child => {if(!child.classList.contains('minimized')){hasActive=true; activeWindowId=child.id.replace('win-',''); child.style.zIndex=500;}});
-if(!hasActive){document.getElementById('dock-container').classList.remove('dock-hidden'); activeWindowId = null;}}
-
-document.getElementById('top-trigger').addEventListener('mouseenter',()=>{if(activeWindowId){var w=document.getElementById(`win-${activeWindowId}`);if(w)w.classList.add('header-visible');}});
-document.addEventListener('mouseover',e=>{if(e.target.closest('.win-header')){if(activeWindowId)document.getElementById(`win-${activeWindowId}`).classList.add('header-visible');}else if(activeWindowId&&!e.target.closest('#top-trigger')){var w=document.getElementById(`win-${activeWindowId}`);if(w)w.classList.remove('header-visible');}});
-
-/* Updated Drag & Grid & Folders System */
-const GRID_SIZE_X = 100; const GRID_SIZE_Y = 120;
-const DragSystem={
-    dragging:false,startPos:{x:0,y:0},dragItem:null,sourceType:null,sourceEl:null,proxy:document.getElementById('drag-proxy'),proxyImg:document.getElementById('proxy-img'),
-    init(){
-        window.addEventListener('mousemove',e=>this.move(e)); window.addEventListener('mouseup',e=>this.end(e));
-        window.addEventListener('touchmove',e=>this.move(e.touches[0])); window.addEventListener('touchend',e=>this.end(e.changedTouches[0]));
-    },
-    start(e,el,type){
-        let evt = e.touches ? e.touches[0] : e;
-        this.startPos={x:evt.clientX,y:evt.clientY}; this.sourceType=type; this.sourceEl=el; this.isDragMove=false;
-        if(type==='desktop') this.dragItem={id:el.dataset.id, apps:el.dataset.apps};
-    },
-    startWinDrag(e,id){
-        let evt = e.touches ? e.touches[0] : e;
-        this.startPos={x:evt.clientX,y:evt.clientY}; this.sourceType='window'; this.sourceEl=document.getElementById(`win-${id}`); this.isDragMove=false;
-    },
-    move(e){
-        if(!this.sourceEl)return; var dx=Math.abs(e.clientX-this.startPos.x),dy=Math.abs(e.clientY-this.startPos.y);
-        if(dx>5||dy>5){
-            this.dragging=true; this.isDragMove=true;
-            if(this.sourceType==='desktop'){
-                this.proxy.style.display='block'; this.proxy.style.left=(e.clientX-28)+'px'; this.proxy.style.top=(e.clientY-28)+'px';
-                this.proxyImg.src = this.sourceEl.classList.contains('desktop-folder') ? 'https://cdn-icons-png.flaticon.com/512/3767/3767084.png' : (APPS[this.dragItem.id]?.icon||'');
-                this.sourceEl.style.opacity='0';
-            }
-        }
-    },
-    end(e){
-        if(!this.sourceEl)return;
-        if(!this.isDragMove && this.sourceType==='desktop'){
-            if(this.sourceEl.classList.contains('desktop-folder')) openFolderModal(this.sourceEl.dataset.apps);
-            else toggleApp(this.dragItem.id); 
-            this.reset(); return;
-        }
-        if(!this.dragging){this.reset(); return;}
-
-        if(this.sourceType==='desktop'){
-            if(e.clientY>window.innerHeight-80){ // Drag to bottom dock removes
-                this.sourceEl.remove(); saveDesktop(); this.reset(); return;
-            }
-            // Grid Snapping
-            let gridX = Math.round((e.clientX-45)/GRID_SIZE_X)*GRID_SIZE_X + 20;
-            let gridY = Math.round((e.clientY-50)/GRID_SIZE_Y)*GRID_SIZE_Y + 20;
-
-            // Folder Collision
-            let collision = Array.from(document.querySelectorAll('.desktop-app')).find(el => {
-                return el !== this.sourceEl && Math.abs(parseInt(el.style.left) - gridX) < 40 && Math.abs(parseInt(el.style.top) - gridY) < 40;
-            });
-
-            if(collision) { createFolder(this.sourceEl, collision, gridX, gridY); }
-            else { this.sourceEl.style.left=gridX+'px'; this.sourceEl.style.top=gridY+'px'; this.sourceEl.style.opacity='1'; saveDesktop(); }
-        }
-        this.reset();
-    },
-    reset(){this.dragging=false; this.sourceEl=null; this.proxy.style.display='none';}
-}; DragSystem.init();
-
-function createDesktopIcon(i,x,y){
-    var e=document.createElement('div');e.className='desktop-app';e.style.left=x+'px';e.style.top=y+'px';e.dataset.id=i.id;
-    e.innerHTML=`<img src="${i.icon}" class="d-icon"><div class="d-label">${i.name}</div>`;
-    let mDown = ev=>{ev.stopPropagation();DragSystem.start(ev,e,'desktop');};
-    e.addEventListener('mousedown',mDown); e.addEventListener('touchstart',mDown);
-    document.getElementById('desktop-area').appendChild(e);
-}
-function createFolder(el1, el2, x, y) {
-    let apps = [];
-    if(el1.classList.contains('desktop-folder')) apps.push(...el1.dataset.apps.split(',')); else apps.push(el1.dataset.id);
-    if(el2.classList.contains('desktop-folder')) apps.push(...el2.dataset.apps.split(',')); else apps.push(el2.dataset.id);
-    apps = [...new Set(apps)]; // unique
-    
-    el1.remove(); el2.remove();
-    let folder = document.createElement('div'); folder.className = 'desktop-app desktop-folder'; folder.style.left = x + 'px'; folder.style.top = y + 'px';
-    folder.dataset.apps = apps.join(','); folder.dataset.id = 'folder_' + Date.now();
-    let gridHtml = apps.slice(0,4).map(app => `<img src="${APPS[app]?.icon || ''}">`).join('');
-    folder.innerHTML = `<div class="d-folder-grid">${gridHtml}</div><div class="d-label">Folder</div>`;
-    let mDown = ev => { ev.stopPropagation(); DragSystem.start(ev, folder, 'desktop'); };
-    folder.addEventListener('mousedown', mDown); folder.addEventListener('touchstart', mDown);
-    document.getElementById('desktop-area').appendChild(folder); saveDesktop();
-}
-function openFolderModal(appsStr) {
-    let ids = appsStr.split(','); var dg=document.getElementById('drawer-grid'); dg.innerHTML='';
-    ids.forEach(id => {
-        if(APPS[id]){
-            var d=document.createElement('div'); d.className='drawer-item';
-            d.onclick=()=>{toggleApp(id);toggleAppDrawer();}; d.innerHTML=`<img src="${APPS[id].icon}"><span>${APPS[id].title}</span>`; dg.appendChild(d);
-        }
-    });
-    toggleAppDrawer(); // Repurposing drawer for folder view
-}
-function saveDesktop(){
-    var a=[]; document.querySelectorAll('.desktop-app').forEach(e=>{
-        a.push({id:e.dataset.id, x:e.style.left, y:e.style.top, isFolder:e.classList.contains('desktop-folder'), apps:e.dataset.apps});
-    }); localStorage.setItem('cine_layout_v4',JSON.stringify(a));
-}
-function loadDesktop(){
-    var d=localStorage.getItem('cine_layout_v4');
-    if(d) JSON.parse(d).forEach(i=>{
-        if(i.isFolder){
-            let folder = document.createElement('div'); folder.className = 'desktop-app desktop-folder'; folder.style.left = i.x; folder.style.top = i.y;
-            folder.dataset.apps = i.apps; folder.dataset.id = i.id;
-            let gridHtml = i.apps.split(',').slice(0,4).map(app => `<img src="${APPS[app]?.icon || ''}">`).join('');
-            folder.innerHTML = `<div class="d-folder-grid">${gridHtml}</div><div class="d-label">Folder</div>`;
-            let mDown = ev => { ev.stopPropagation(); DragSystem.start(ev, folder, 'desktop'); };
-            folder.addEventListener('mousedown', mDown); folder.addEventListener('touchstart', mDown);
-            document.getElementById('desktop-area').appendChild(folder);
-        } else {
-            createDesktopIcon({id:i.id,name:APPS[i.id]?.title||'App',icon:APPS[i.id]?.icon||''},parseFloat(i.x),parseFloat(i.y));
-        }
-    });
-}
-
-var ctx=document.getElementById('snow-fx').getContext('2d');var w=window.innerWidth,h=window.innerHeight;document.getElementById('snow-fx').width=w;document.getElementById('snow-fx').height=h;var flakes=Array.from({length:30},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*2,s:Math.random()+0.5}));
-function drawSnow(){if(isDesktopActive){ctx.clearRect(0,0,w,h);ctx.fillStyle="rgba(255,255,255,0.3)";flakes.forEach(f=>{ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fill();f.y+=f.s;if(f.y>h)f.y=0;});}requestAnimationFrame(drawSnow);}drawSnow();
-
-const wallpaperRegistry={"Default":{id:"Default",name:"Snake Skeleton",url:"Videos/default.mp4",loop:true,locked:false},"green":{id:"green",name:"Green Anime",url:"Videos/green.mp4",loop:true,locked:false},"#33A56":{id:"hunt_trait",name:"Hunt Showdown",url:"Videos/33A56.mp4",loop:false,locked:true},"#Minecraft01":{id:"Tree",name:"Tree Of Life",url:"Videos/Minecraft01.mp4",loop:true,locked:true},"#45E33":{id:"SnowFall",name:"Snow Fall",url:"Videos/45E33.mp4",loop:true,locked:true},"#Minecraft02":{id:"Minecraft02",name:"Sakura Pond",url:"Videos/Minecraft02.mp4",loop:true,locked:true},"#Minecraft03":{id:"Minecraft03",name:"Minecraft Paradise",url:"Videos/Minecraft03.mp4",loop:true,locked:true}};
-let unlockedWallpapers=JSON.parse(localStorage.getItem('cine_unlocked_wp'))||['default'];window.wpMode='both';
-
-document.addEventListener('contextmenu',e=>{var v=['desktop-area','windows-layer','bg-video','snow-fx'];if(v.includes(e.target.id)||e.target.tagName==='BODY'){e.preventDefault();var c=document.getElementById('desktop-context-menu');c.style.display='block';var x=e.pageX,y=e.pageY;if(x+200>window.innerWidth)x=window.innerWidth-200;if(y+100>window.innerHeight)y=window.innerHeight-100;c.style.left=x+'px';c.style.top=y+'px';}});
-document.addEventListener('click',e=>{var c=document.getElementById('desktop-context-menu');if(c&&!c.contains(e.target))c.style.display='none';});
-function setWallpaper(k,i=false){var d=wallpaperRegistry[k];if(!d)return;if(i&&d.locked&&!unlockedWallpapers.includes(d.id)){unlockedWallpapers.push(d.id);localStorage.setItem('cine_unlocked_wp',JSON.stringify(unlockedWallpapers));alert(`Wallpaper: [ ${d.name} ] Unlocked.`);}if(window.wpMode==='home'||window.wpMode==='both'){var v=document.getElementById('bg-video');v.src=d.url;v.loop=!!d.loop;v.load();if(!document.getElementById('lock-screen').classList.contains('active'))v.play();updateSysSetting('homeWallpaper',k);}if(window.wpMode==='lock'||window.wpMode==='both'){var l=document.getElementById('lock-video');l.src=d.url;l.loop=!!d.loop;l.load();if(document.getElementById('lock-screen').classList.contains('active'))l.play();updateSysSetting('lockWallpaper',k);}openWallpaperMenu();}
-function openWallpaperMenu(){var m=document.getElementById('wallpaper-menu');var gu=document.getElementById('wp-grid-unlocked');var gl=document.getElementById('wp-grid-locked');gu.innerHTML='';gl.innerHTML='';for(const[k,d] of Object.entries(wallpaperRegistry)){var u=!d.locked||unlockedWallpapers.includes(d.id);var c=document.createElement('div');c.className=`wp-card ${u?'':'wp-locked'}`;if(u){c.innerHTML=`<video src="${d.url}" preload="auto" playsinline muted loop onmouseover="this.play()" onmouseout="this.pause()"></video><div class="wp-info">${d.name}</div>`;c.onclick=()=>{setWallpaper(k);document.querySelectorAll('.wp-card').forEach(e=>e.classList.remove('active-wp'));c.classList.add('active-wp');};gu.appendChild(c);}else{c.innerHTML=`<div class="wp-info"><i class="fas fa-lock"></i></div>`;gl.appendChild(c);}}m.classList.add('open');}
-var si=document.getElementById('start-search-input');if(si){si.addEventListener('keydown',function(e){if(e.key==='Enter'){var q=this.value.trim();if(wallpaperRegistry[q]){setWallpaper(q,true);this.value="";this.blur();}}});}
-function toggleStartMenu(){var s=document.getElementById('start-menu');if(s.classList.contains('open')){s.classList.remove('open');setTimeout(()=>s.style.display='none',300);}else{s.style.display='flex';setTimeout(()=>s.classList.add('open'),10);}}
-document.addEventListener('click',e=>{var s=document.getElementById('start-menu');if(s&&!s.contains(e.target)&&!e.target.closest('.dock-item')){s.classList.remove('open');setTimeout(()=>s.style.display='none',300);}});
-
-/* ----------------------------------------- */
-/* CIRI ASSISTANT PRO (Gemini Integration)   */
-/* ----------------------------------------- */
-const CIRI_MODES = ['FAST', 'THINKING', 'LIVE'];
-let ciriModeIndex = 0; let isCiriActive = false; let ciriHoldTimer = null; let ciriBooted = false; let expectingApiKey = false;
-let currentCiriImage = null; let currentCiriMime = null;
-const ciriWrapper = document.getElementById('ciri-wrapper');
-const ciriInput = document.getElementById('ciri-chat-input');
-const ciriStatusText = document.getElementById('ciri-status-text');
-const ciriStatusIcon = document.getElementById('ciri-status-icon');
-const ciriHistory = document.getElementById('ciri-chat-history');
-
-function checkApiKeyStatus() {
-    if (localStorage.getItem('ciri_key')) { ciriStatusText.textContent = "Secure"; ciriStatusText.className = "ciri-secure"; ciriStatusIcon.innerHTML = `<svg class="ciri-secure-svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>`; }
-    else { ciriStatusText.textContent = "Unstable"; ciriStatusText.className = "ciri-unstable"; ciriStatusIcon.innerHTML = `<svg class="ciri-unstable-svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`; }
-} checkApiKeyStatus();
-
-window.addEventListener('keydown', (e) => {
-    if (e.altKey && (e.code === 'KeyS' || e.key.toLowerCase() === 's')) {
-        if (!ciriHoldTimer && !isCiriActive) {
-            ciriHoldTimer = setTimeout(() => {
-                document.body.classList.add('ciri-active'); isCiriActive = true;
-                if (!ciriBooted) {
-                    const bScreen = document.getElementById('ciri-boot-screen');
-                    const bText = document.getElementById('ciri-boot-text');
-                    const bSub = document.getElementById('ciri-boot-sub');
-                    bScreen.style.display = 'flex';
-                    setTimeout(() => bText.classList.add('typing'), 300);
-                    setTimeout(() => bSub.classList.add('show'), 1100);
-                    setTimeout(() => {
-                        document.getElementById('ciri-boot-loader').style.opacity = '1';
-                        const pingStart = Date.now();
-                        fetch('https://generativelanguage.googleapis.com/v1beta/models').then(() => handleNetwork("Connection Established.")).catch(() => handleNetwork("Network Restricted."));
-                        function handleNetwork(msg) {
-                            setTimeout(() => {
-                                document.getElementById('ciri-boot-status').textContent = msg;
-                                document.getElementById('ciri-spinner').style.display = 'none';
-                                setTimeout(() => { bScreen.style.filter = 'blur(10px)'; bScreen.style.opacity = '0'; setTimeout(() => { bScreen.style.display = 'none'; ciriBooted = true; ciriInput.focus(); }, 800); }, 1800);
-                            }, Math.max(0, 1500 - (Date.now() - pingStart)));
-                        }
-                    }, 2200);
-                } else { setTimeout(() => ciriInput.focus(), 100); }
-            }, 2000); // 2 second hold
-        }
-    } else if (e.code === 'Escape' && isCiriActive) closeCiri();
-});
-window.addEventListener('keyup', (e) => { if (e.code === 'KeyS' || e.key.toLowerCase() === 's' || e.key === 'Alt') { clearTimeout(ciriHoldTimer); ciriHoldTimer = null; } });
-function closeCiri() { document.body.classList.remove('ciri-active'); isCiriActive = false; }
-function cycleCiriMode() { ciriModeIndex = (ciriModeIndex + 1) % CIRI_MODES.length; const m = CIRI_MODES[ciriModeIndex]; let t = document.getElementById('ciri-mode-toggle'); t.textContent = m; t.className = m === 'LIVE' ? 'live-active' : ''; }
-function autoGrowCiri(el) { el.style.height = "5px"; el.style.height = (el.scrollHeight) + "px"; }
-ciriInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCiriSend(); } });
-
-function handleCiriFileUpload(e) { if (e.target.files && e.target.files[0]) processCiriImage(e.target.files[0]); }
-function processCiriImage(file) {
-    const reader = new FileReader();
-    reader.onload = (e) => { currentCiriImage = e.target.result.split(',')[1]; currentCiriMime = file.type; document.getElementById('ciri-img-preview').src = e.target.result; document.getElementById('ciri-img-preview-box').style.display = 'flex'; };
-    reader.readAsDataURL(file);
-}
-function clearCiriImage() { currentCiriImage = null; currentCiriMime = null; document.getElementById('ciri-img-preview-box').style.display = 'none'; document.getElementById('ciri-file-upload').value = ""; }
-
-function parseWithMathCiri(text) {
-    let blocks = [];
-    let tmp = text.replace(/\$\$([\s\S]+?)\$\$/g, (m) => { blocks.push(m); return `%%MATH_${blocks.length - 1}%%`; });
-    tmp = tmp.replace(/(?<!\$)\$([^$\n]+?)\$(?!\$)/g, (m) => { blocks.push(m); return `%%MATH_${blocks.length - 1}%%`; });
-    let html = marked.parse(tmp);
-    blocks.forEach((b, i) => { html = html.replace(`%%MATH_${i}%%`, b); }); return html;
-}
-
-async function handleCiriSend() {
-    const text = ciriInput.value.trim(); if (!text && !currentCiriImage) return;
-    if (expectingApiKey) { localStorage.setItem('ciri_key', text); ciriInput.value = ''; autoGrowCiri(ciriInput); expectingApiKey = false; checkApiKeyStatus(); appendCiriMsg("ciri", "API Key secured."); return; }
-    const apiKey = localStorage.getItem('ciri_key');
-    if (!apiKey) { appendCiriMsg("user", text); ciriInput.value = ''; autoGrowCiri(ciriInput); expectingApiKey = true; appendCiriMsg("ciri", "Please provide your Gemini API key."); return; }
-
-    appendCiriMsg("user", text, document.getElementById('ciri-img-preview').src);
-    ciriInput.value = ''; autoGrowCiri(ciriInput);
-    const pImg = currentCiriImage; const pMime = currentCiriMime; clearCiriImage();
-    document.getElementById('ciri-action-orb').classList.add('thinking');
-    
-    const tId = "load-" + Date.now();
-    ciriHistory.insertAdjacentHTML('beforeend', `<div class="ciri-message ciri" id="${tId}"><span style="color: #888; font-style: italic;">Processing...</span></div>`);
-    ciriHistory.scrollTop = ciriHistory.scrollHeight;
-
-    const parts = []; if (text) parts.push({ text: text }); if (pImg) parts.push({ inline_data: { mime_type: pMime, data: pImg } });
-    const req = { contents: [{ parts: parts }], system_instruction: { parts: [{text: CIRI_MODES[ciriModeIndex] === 'THINKING' ? "You are Ciri. Think step-by-step. Put thoughts in <think>...</think> tags. Always use standard LaTeX for math." : "You are Ciri. Always use standard LaTeX for math. Use $$ for block equations and $ for inline equations."}] } };
-
-    try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(req) });
-        const data = await res.json(); if (data.error) throw new Error(data.error.message);
-        let resp = data.candidates[0].content.parts[0].text; let thoughts = "";
-        if (CIRI_MODES[ciriModeIndex] === 'THINKING') { const tMatch = resp.match(/<think>([\s\S]*?)<\/think>/); if (tMatch) { thoughts = tMatch[1].trim(); resp = resp.replace(/<think>[\s\S]*?<\/think>/, '').trim(); } }
-        document.getElementById(tId).remove(); document.getElementById('ciri-action-orb').classList.remove('thinking');
-        await typeCiriMsg(resp, thoughts);
-    } catch (err) { document.getElementById(tId).remove(); document.getElementById('ciri-action-orb').classList.remove('thinking'); await typeCiriMsg("Error: " + err.message); }
-}
-
-function appendCiriMsg(sender, text, imgSrc = null) {
-    const d = document.createElement('div'); d.className = `ciri-message ${sender}`;
-    let html = ""; if (imgSrc && !imgSrc.includes('index.html')) html += `<img src="${imgSrc}" style="max-width:100%; border-radius:12px; margin-bottom:12px;">`;
-    if (text) html += parseWithMathCiri(text);
-    d.innerHTML = html; ciriHistory.appendChild(d);
-    if (window.MathJax) MathJax.typesetPromise([d]).catch(() => {});
-    ciriHistory.scrollTop = ciriHistory.scrollHeight;
-}
-
-function typeCiriMsg(fullText, thoughts = "") {
-    return new Promise((res) => {
-        const d = document.createElement('div'); d.className = 'ciri-message ciri';
-        let h = ""; if (thoughts) h += `<details class="ciri-thought"><summary>Internal Monologue</summary><div class="ciri-thought-content">${thoughts.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div></details>`;
-        const c = document.createElement('div'); d.innerHTML = h; d.appendChild(c); ciriHistory.appendChild(d);
-        let i = 0; let curStr = ""; const spd = CIRI_MODES[ciriModeIndex] === 'FAST' ? 2 : 5; const chk = CIRI_MODES[ciriModeIndex] === 'FAST' ? 4 : 2;
-        function tChar() {
-            if (i < fullText.length) {
-                curStr += fullText.substring(i, i + chk); i += chk; c.innerHTML = parseWithMathCiri(curStr);
-                if (window.MathJax) MathJax.typesetPromise([c]).catch(() => {}); ciriHistory.scrollTop = ciriHistory.scrollHeight;
-                setTimeout(tChar, spd);
-            } else { c.innerHTML = parseWithMathCiri(fullText); if (window.MathJax) MathJax.typesetPromise([c]); ciriHistory.scrollTop = ciriHistory.scrollHeight; res(); }
-        } tChar();
-    });
-}
-
-/* ----------------------------------------- */
-/* CINE-NOTI ULTIMATE (Audio Detection)      */
-/* ----------------------------------------- */
-const cineNoti = document.getElementById('cine-noti');
-const cnRestore = document.getElementById('cn-restore-btn');
-const cnPlayPause = document.getElementById('cn-play-pause');
-const cnVisualizer = document.getElementById('cn-visualizer');
-const cnCtx = cnVisualizer.getContext('2d');
-let cnVisible = false;
-
-document.getElementById('cn-minimize-btn').addEventListener('click', () => { cineNoti.classList.add('minimized'); cnRestore.classList.add('visible'); });
-document.getElementById('cn-close-btn').addEventListener('click', () => { hideCineNoti(); if(trackedMedia) trackedMedia.pause(); });
-cnRestore.addEventListener('click', () => { cnRestore.classList.remove('visible'); cineNoti.classList.remove('minimized'); });
-cnPlayPause.addEventListener('click', () => { if(trackedMedia) { trackedMedia.paused ? trackedMedia.play() : trackedMedia.pause(); syncCineNotiPause(); } });
-
-function showCineNoti() {
-    if(cnVisible) return; cnVisible = true;
-    cineNoti.classList.add('active'); cineNoti.classList.remove('minimized'); cnRestore.classList.remove('visible');
-    syncCineNotiPause(); requestAnimationFrame(drawFakeVisualizer);
-}
-function hideCineNoti() { cnVisible = false; cineNoti.classList.remove('active'); cnRestore.classList.remove('visible'); }
-function syncCineNotiPause() {
-    if(!trackedMedia) return;
-    if(trackedMedia.paused) { document.getElementById('cn-icon-play').style.display='block'; document.getElementById('cn-icon-pause').style.display='none'; }
-    else { document.getElementById('cn-icon-play').style.display='none'; document.getElementById('cn-icon-pause').style.display='block'; }
-}
-function drawFakeVisualizer() {
-    if(!cnVisible) return; requestAnimationFrame(drawFakeVisualizer);
-    cnVisualizer.width = cnVisualizer.parentElement.clientWidth; cnVisualizer.height = 14;
-    cnCtx.clearRect(0, 0, cnVisualizer.width, cnVisualizer.height);
-    const bars = 32; const barWidth = (cnVisualizer.width / bars) - 1.5; let x = 0;
-    for (let i = 0; i < bars; i++) {
-        // Only bounce if playing
-        const h = (!trackedMedia || trackedMedia.paused) ? 2 : Math.max(2, Math.random() * cnVisualizer.height);
-        cnCtx.fillStyle = `#1ed760`; cnCtx.beginPath();
-        cnCtx.roundRect(x, cnVisualizer.height - h, barWidth, h, 2); cnCtx.fill(); x += barWidth + 1.5;
-    }
-}
-
-/* ----------------------------------------- */
-</script>
-<script>
-let keyHistory=[];const secretCombo=['ArrowUp','ArrowDown','ArrowUp','ArrowDown'];
-document.addEventListener('keydown',function(event){
-keyHistory.push(event.key);if(keyHistory.length>secretCombo.length)keyHistory.shift();
-if(JSON.stringify(keyHistory)===JSON.stringify(secretCombo)){launchSecret();}
-});
-function launchSecret(){var payload=document.getElementById('secret-html-payload').value;window.OS_PAYLOAD=payload;document.open();document.write(payload);document.close();}
-</script>
+<script src="script.js"></script>
 </body>
 </html>
