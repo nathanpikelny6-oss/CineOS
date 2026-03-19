@@ -1,433 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ciri Assistant Pro</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
-    <style>
-        :root {
-            --bg-page: #000;
-            --bg-window: #111;
-            --dark-gray: #1a1a1a;
-            --mid-gray: #2d2d2d;
-            --user-gray: #333;
-            --text-white: #ffffff;
-            --text-muted: #888888;
-            --live-red: #ff3b30;
-            --font-main: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif;
-        }
-        ::selection { background: #fff; color: #000; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
-
-        body {
-            margin: 0; padding: 0;
-            background-color: var(--bg-page);
-            font-family: var(--font-main);
-            height: 100vh; overflow: hidden;
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        #ciri-window {
-            width: 100%; height: 100%;
-            background: var(--bg-window);
-            display: flex; flex-direction: column; align-items: center;
-            padding: 24px; box-sizing: border-box; overflow: hidden; color:white;
-        }
-
-        #ciri-boot-screen {
-            position: absolute; inset: 0; background: #000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10000; transition: opacity 0.8s ease, filter 0.8s ease;
-        }
-        .boot-ciri { font-size: 42px; font-weight: 800; color: #fff; font-family: monospace; border-right: 3px solid #fff; white-space: nowrap; overflow: hidden; width: 0; letter-spacing: -1px; }
-        .boot-ciri.typing { animation: typeCiri 0.5s steps(5, end) forwards, blinkCiri 0.8s step-end infinite; }
-        .boot-sub { font-size: 12px; font-weight: 700; color: #888; letter-spacing: 3px; margin-top: 16px; opacity: 0; transform: translateY(20px) scale(0.95); transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
-        .boot-sub.show { opacity: 1; transform: translateY(0) scale(1); }
-        .boot-loader { margin-top: 40px; display: flex; flex-direction: column; align-items: center; opacity: 0; transition: opacity 0.6s ease; }
-        .spinner { width: 24px; height: 24px; border: 3px solid #333; border-top-color: #fff; border-radius: 50%; animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; margin-bottom: 16px; }
-        .boot-status { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 8px; letter-spacing: 0.5px; }
-        .boot-warning { font-size: 11px; color: #666; max-width: 280px; text-align: center; line-height: 1.5; font-weight: 500; }
-        
-        @keyframes typeCiri { from { width: 0; } to { width: 115px; } }
-        @keyframes blinkCiri { 50% { border-color: transparent; } }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        #status-pill {
-            background: #1a1a1a; border-radius: 20px; padding: 8px 18px; display: inline-flex; align-items: center; gap: 8px;
-            border: 1px solid #333; font-size: 11px; font-weight: 700; color: #fff;
-            letter-spacing: 0.5px; margin-bottom: 10px; flex-shrink: 0; text-transform: uppercase;
-        }
-        .status-icon svg { width: 14px; height: 14px; }
-        .secure { color: #fff; } .secure-svg { stroke: #fff; }
-        .unstable { color: #888; } .unstable-svg { stroke: #888; }
-
-        #chat-history {
-            width: 100%; display: flex; flex-direction: column; gap: 24px;
-            overflow-y: auto; overflow-x: hidden; flex-grow: 1; padding: 20px 10px;
-        }
-
-        .message {
-            max-width: 85%; padding: 18px 24px; border-radius: 18px;
-            font-size: 15px; line-height: 1.6; word-wrap: break-word; font-weight: 500;
-            animation: slideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        .message p { margin: 0 0 12px 0; } .message p:last-child { margin: 0; }
-        .message pre { background: #0a0a0a; padding: 12px; border-radius: 10px; overflow-x: auto; border: 1px solid #222; }
-        .message code { font-family: monospace; font-size: 13.5px; color:#ccc;}
-        .message.user { background: #333; color: #fff; align-self: flex-end; border-bottom-right-radius: 6px; border:1px solid #444; }
-        .message.ciri { background: #1a1a1a; color: #fff; align-self: flex-start; position: relative; padding-right: 24px; border-bottom-left-radius: 6px; border: 1px solid #333; }
-        
-        details.thought-process { background: #0a0a0a; border-radius: 12px; padding: 12px; margin-bottom: 16px; font-size: 13.5px; border: 1px solid #222; }
-        details.thought-process summary { cursor: pointer; font-weight: 600; color: #888; display: flex; align-items: center; gap: 8px; outline: none; }
-        details.thought-process summary:hover { color: #fff; }
-        details.thought-process summary::before { content: "🧠"; font-size: 15px; }
-        .thought-content { margin-top: 12px; color: #888; font-family: monospace; line-height: 1.6; border-top: 1px solid #222; padding-top: 12px; white-space: pre-wrap; }
-
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        #bottom-wrapper {
-            width: 100%; display: flex; align-items: center; gap: 12px;
-            margin-top: 10px; position: relative; flex-shrink: 0;
-            background: #1a1a1a; padding: 12px 16px; border-radius: 24px;
-            border: 1px solid #333;
-        }
-
-        .icon-btn { background: none; border: none; color: #888; cursor: pointer; display: flex; justify-content: center; align-items: center; padding: 8px; border-radius: 50%; transition: 0.2s; }
-        .icon-btn:hover { background: #333; color: #fff; }
-
-        #chat-input {
-            flex: 1; background: transparent; border: none; color: #fff;
-            font-size: 15.5px; font-family: var(--font-main); padding: 0 5px; outline: none;
-            resize: none; max-height: 120px; line-height: 1.4; font-weight: 600;
-        }
-        #chat-input::placeholder { color: #888; font-weight: 500; }
-
-        #mode-toggle {
-            background: #222; color: #888; font-size: 11px; font-weight: 800;
-            letter-spacing: 0.5px; cursor: pointer;
-            padding: 8px 14px; border-radius: 14px; transition: all 0.2s;
-            border: 1px solid #444;
-        }
-        #mode-toggle:hover { background: #fff; color: #000; border-color:#fff;}
-        #mode-toggle.live-active { background: #fff; color: #000; border-color: #fff; animation: pulseWhite 2s infinite; }
-        @keyframes pulseWhite { 0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); } 70% { box-shadow: 0 0 0 8px rgba(255,255,255,0); } 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } }
-
-        #action-orb {
-            width: 48px; height: 48px; border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #fff 0%, #aaa 20%, #444 60%, #111 100%);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.8), inset -4px -4px 10px rgba(0,0,0,0.9), inset 2px 2px 8px rgba(255,255,255,0.4);
-            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); flex-shrink: 0; cursor: pointer;
-        }
-        #action-orb:hover { transform: scale(1.08); box-shadow: 0 12px 25px rgba(255,255,255,0.1); }
-        #action-orb.thinking { animation: orbAlive 2s infinite ease-in-out; filter: contrast(1.2) brightness(1.1); }
-        @keyframes orbAlive { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255,255,255,0.1); } 50% { transform: scale(1.05); box-shadow: 0 0 20px 5px rgba(255,255,255,0.3); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255,255,255,0.1); } }
-
-        #img-preview-box {
-            position: absolute; bottom: 85px; left: 10px;
-            background: #1a1a1a; padding: 6px; border-radius: 12px;
-            display: none; align-items: center; gap: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.8); border: 1px solid #333;
-        }
-        #img-preview-box img { height: 44px; border-radius: 8px; }
-        #img-preview-box span { color: #fff; font-size: 13px; cursor: pointer; padding-right: 10px; font-weight: 800; }
-
-        video, canvas { display: none; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ciri Assistant Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="style.css"> <!-- Links to the master CSS file -->
 </head>
-<body>
+<body class="ciri-app-body">
+<div id="ciri-app-container">
+<div id="ciri-boot-screen">
+<div id="boot-ciri-text" class="boot-ciri">CIRI.</div>
+<div id="boot-sub-text" class="boot-sub">Cine-Hub SOFTWARES</div>
+<div id="boot-loader" class="boot-loader">
+<div id="boot-spinner" class="spinner"></div>
+<div id="boot-status-text" class="boot-status">Connecting To Gemini...</div>
+<div class="boot-warning">If network restricts Gemini, launch via proxy giving up LIVE mode.</div>
+</div>
+</div>
+<div id="status-pill">
+<span>CIRI</span>
+<div id="status-icon" class="status-icon"></div>
+<span id="status-text"></span>
+</div>
+<div id="chat-history"></div>
+<div id="bottom-wrapper">
+<div id="img-preview-box">
+<img id="img-preview" src="" alt="preview">
+<span onclick="clearImage()">✕</span>
+</div>
+<input type="file" id="file-upload" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
+<button class="icon-btn" onclick="document.getElementById('file-upload').click()">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+</button>
+<textarea id="chat-input" placeholder="Message Ciri..." rows="1" oninput="autoGrow(this)"></textarea>
+<div id="mode-toggle" onclick="cycleMode()">FAST</div>
+<div id="action-orb" onclick="handleSend()"></div>
+</div>
+</div>
+<video id="screen-video" autoplay playsinline style="display:none;"></video>
+<canvas id="screen-canvas" style="display:none;"></canvas>
 
-    <div id="ciri-window">
-        
-        <div id="ciri-boot-screen">
-            <div id="boot-ciri-text" class="boot-ciri">CIRI.</div>
-            <div id="boot-sub-text" class="boot-sub">Cine-Hub SOFTWARES</div>
-            
-            <div id="boot-loader" class="boot-loader">
-                <div id="boot-spinner" class="spinner"></div>
-                <div id="boot-status-text" class="boot-status">Connecting To Gemini...</div>
-                <div class="boot-warning">If network restricts Gemini, this webOS needs to be launched through a proxy giving up LIVE mode.</div>
-            </div>
-        </div>
+<script>
+const MODES=['FAST','THINKING','LIVE'];let currentModeIndex=0;let expectingApiKey=false;let screenStream=null;let currentImageBase64=null;let currentImageMime=null;
+const statusText=document.getElementById('status-text');const statusIcon=document.getElementById('status-icon');const chatHistory=document.getElementById('chat-history');const chatInput=document.getElementById('chat-input');const modeToggle=document.getElementById('mode-toggle');const actionOrb=document.getElementById('action-orb');const imgPreviewBox=document.getElementById('img-preview-box');const imgPreview=document.getElementById('img-preview');const videoElement=document.getElementById('screen-video');const canvasElement=document.getElementById('screen-canvas');
+const svgSecure=`<svg class="secure-svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>`;const svgUnstable=`<svg class="unstable-svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
 
-        <div id="status-pill">
-            <span>CIRI</span>
-            <div id="status-icon" class="status-icon"></div>
-            <span id="status-text"></span>
-        </div>
+window.onload=()=>{
+ checkApiKeyStatus();
+ const bootScreen=document.getElementById('ciri-boot-screen');const bootCiri=document.getElementById('boot-ciri-text');const bootSub=document.getElementById('boot-sub-text');const bootLoader=document.getElementById('boot-loader');const bootStatusText=document.getElementById('boot-status-text');const bootSpinner=document.getElementById('boot-spinner');
+ setTimeout(()=>bootCiri.classList.add('typing'),300);setTimeout(()=>bootSub.classList.add('show'),1100);
+ setTimeout(()=>{bootLoader.style.opacity='1';const pingStart=Date.now();
+ fetch('https://generativelanguage.googleapis.com/v1beta/models').then(()=>handleNetworkResult("Connection Established.")).catch(()=>handleNetworkResult("Network Restricted."));
+ function handleNetworkResult(message){const elapsed=Date.now()-pingStart;const remainingTime=Math.max(0,1500-elapsed);setTimeout(()=>{bootStatusText.textContent=message;bootSpinner.style.display='none';setTimeout(()=>{bootScreen.style.filter='blur(10px)';bootScreen.style.opacity='0';setTimeout(()=>{bootScreen.style.display='none';chatInput.focus();},800);},1800);},remainingTime);}
+ },2200);
+};
 
-        <div id="chat-history"></div>
+function checkApiKeyStatus(){if(localStorage.getItem('ciri_key')){statusText.textContent="Secure";statusText.className="secure";statusIcon.innerHTML=svgSecure;}else{statusText.textContent="Unstable";statusText.className="unstable";statusIcon.innerHTML=svgUnstable;}}
+window.autoGrow=function(element){element.style.height="5px";element.style.height=(element.scrollHeight)+"px";};
+window.cycleMode=async function(){currentModeIndex=(currentModeIndex+1)%MODES.length;const newMode=MODES[currentModeIndex];modeToggle.textContent=newMode;modeToggle.className=newMode==='LIVE'?'live-active':'';if(newMode==='LIVE'){try{screenStream=await navigator.mediaDevices.getDisplayMedia({video:{displaySurface:"monitor"}});videoElement.srcObject=screenStream;appendMessage("ciri","LIVE Vision active. I can now see your screen.");}catch(err){appendMessage("ciri","Failed to access screen. Reverting mode.");cycleMode();}}else{stopScreenShare();}};
+function stopScreenShare(){if(screenStream){screenStream.getTracks().forEach(track=>track.stop());screenStream=null;}}
+async function captureScreen(){if(!screenStream)return null;canvasElement.width=videoElement.videoWidth;canvasElement.height=videoElement.videoHeight;canvasElement.getContext('2d').drawImage(videoElement,0,0);return canvasElement.toDataURL('image/jpeg',0.8).split(',')[1];}
+chatInput.addEventListener('paste',(e)=>{const items=(e.clipboardData||e.originalEvent.clipboardData).items;for(let item of items){if(item.type.indexOf('image')===0)processImage(item.getAsFile());}});
+window.handleFileUpload=function(e){if(e.target.files&&e.target.files[0])processImage(e.target.files[0]);};
+function processImage(file){const reader=new FileReader();reader.onload=(e)=>{currentImageBase64=e.target.result.split(',')[1];currentImageMime=file.type;imgPreview.src=e.target.result;imgPreviewBox.style.display='flex';};reader.readAsDataURL(file);}
+window.clearImage=function(){currentImageBase64=null;currentImageMime=null;imgPreviewBox.style.display='none';document.getElementById('file-upload').value="";};
+chatInput.addEventListener('keypress',(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSend();}});
+function parseWithMath(text){let mathBlocks=[];let temp=text.replace(/\$\$([\s\S]+?)\$\$/g,(match)=>{mathBlocks.push(match);return `%%MATH_${mathBlocks.length-1}%%`;});temp=temp.replace(/(?<!\$)\$([^$\n]+?)\$(?!\$)/g,(match)=>{mathBlocks.push(match);return `%%MATH_${mathBlocks.length-1}%%`;});let html=marked.parse(temp);mathBlocks.forEach((block,i)=>{html=html.replace(`%%MATH_${i}%%`,block);});return html;}
 
-        <div id="bottom-wrapper">
-            <div id="img-preview-box">
-                <img id="img-preview" src="" alt="preview">
-                <span onclick="clearImage()">✕</span>
-            </div>
+window.handleSend=async function(){
+ const text=chatInput.value.trim();if(!text&&!currentImageBase64)return;
+ if(expectingApiKey){localStorage.setItem('ciri_key',text);chatInput.value='';chatInput.style.height='auto';expectingApiKey=false;checkApiKeyStatus();appendMessage("ciri","API Key secured.");return;}
+ const apiKey=localStorage.getItem('ciri_key');if(!apiKey){appendMessage("user",text);chatInput.value='';chatInput.style.height='auto';expectingApiKey=true;appendMessage("ciri","Please provide your Gemini API key.");return;}
+ appendMessage("user",text,imgPreview.src);chatInput.value='';chatInput.style.height='auto';const payloadImage=currentImageBase64;const payloadMime=currentImageMime;clearImage();actionOrb.classList.add('thinking');
+ const tempLoadingId="loading-"+Date.now();let loadingHtml=`<div class="message ciri" id="${tempLoadingId}"><span style="color: #a1a1aa; font-style: italic; font-weight: 500;">Processing...</span></div>`;chatHistory.insertAdjacentHTML('beforeend',loadingHtml);scrollToBottom();
+ const parts=[];if(text)parts.push({text:text});if(payloadImage)parts.push({inline_data:{mime_type:payloadMime,data:payloadImage}});
+ if(MODES[currentModeIndex]==='LIVE'&&screenStream){const screenB64=await captureScreen();if(screenB64)parts.push({inline_data:{mime_type:"image/jpeg",data:screenB64}});}
+ const requestBody={contents:[{parts:parts}]};
+ if(MODES[currentModeIndex]==='THINKING'){requestBody.system_instruction={parts:[{text:"You are Ciri, an advanced AI. You MUST think step-by-step before answering. Enclose your entirely literal, internal thought process inside <think>...</think> tags. After the closing </think> tag, provide your final formatted answer. You are also an expert mathematician. Always use standard LaTeX for math. Use $$ for block equations and $ for inline equations."}]};}else{requestBody.system_instruction={parts:[{text:"You are Ciri. You are an expert mathematician. Always use standard LaTeX for math. Use $$ for block equations and $ for inline equations."}]};}
+ try{
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(requestBody)});
+  const data=await res.json();if(data.error)throw new Error(data.error.message);
+  let responseText=data.candidates[0].content.parts[0].text;let realThoughts="";
+  if(MODES[currentModeIndex]==='THINKING'){const thinkMatch=responseText.match(/<think>([\s\S]*?)<\/think>/);if(thinkMatch){realThoughts=thinkMatch[1].trim();responseText=responseText.replace(/<think>[\s\S]*?<\/think>/,'').trim();}}
+  document.getElementById(tempLoadingId).remove();actionOrb.classList.remove('thinking');await typeMarkdownResponse(responseText,realThoughts);
+ }catch(err){document.getElementById(tempLoadingId).remove();actionOrb.classList.remove('thinking');await typeMarkdownResponse("Error: "+err.message);}
+};
 
-            <input type="file" id="file-upload" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
-            <button class="icon-btn" onclick="document.getElementById('file-upload').click()">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-            </button>
-            
-            <textarea id="chat-input" placeholder="Message Ciri..." rows="1" oninput="autoGrow(this)"></textarea>
-            
-            <div id="mode-toggle" onclick="cycleMode()">FAST</div>
-            <div id="action-orb" onclick="handleSend()"></div>
-        </div>
-    </div>
-
-    <video id="screen-video" autoplay playsinline></video>
-    <canvas id="screen-canvas"></canvas>
-
-    <script>
-        window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }, svg: { fontCache: 'global' } };
-        
-        const MODES = ['FAST', 'THINKING', 'LIVE'];
-        let currentModeIndex = 0;
-        let expectingApiKey = false;
-        let screenStream = null;
-        let currentImageBase64 = null;
-        let currentImageMime = null;
-
-        const statusText = document.getElementById('status-text');
-        const statusIcon = document.getElementById('status-icon');
-        const chatHistory = document.getElementById('chat-history');
-        const chatInput = document.getElementById('chat-input');
-        const modeToggle = document.getElementById('mode-toggle');
-        const actionOrb = document.getElementById('action-orb');
-        const imgPreviewBox = document.getElementById('img-preview-box');
-        const imgPreview = document.getElementById('img-preview');
-        const videoElement = document.getElementById('screen-video');
-        const canvasElement = document.getElementById('screen-canvas');
-
-        const svgSecure = `<svg class="secure-svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>`;
-        const svgUnstable = `<svg class="unstable-svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
-
-        function checkApiKeyStatus() {
-            if (localStorage.getItem('ciri_key')) {
-                statusText.textContent = "Secure"; statusText.className = "secure"; statusIcon.innerHTML = svgSecure;
-            } else {
-                statusText.textContent = "Unstable"; statusText.className = "unstable"; statusIcon.innerHTML = svgUnstable;
-            }
-        }
-        
-        function autoGrow(element) { element.style.height = "5px"; element.style.height = (element.scrollHeight) + "px"; }
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            marked.setOptions({ breaks: true });
-            checkApiKeyStatus();
-            
-            const bootScreen = document.getElementById('ciri-boot-screen');
-            const bootCiri = document.getElementById('boot-ciri-text');
-            const bootSub = document.getElementById('boot-sub-text');
-            const bootLoader = document.getElementById('boot-loader');
-            const bootStatusText = document.getElementById('boot-status-text');
-            const bootSpinner = document.getElementById('boot-spinner');
-            
-            setTimeout(() => bootCiri.classList.add('typing'), 300);
-            setTimeout(() => bootSub.classList.add('show'), 1100);
-            
-            setTimeout(() => {
-                bootLoader.style.opacity = '1';
-                const pingStart = Date.now();
-                
-                fetch('https://generativelanguage.googleapis.com/v1beta/models').then(() => handleNetworkResult("Connection Established.")).catch(() => handleNetworkResult("Network Restricted."));
-
-                function handleNetworkResult(message) {
-                    const elapsed = Date.now() - pingStart;
-                    const remainingTime = Math.max(0, 1500 - elapsed);
-                    
-                    setTimeout(() => {
-                        bootStatusText.textContent = message;
-                        bootSpinner.style.display = 'none';
-                        
-                        setTimeout(() => {
-                            bootScreen.style.filter = 'blur(10px)';
-                            bootScreen.style.opacity = '0';
-                            setTimeout(() => {
-                                bootScreen.style.display = 'none';
-                                chatInput.focus();
-                            }, 800);
-                        }, 1800);
-                    }, remainingTime);
-                }
-            }, 2200); 
-        });
-
-        async function cycleMode() {
-            currentModeIndex = (currentModeIndex + 1) % MODES.length;
-            const newMode = MODES[currentModeIndex];
-            modeToggle.textContent = newMode;
-            modeToggle.className = newMode === 'LIVE' ? 'live-active' : '';
-
-            if (newMode === 'LIVE') {
-                try {
-                    screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: "monitor" } });
-                    videoElement.srcObject = screenStream;
-                    appendMessage("ciri", "LIVE Vision active. I can now see your screen.");
-                } catch (err) {
-                    appendMessage("ciri", "Failed to access screen. Reverting mode."); cycleMode();
-                }
-            } else { stopScreenShare(); }
-        }
-
-        function stopScreenShare() { if (screenStream) { screenStream.getTracks().forEach(track => track.stop()); screenStream = null; } }
-
-        async function captureScreen() {
-            if (!screenStream) return null;
-            canvasElement.width = videoElement.videoWidth; canvasElement.height = videoElement.videoHeight;
-            canvasElement.getContext('2d').drawImage(videoElement, 0, 0);
-            return canvasElement.toDataURL('image/jpeg', 0.8).split(',')[1]; 
-        }
-
-        chatInput.addEventListener('paste', (e) => {
-            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            for (let item of items) { if (item.type.indexOf('image') === 0) processImage(item.getAsFile()); }
-        });
-
-        function handleFileUpload(e) { if (e.target.files && e.target.files[0]) processImage(e.target.files[0]); }
-        function processImage(file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                currentImageBase64 = e.target.result.split(',')[1]; currentImageMime = file.type;
-                imgPreview.src = e.target.result; imgPreviewBox.style.display = 'flex';
-            };
-            reader.readAsDataURL(file);
-        }
-        function clearImage() { currentImageBase64 = null; currentImageMime = null; imgPreviewBox.style.display = 'none'; document.getElementById('file-upload').value = ""; }
-
-        chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } });
-        
-        function parseWithMath(text) {
-            let mathBlocks = [];
-            let temp = text.replace(/\$\$([\s\S]+?)\$\$/g, (match) => { mathBlocks.push(match); return `%%MATH_${mathBlocks.length - 1}%%`; });
-            temp = temp.replace(/(?<!\$)\$([^$\n]+?)\$(?!\$)/g, (match) => { mathBlocks.push(match); return `%%MATH_${mathBlocks.length - 1}%%`; });
-            let html = marked.parse(temp);
-            mathBlocks.forEach((block, i) => { html = html.replace(`%%MATH_${i}%%`, block); });
-            return html;
-        }
-
-        async function handleSend() {
-            const text = chatInput.value.trim();
-            if (!text && !currentImageBase64) return;
-
-            if (expectingApiKey) {
-                localStorage.setItem('ciri_key', text); chatInput.value = ''; chatInput.style.height = 'auto';
-                expectingApiKey = false; checkApiKeyStatus();
-                appendMessage("ciri", "API Key secured."); return;
-            }
-
-            const apiKey = localStorage.getItem('ciri_key');
-            if (!apiKey) {
-                appendMessage("user", text); chatInput.value = ''; chatInput.style.height = 'auto'; expectingApiKey = true;
-                appendMessage("ciri", "Please provide your Gemini API key."); return;
-            }
-
-            appendMessage("user", text, imgPreview.src);
-            chatInput.value = ''; chatInput.style.height = 'auto';
-            
-            const payloadImage = currentImageBase64; const payloadMime = currentImageMime; clearImage();
-            actionOrb.classList.add('thinking');
-
-            const tempLoadingId = "loading-" + Date.now();
-            let loadingHtml = `<div class="message ciri" id="${tempLoadingId}"><span style="color: #a1a1aa; font-style: italic; font-weight: 500;">Processing...</span></div>`;
-            chatHistory.insertAdjacentHTML('beforeend', loadingHtml);
-            scrollToBottom();
-            
-            const parts = [];
-            if (text) parts.push({ text: text });
-            if (payloadImage) parts.push({ inline_data: { mime_type: payloadMime, data: payloadImage } });
-            if (MODES[currentModeIndex] === 'LIVE' && screenStream) {
-                const screenB64 = await captureScreen();
-                if (screenB64) parts.push({ inline_data: { mime_type: "image/jpeg", data: screenB64 } });
-            }
-
-            const requestBody = { contents: [{ parts: parts }] };
-            
-            if (MODES[currentModeIndex] === 'THINKING') {
-                requestBody.system_instruction = { parts: [{text: "You are Ciri, an advanced AI. You MUST think step-by-step before answering. Enclose your entirely literal, internal thought process inside <think>...</think> tags. After the closing </think> tag, provide your final formatted answer. You are also an expert mathematician. Always use standard LaTeX for math. Use $$ for block equations and $ for inline equations."}] };
-            } else {
-                requestBody.system_instruction = { parts: [{text: "You are Ciri. You are an expert mathematician. Always use standard LaTeX for math. Use $$ for block equations and $ for inline equations."}] };
-            }
-
-            try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody)
-                });
-                
-                const data = await res.json();
-                if (data.error) throw new Error(data.error.message);
-
-                let responseText = data.candidates[0].content.parts[0].text;
-                let realThoughts = "";
-
-                if (MODES[currentModeIndex] === 'THINKING') {
-                    const thinkMatch = responseText.match(/<think>([\s\S]*?)<\/think>/);
-                    if (thinkMatch) {
-                        realThoughts = thinkMatch[1].trim();
-                        responseText = responseText.replace(/<think>[\s\S]*?<\/think>/, '').trim();
-                    }
-                }
-                
-                document.getElementById(tempLoadingId).remove();
-                actionOrb.classList.remove('thinking');
-                
-                await typeMarkdownResponse(responseText, realThoughts);
-                
-            } catch (err) {
-                document.getElementById(tempLoadingId).remove();
-                actionOrb.classList.remove('thinking');
-                await typeMarkdownResponse("Error: " + err.message);
-            }
-        }
-
-        function appendMessage(sender, text, imgSrc = null) {
-            const div = document.createElement('div'); div.className = `message ${sender}`;
-            let html = "";
-            if (imgSrc && imgSrc !== window.location.href) html += `<img src="${imgSrc}" style="max-width: 100%; border-radius: 12px; margin-bottom: 12px;">`;
-            if (text) html += parseWithMath(text); 
-            div.innerHTML = html;
-            chatHistory.appendChild(div);
-            if (window.MathJax) MathJax.typesetPromise([div]).catch((err) => console.log(err));
-            scrollToBottom();
-        }
-
-        function scrollToBottom() { chatHistory.scrollTop = chatHistory.scrollHeight; }
-
-        function typeMarkdownResponse(fullText, realThoughts = "") {
-            return new Promise((resolve) => {
-                const div = document.createElement('div'); div.className = 'message ciri';
-                let htmlStructure = "";
-                if (realThoughts) { htmlStructure += `<details class="thought-process"><summary>Internal Monologue</summary><div class="thought-content">${realThoughts.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div></details>`; }
-                const contentDiv = document.createElement('div'); div.innerHTML = htmlStructure; div.appendChild(contentDiv);
-                chatHistory.appendChild(div);
-                
-                let i = 0; let currentStr = "";
-                const speed = MODES[currentModeIndex] === 'FAST' ? 2 : 5; 
-                const chunkSize = MODES[currentModeIndex] === 'FAST' ? 4 : 2;
-
-                function typeChar() {
-                    const isNearBottom = Math.abs(chatHistory.scrollHeight - chatHistory.clientHeight - chatHistory.scrollTop) <= 40;
-                    if (i < fullText.length) {
-                        currentStr += fullText.substring(i, i + chunkSize);
-                        i += chunkSize;
-                        contentDiv.innerHTML = parseWithMath(currentStr);
-                        if (window.MathJax) MathJax.typesetPromise([contentDiv]).catch((err) => console.log(err));
-                        if (isNearBottom) scrollToBottom();
-                        setTimeout(typeChar, speed);
-                    } else {
-                        contentDiv.innerHTML = parseWithMath(fullText);
-                        if (window.MathJax) MathJax.typesetPromise([contentDiv]);
-                        if (isNearBottom) scrollToBottom();
-                        resolve();
-                    }
-                }
-                typeChar();
-            });
-        }
-    </script>
+function appendMessage(sender,text,imgSrc=null){const div=document.createElement('div');div.className=`message ${sender}`;let html="";if(imgSrc&&imgSrc!==window.location.href)html+=`<img src="${imgSrc}" style="max-width: 100%; border-radius: 12px; margin-bottom: 12px;">`;if(text)html+=parseWithMath(text);div.innerHTML=html;chatHistory.appendChild(div);if(window.MathJax)MathJax.typesetPromise([div]).catch((err)=>console.log(err));scrollToBottom();}
+function scrollToBottom(){chatHistory.scrollTop=chatHistory.scrollHeight;}
+function typeMarkdownResponse(fullText,realThoughts=""){return new Promise((resolve)=>{const div=document.createElement('div');div.className='message ciri';let htmlStructure="";if(realThoughts){htmlStructure+=`<details class="thought-process"><summary>Internal Monologue</summary><div class="thought-content">${realThoughts.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div></details>`;}const contentDiv=document.createElement('div');div.innerHTML=htmlStructure;div.appendChild(contentDiv);chatHistory.appendChild(div);let i=0;let currentStr="";const speed=MODES[currentModeIndex]==='FAST'?2:5;const chunkSize=MODES[currentModeIndex]==='FAST'?4:2;function typeChar(){const scrollTolerance=40;const isNearBottom=Math.abs(chatHistory.scrollHeight-chatHistory.clientHeight-chatHistory.scrollTop)<=scrollTolerance;if(i<fullText.length){currentStr+=fullText.substring(i,i+chunkSize);i+=chunkSize;contentDiv.innerHTML=parseWithMath(currentStr);if(window.MathJax)MathJax.typesetPromise([contentDiv]).catch((err)=>console.log(err));if(isNearBottom)scrollToBottom();setTimeout(typeChar,speed);}else{contentDiv.innerHTML=parseWithMath(fullText);if(window.MathJax)MathJax.typesetPromise([contentDiv]);if(isNearBottom)scrollToBottom();resolve();}}typeChar();});}
+</script>
 </body>
 </html>
