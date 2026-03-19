@@ -1,579 +1,288 @@
-<html>
-<head><script type='text/javascript' >
-const lsijVersion = 1;
-
-class Flags {
-	constructor(url, terms) {
-		this.url = url;
-		this.matched = {};
-
-		this.terms = [];
-		terms.forEach((term) => {
-			let s = term.replace(/[\]{}?^$().*\\+|[]/g, '\\$&');
-			s = s.replace(/\\\*/g, '.*');
-			s = s.replace(/\\\?/g, '.');
-			let regex = new RegExp('\\b' + s + '\\b', 'gi');
-			this.terms.push({term: term, regex: regex});
-		});
-	}
-
-	report(flags) {
-        console.debug('[LS Filter] flag report');
-		if (!flags.length)
-            return;
-
-		const xhr = new XMLHttpRequest();
-		xhr.open('POST', document.location.origin + '/c4a83a407eda09592f60e9c8a50b3575a6ff9f3055aa2dca0e544ab5883299d0/log_flag', true);
-		console.debug('[LS Filter] sending -> ', flags);
-		xhr.send(JSON.stringify({
-			url: this.url.href,
-			flags: flags,
-			at_epoch_ms: Date.now()
-		}));
-	}
-
-	matchTerms(input, flagAll) {
-		const matches = [];
-		this.terms.forEach((term) => {
-			const hits = input.match(term.regex);
-			if (!hits || !hits.length)
-				return;
-
-			let added = false;
-			if (typeof(this.matched[term.term]) === 'undefined')
-				added = true
-
-			let count = hits.length;
-			if (!added)
-				count -= this.matched[term.term];
-
-			this.matched[term.term] = hits.length;
-
-			if (added || flagAll)
-				matches.push([term.term, count]);
-		});
-		return matches;
-	}
-
-	scanIntentValue(value) {
-		const matches = this.matchTerms(value, true);
-		const changes = [];
-		matches.forEach((match) => {
-			match[2] = true; // mark as user entered
-			changes.push(match);
-		});
-
-		if (changes.length)
-			this.report(changes);
-	}
-
-	scanIntentValues(values) {
-		values.forEach((value) => {
-			this.scanIntentValue(value);
-		});
-	}
-
-	scanIntentEvent(event) {
-		switch (event.target.tagName.toLowerCase()) {
-		case 'input':
-			let type = event.target.type || 'text';
-			type = type.toLowerCase();
-
-			// Dont scan password fields
-			if (type === 'password')
-				return;
-			this.scanIntentValue(event.target.value);
-			break;
-		case 'textarea':
-			this.scanIntentValue(event.target.value);
-			break;
-		}
-	}
-
-	scanIntent(event) {
-		if (typeof(gatherIntent) === 'function') {
-			const intent = gatherIntent();
-			if (intent.length)
-				this.scanIntentValues(intent);
-		}
-	}
-
-	onChange(event) {
-		this.scanIntentEvent(event);
-	}
-
-	onKeyup(event) {
-		this.scanIntentEvent(event);
-	}
-
-	bindDOM() {
-		document.addEventListener('change', this.onChange.bind(this));
-		document.addEventListener('keyup', this.onKeyup.bind(this));
-		setInterval(() => {
-			this.scanIntent();
-		}, 1000);
-	}
-}
-
-const initFlagScanning = function(terms) {
-	if (!terms.length)
-		return;
-
-	console.debug('[LS Filter] init flag scanning');
-	const a = document.createElement('A');
-	a.href = window.location.href;
-	const flags = new Flags(a, terms);
-	
-	console.debug('[LS Filter] flagging intent');
-	if (typeof(initGatherIntent) === 'function')
-		initGatherIntent();
-
-	flags.bindDOM();
-	
-};
-
-initFlagScanning(["metasploit","ddos"]);
-
-function checkCurrentSite(yt, url) {
-  const xhr = new XMLHttpRequest();
-  const body = JSON.stringify({
-    url: url || window.location.href,
-    youtube: yt
-  });
-  console.log('[LS Filter] reporting ->', body);
-  const checkUrl = document.location.origin + '/c4a83a407eda09592f60e9c8a50b3575a6ff9f3055aa2dca0e544ab5883299d0/log';
-  xhr.open('POST', checkUrl, true);
-  xhr.send(body);
-  xhr.onreadystatechange = function () {
-    if (this.status === 200 && xhr.responseText) {
-      const score = JSON.parse(xhr.responseText);
-      console.log('[LS Filter] score ->', score.allow);
-      if (score.redirect) {
-        window.location.href = score.redirect;
-        hardBlock();
-      }
-    }
-  };
-}
-
-let hardBlockPolicy;
-function getHardBlockPolicy() {
-  if (typeof(trustedTypes) !== 'undefined' && !hardBlockPolicy) {
-    hardBlockPolicy = trustedTypes.createPolicy('hardBlock', {
-      createHTML: (string) => string
-    });
-  }
-  return hardBlockPolicy;
-}
-
-function hardBlock() {
-  stopVideo();
-  const stopInt = setInterval(stopVideo, 500);
-  setTimeout(() => {
-    const policy = getHardBlockPolicy();
-    if (policy) {
-      document.body.innerHTML = policy.createHTML('<img src="/c4a83a407eda09592f60e9c8a50b3575a6ff9f3055aa2dca0e544ab5883299d0/blocked-image-search.png" style="width: 100%; height: 100%">');
-    } else {
-      document.body.innerHTML = '<img src="/c4a83a407eda09592f60e9c8a50b3575a6ff9f3055aa2dca0e544ab5883299d0/blocked-image-search.png" style="width: 100%; height: 100%">';
-    }
-    clearInterval(stopInt);
-  }, 3000)
-}
-
-function stopVideo() {
-  const ea = document.getElementsByTagName('video');
-  for (i in ea) {
-    if (typeof(ea[i].pause) !== 'function') {
-      continue;
-    }
-    if (!ea[i].paused) {
-        console.debug('[LS Filter] pause video');
-        ea[i].pause();
-    }
-  }
-}
-
-function googleVideo() {
-  if (window.location.href.match(/google\.com\/search\?/)) {
-    const vidMatcher = /google\.com\/search\?.*vid:([^#\&\?]{11})/;
-    let prevVideo;
-    new MutationObserver(function() {
-      console.log('[LS Filter] MutationObserver');
-      let video;
-      let m = window.location.href.match(vidMatcher)
-      if (m) {
-        video = m[1];
-      }
-      if (video === prevVideo) { return; }           
-      console.log('[LS Filter] scoring video ->', video);
-      prevVideo = video;
-      checkCurrentSite(true, 'https://www.youtube.com/watch?v=' + video);
-    }).observe(document, {subtree: true, childList: true});
-  }
-}
-
-function onLoad() {
-  console.log('[LS Filter] loaded');
-  if (window.top === window.self) {
-    console.log('[LS Filter] top window: ' + window.location.href);
-    googleVideo();
-  }
-}
-
-onLoad();
-</script>
-<style>
-body{transition:opacity ease-in 0.2s;} 
-body[unresolved]{opacity:0;display:block;overflow:hidden;position:relative;} 
-html{box-sizing:border-box;display:flex;min-height:100%;min-height:100vh;width:100%;}
-*,*::before,*::after{box-sizing:inherit;}
-body{background:linear-gradient(to bottom,#444652,#28282E);display:flex;font:14px/1.3 "Roboto",sans-serif;min-height:100%;min-height:100vh;margin:0;width:100%;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
-.blockScreen{align-items:center;color:#666e80;display:flex;flex-direction:column;justify-content:center;min-height:100%;min-height:100vh;position:relative;text-align:center;width:100%;z-index:0;}
-.blockScreen a{color:#666e80;}
-.blockScreen svg{margin:16px 0 8px;}
-.blockScreen .svgAccessBlocked-paths{stroke:#00AFD7;stroke:#FF8200;}
-.blockScreen .blockScreen-customSchoolName{color:white;font:400 18px/1 "Roboto",sans-serif;margin:0 16px;}
-.blockScreen .lockoutScreen-stripe{display:none;}
-.blockScreen .lockoutScreen-svg{display:none;}
-.blockScreen .blockScreen-stripe{background:#00AFD7;background:#FF8200;color:rgba(255,255,255,0.8);flex:0 1 auto;margin:32px 0;padding:24px 16px;width:100%;}
-.blockScreen .blockScreenStripe-website{font:30px "Roboto",sans-serif;color:white;}
-.blockScreen .blockScreen-systemMessage,.blockScreen .blockScreen-customBodyText{margin:0 16px 8px;max-width:640px;}
-.blockScreen .blockScreen-override{background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:white;display:inline-block;line-height:34px;margin:16px;min-width:80px;padding:0 16px;text-align:center;text-decoration:none;transition:all 0.2s;}
-.blockScreen .blockScreen-override:hover{background:rgba(255,255,255,0.04);}
-.blockScreen .blockScreen-customFooterText{bottom:16px;font-size:12px;left:0;padding:0 16px;position:absolute;width:100%;}
-.hidden{display:none !important;}
-.code{display:none;}
-.lockoutScreen .blockScreen-svg{display:none;}
-.lockoutScreen .lockoutScreen-svg{display:block;}
-.lockoutScreen .blockScreen-stripe{display:none;}
-.lockoutScreen .lockoutScreen-stripe{background:#00AFD7;background:#FF8200;color:rgba(255,255,255,0.8);display:block;flex:0 1 auto;font-size:32px;margin:32px 0;padding:24px 16px;width:100%;}
-.lockoutScreen .lockoutScreen-stripe .lockoutScreen-stripeContent{margin:0 auto;max-width:700px;}
-.lockoutScreen .blockScreen-controls{margin:16px 0;}
-.lockoutScreen .code{background:transparent;border:1px solid #666e80;border-bottom-left-radius:4px;border-right:0;border-top-left-radius:4px;color:#666e80;display:inline-block;font:14px/1.3 "Roboto",sans-serif;line-height:34px;margin-right:-4px;padding:0 16px;vertical-align:top;}
-.lockoutScreen .blockScreen-override{background:#666e80;border-color:#666e80;border-top-left-radius:0;border-bottom-left-radius:0;display:inline-block;margin:0;}
-.lockoutScreen .blockScreen-override:hover{background:rgba(255,255,255,0.2);}
-</style>
-</head>
-<body>
-<div class="blockScreen">
-<svg class="blockScreen-svg" height="66" viewBox="0 0 66 66" width="66" xmlns="http://www.w3.org/2000/svg">
-<g class="svgAccessBlocked-paths" fill="none" fill-rule="evenodd" stroke="#00AFD7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-<path d="M33 1C15.327 1 1 15.327 1 33c0 17.673 14.327 32 32 32 17.673 0 32-14.327 32-32"></path>
-<path d="M21.288 21.387v-4.344c0-3.624 2.936-6.562 6.564-6.562h17v10.93c1.35.26 2.37 1.446 2.37 2.883v.822c0 1.44-1.037 2.638-2.4 2.887-.437 6.106-5.53 10.924-11.752 10.924-6.213 0-11.302-4.816-11.75-10.9-1.435-.19-2.542-1.414-2.542-2.91v-.823c0-1.48 1.093-2.702 2.51-2.906zM27.435 38.926l-2.772 5.656h-6.598c-3.385 0-6.398 2.85-6.398 6.196v6.06m42.666-.134v-6.06c0-3.34-2.74-6.062-6.118-6.062h-7.413l-2.77-5.656M53.148 10.48H65v8.297H53.148zM55.52 3.37h7.11v7.11h-7.11z"></path>
-</g>
-</svg>
-<div class="blockScreen-customSchoolName" id="blockScreen-customSchoolName">Restricted Access Network</div>
-<div class="blockScreen-stripe">
-<div class="blockScreenStripe-top"><span>Oops</span>,</div>
-<div class="blockScreenStripe-website"><span id="host">restricted-site.com</span></div>
-<div class="blockScreenStripe-bottom"><span>is not available because</span> <span id="reason">it is categorized as Mature - Games</span>.</div>
-</div>
-<div class="blockScreen-systemMessage" style="color: rgb(255, 130, 0);">
-<span>You are logged in as</span> <span id="username">student@district.edu</span> (<span>IP address</span>: <span id="ip">10.0.0.5</span>).
-</div>
-<div class="blockScreen-customBodyText" id="blockScreen-customBodyText" style="color: white;">If you feel this site has been restricted in error, please contact your network administrator.</div>
-<div class="blockScreen-controls">
-<input class="code" id="code" placeholder="Code">
-<a href="#" class="blockScreen-override hidden" id="override"><span>Override</span></a>
-</div>
-<div class="blockScreen-customFooterText" id="blockScreen-customFooterText">Administrator Console Access v4.2</div>
-</div>
-
-<!-- ========================================== -->
-<!-- ACTUAL OS HTML INJECTED BELOW VIA TEXTAREA -->
-<!-- ========================================== -->
-<textarea id="secret-html-payload" style="display:none;">
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Cine-OS</title>
+<title>Cine-OS V2</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-<!-- MathJax / Marked libraries for Ciri -->
-<script>
-  window.MathJax = {
-    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
-    svg: { fontCache: 'global' }
-  };
-</script>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-
-<!-- EXTERNAL CSS LOADED HERE -->
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <link rel="stylesheet" href="style.css">
-
 </head>
+
 <body id="desktop-area">
 
-  <!-- ======================== -->
-  <!-- Mobile / Tablet Warning  -->
-  <!-- ======================== -->
-  <div id="mobile-warning-overlay" style="display:none;" ondblclick="dismissMobileWarning()">
-      <div class='mw-modal'>
-          <i class="fas fa-mobile-alt" style="font-size:3rem; margin-bottom:15px; color:#fff;"></i>
-          <h2>DEVICE NOT SUPPORTED</h2>
-          <p>This device is not fully supported.<br>Double tap the screen to continue anyway.</p>
-      </div>
+<!-- MOBILE WARNING -->
+<div id="mobile-warning">
+  <div class="mobile-box">
+    <i class="fas fa-exclamation-triangle"></i>
+    <h2>Device is not fully supported</h2>
+    <p>Double tap anywhere to continue</p>
   </div>
+</div>
 
-  <div id="top-trigger"></div>
-  
-  <div id="boot-layer">
-    <div id="boot-content">
-      <div class="boot-logo">CINE-OS</div>
-      <div class="boot-sub">Cine-Hub Softwares // V2</div>
-      <button id="boot-btn" onclick="startBootSequence()">Enter CINE</button>
-      <div style="margin-top:20px; font-size:0.8rem; color:#555;">Double-Tap ENTER to skip sequence</div>
-    </div>
-    <video id="boot-video" playsinline><source src="Videos/Boot.mp4" type="video/mp4"></video>
+<div id="top-trigger"></div>
+<div id="bottom-trigger"></div>
+
+<!-- BOOT SEQUENCE -->
+<div id="boot-layer">
+  <div id="boot-content">
+    <div class="boot-logo">CINE-OS</div>
+    <div class="boot-sub">Cine-Hub Softwares // V2</div>
+    <button id="boot-btn" onclick="startBootSequence()">Enter CINE</button>
+    <div style="margin-top:20px; font-size:0.8rem; color:#555;">Double-Tap ENTER to skip sequence</div>
   </div>
+  <video id="boot-video" playsinline><source src="Videos/Boot.mp4" type="video/mp4"></video>
+</div>
 
-  <div id="lock-screen" onclick="unlockSystem()">
-    <video id="lock-video" autoplay loop muted playsinline></video>
-    <div id="lock-ui">
-      <div class="l-greet" id="lock-greet">GOOD AFTERNOON</div>
-      <div class="l-day" id="lock-day-large">MONDAY</div>
-      <div class="l-date" id="lock-date">03 MARCH</div>
-      <div class="l-time" id="lock-time">04:48 PM</div>
-    </div>
+<!-- LOCK SCREEN -->
+<div id="lock-screen" onclick="unlockSystem()">
+  <video id="lock-video" autoplay loop muted playsinline></video>
+  <div id="lock-ui">
+    <div class="l-greet" id="lock-greet">GOOD AFTERNOON</div>
+    <div class="l-day" id="lock-day-large">MONDAY</div>
+    <div class="l-date" id="lock-date">03 MARCH</div>
+    <div class="l-time" id="lock-time">04:48 PM</div>
   </div>
+</div>
 
-  <video id="bg-video" loop muted playsinline><source src="Videos/default.mp4" type="video/mp4"></video>
-  <canvas id="snow-fx"></canvas>
-  
-  <div id="hud-top"><div class="hud-day" id="lbl-day">SUNDAY</div></div>
-  <div id="drag-proxy"><img id="proxy-img" src=""></div>
-  
-  <!-- Dock -->
-  <div id="dock-container"></div>
-  
-  <!-- Windows -->
-  <div id="windows-layer"></div>
-  
-  <!-- Folder View Modal -->
-  <div id="folder-view-overlay" style="display:none;" onclick="closeFolderView(event)">
-      <div id="folder-view-container">
-          <h3 id="folder-view-title">Folder</h3>
-          <div id="folder-view-grid"></div>
-      </div>
+<!-- DESKTOP BACKGROUND -->
+<video id="bg-video" loop muted playsinline></video>
+<canvas id="snow-fx"></canvas>
+<div id="hud-top"><div class="hud-day" id="lbl-day">SUNDAY</div></div>
+
+<!-- DRAG PROXY FOR APPS/FOLDERS -->
+<div id="drag-proxy">
+  <div id="folder-badge" style="display:none;">2</div>
+  <img id="proxy-img" src="">
+</div>
+
+<!-- BOTTOM DOCK -->
+<div id="dock-container"></div>
+<div id="windows-layer"></div>
+
+<!-- REVAMPED WALLPAPER MENU (BLACK/GRAY/WHITE) -->
+<div id="wallpaper-menu">
+  <div class="wp-modal-header">
+    <h2>WALLPAPER PROTOCOLS</h2>
+    <i class="fas fa-times" style="cursor:pointer; font-size: 1.5rem; color:#fff;" onclick="document.getElementById('wallpaper-menu').classList.remove('open')"></i>
   </div>
-
-  <!-- Wallpaper Menu -->
-  <div id="wallpaper-menu">
-    <div class="wp-modal-header">
-      <h2>WALLPAPER PROTOCOLS</h2>
-      <i class="fas fa-times" style="cursor:pointer; font-size: 1.5rem; color:#888;" onclick="document.getElementById('wallpaper-menu').classList.remove('open')"></i>
-    </div>
+  
+  <div class="wp-controls-row">
     <div class="segmented-control">
       <label><input type="radio" name="wpmd" value="both" checked onclick="window.wpMode='both'"><span>Both</span></label>
       <label><input type="radio" name="wpmd" value="home" onclick="window.wpMode='home'"><span>Homescreen</span></label>
       <label><input type="radio" name="wpmd" value="lock" onclick="window.wpMode='lock'"><span>Lockscreen</span></label>
     </div>
-    <div style="overflow-y: auto; flex: 1; padding-right:10px;">
-      <div id="wp-grid-unlocked" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;"></div>
-      <h3 style="font-size: 12px; color: #666; margin-bottom: 10px; text-transform:uppercase;">Encrypted</h3>
-      <div id="wp-grid-locked" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;"></div>
+    
+    <div class="loop-toggle-container">
+      <span class="loop-label">Loop Wallpaper</span>
+      <label class="switch wp-loop-switch">
+        <input type="checkbox" id="wp-loop-chk">
+        <span class="slider"></span>
+      </label>
     </div>
   </div>
 
-  <!-- Start Menu -->
-  <div id="start-menu" class="os-menu">
-    <div class="start-search-bar">
-      <i class="fas fa-search" style="color:#888"></i>
-      <input type="text" id="start-search-input" placeholder="Type secret code to unlock papers..." style="background:transparent; border:none; color:white; width:100%; outline:none;">
-    </div>
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-      <h3 style="font-size:15px; color:#fff;">Pinned</h3>
-    </div>
-    <div class="pinned-grid" id="pinned-grid"></div>
-    <div class="start-footer">
-      <div class="user-profile"><div class="user-avatar"><i class="fas fa-user" style="color:#aaa"></i></div><span style="font-size:12px;color:#ddd;">Administrator</span></div>
-      <i class="fas fa-power-off" style="cursor:pointer; color:#ff4444; font-size:18px;" onclick="location.reload()"></i>
+  <div class="wp-grid-container">
+    <div id="wp-grid-unlocked" class="wp-grid"></div>
+    <h3 class="wp-section-title">Encrypted</h3>
+    <div id="wp-grid-locked" class="wp-grid"></div>
+  </div>
+</div>
+
+<!-- START MENU -->
+<div id="start-menu" class="os-menu">
+  <div class="start-search-bar">
+    <i class="fas fa-search" style="color:#888"></i>
+    <input type="text" id="start-search-input" placeholder="Type secret code to unlock papers..." style="background:transparent; border:none; color:white; width:100%; outline:none;">
+  </div>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+    <h3 style="font-size:15px; color:#fff;">Pinned</h3>
+  </div>
+  <div class="pinned-grid" id="pinned-grid"></div>
+  <div class="start-footer">
+    <div class="user-profile"><div class="user-avatar"><i class="fas fa-user" style="color:#aaa"></i></div><span style="font-size:12px;color:#ddd;">Administrator</span></div>
+    <i class="fas fa-power-off" style="cursor:pointer; color:#fff; font-size:18px;" onclick="location.reload()"></i>
+  </div>
+</div>
+
+<!-- APP DRAWER -->
+<div id="app-drawer" onclick="if(event.target.id==='app-drawer')toggleAppDrawer()">
+  <div class="start-search-bar" style="max-width:600px; margin:0 auto 40px auto; background:#1a1a1a; border:1px solid #333;">
+    <i class="fas fa-search" style="color:#888"></i>
+    <input type="text" placeholder="Search apps..." style="background:transparent; border:none; color:white; width:100%; outline:none;" onkeyup="filterDrawer(this.value)">
+  </div>
+  <div class="drawer-grid" id="drawer-grid"></div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div id="desktop-context-menu" class="os-context-menu">
+  <div class="ctx-item" onclick="openWallpaperMenu(); document.getElementById('desktop-context-menu').style.display='none';"><i class="fas fa-image fa-fw"></i> Change Wallpaper</div>
+  <div class="ctx-separator"></div>
+  <div class="ctx-row">
+    <button class="ctx-btn" onclick="toggleDesktopSize(true)" title="Large Icons (Hide Names)"><i class="fas fa-expand-arrows-alt"></i></button>
+    <button class="ctx-btn" onclick="toggleDesktopSize(false)" title="Default Size"><i class="fas fa-compress-arrows-alt"></i></button>
+  </div>
+  <div class="ctx-separator"></div>
+  <div class="ctx-item" onclick="location.reload()"><i class="fas fa-sync fa-fw"></i> Refresh System</div>
+</div>
+
+<div id="toast-container"></div>
+
+<!-- CIRI ASSISTANT PRO -->
+<div id="ciri-backdrop" onclick="closeCiri()"></div>
+<div id="ciri-window">
+  <div id="ciri-boot-screen">
+    <div id="boot-ciri-text" class="boot-ciri">CIRI.</div>
+    <div id="boot-sub-text" class="boot-sub">Cine-Hub SOFTWARES</div>
+    <div id="boot-loader" class="boot-loader">
+      <div id="boot-spinner" class="spinner"></div>
+      <div id="boot-status-text" class="boot-status">Connecting To Gemini...</div>
+      <div class="boot-warning">If network restricts Gemini, This webOS needs to be launched through a proxy giving up LIVE mode.</div>
     </div>
   </div>
 
-  <!-- App Drawer -->
-  <div id="app-drawer" onclick="if(event.target.id==='app-drawer')toggleAppDrawer()">
-    <div class="start-search-bar" style="max-width:600px; margin:0 auto 40px auto; background:rgba(255,255,255,0.05);">
-      <i class="fas fa-search" style="color:#888"></i>
-      <input type="text" placeholder="Search apps..." style="background:transparent; border:none; color:white; width:100%; outline:none;" onkeyup="filterDrawer(this.value)">
+  <div id="status-pill">
+    <span>CIRI</span>
+    <div id="status-icon" class="status-icon"></div>
+    <span id="status-text"></span>
+  </div>
+  <div id="chat-history"></div>
+
+  <div id="bottom-wrapper">
+    <div id="img-preview-box">
+      <img id="img-preview" src="" alt="preview">
+      <span onclick="clearImage()">✕</span>
     </div>
-    <div class="drawer-grid" id="drawer-grid"></div>
+    <input type="file" id="file-upload" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
+    <button class="icon-btn" onclick="document.getElementById('file-upload').click()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+    </button>
+    <textarea id="chat-input" placeholder="Message Ciri..." rows="1" oninput="autoGrow(this)"></textarea>
+    <div id="mode-toggle" onclick="cycleMode()">FAST</div>
+    <div id="action-orb" onclick="handleSend()"></div>
   </div>
+</div>
+<video id="screen-video" autoplay playsinline style="display:none;"></video>
+<canvas id="screen-canvas" style="display:none;"></canvas>
 
-  <!-- Updated Context Menu w/ Palette & Size buttons -->
-  <div id="desktop-context-menu" class="os-context-menu">
-    <div class="ctx-item" onclick="openWallpaperMenu(); document.getElementById('desktop-context-menu').style.display='none';"><i class="fas fa-image fa-fw"></i> Change Wallpaper</div>
-    <div class="ctx-separator"></div>
-    <div class="ctx-row" style="display: flex; justify-content: space-evenly; padding: 5px 0; background:var(--bg-ctx-dark);">
-       <div class="ctx-icon-btn" onclick="setDesktopIconSize('large'); document.getElementById('desktop-context-menu').style.display='none';" title="Large Icons (Hide Text)"><i class="fas fa-th-large"></i></div>
-       <div class="ctx-icon-btn" onclick="setDesktopIconSize('normal'); document.getElementById('desktop-context-menu').style.display='none';" title="Default Icons"><i class="fas fa-th"></i></div>
+<!-- CINE-NOTI AUDIO WIDGET -->
+<button id="restore-btn" title="Restore Player">
+  <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+</button>
+<div id="cine-noti">
+  <div class="window-actions">
+    <button class="action-btn" id="minimize-noti-btn" title="Minimize">
+      <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </button>
+    <button class="action-btn" id="close-noti-btn" title="Close">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+  </div>
+  <div class="player-main">
+    <img class="album-art" id="noti-album-art" src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=200&auto=format&fit=crop" alt="Album Art">
+    <div class="track-info">
+      <div class="title" id="noti-title">System Audio</div>
+      <div class="artist" id="noti-artist">Now Playing</div>
+      <canvas id="visualizer"></canvas>
     </div>
-    <div class="ctx-separator"></div>
-    <div class="ctx-item" onclick="location.reload()"><i class="fas fa-sync fa-fw"></i> Refresh System</div>
   </div>
-
-  <div id="toast-container"></div>
-
-  <!-- ======================== -->
-  <!-- CIRI ASSISTANT PRO UI    -->
-  <!-- ======================== -->
-  <div id="ciri-backdrop" onclick="closeCiri()"></div>
-  <div id="ciri-window">
-      <div id="ciri-boot-screen">
-          <div id="ciri-boot-ciri-text" class="ciri-boot-ciri">CIRI.</div>
-          <div id="ciri-boot-sub-text" class="ciri-boot-sub">Cine-Hub SOFTWARES</div>
-          <div id="ciri-boot-loader" class="ciri-boot-loader">
-              <div id="ciri-boot-spinner" class="ciri-spinner"></div>
-              <div id="ciri-boot-status-text" class="ciri-boot-status">Connecting To Gemini...</div>
-              <div class="ciri-boot-warning">If network restricts Gemini, This webOS needs to be launched through a proxy giving up LIVE mode.</div>
-          </div>
-      </div>
-
-      <div id="ciri-status-pill">
-          <span>CIRI</span>
-          <div id="ciri-status-icon" class="ciri-status-icon"></div>
-          <span id="ciri-status-text"></span>
-      </div>
-
-      <div id="ciri-chat-history"></div>
-
-      <div id="ciri-bottom-wrapper">
-          <div id="ciri-img-preview-box">
-              <img id="ciri-img-preview" src="" alt="preview">
-              <span onclick="clearCiriImage()">✕</span>
-          </div>
-          <input type="file" id="ciri-file-upload" accept="image/*" style="display: none;" onchange="handleCiriFileUpload(event)">
-          <button class="ciri-icon-btn" onclick="document.getElementById('ciri-file-upload').click()">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-          </button>
-          
-          <textarea id="ciri-chat-input" placeholder="Message Ciri..." rows="1" oninput="autoGrowCiri(this)"></textarea>
-          
-          <div id="ciri-mode-toggle" onclick="cycleCiriMode()">FAST</div>
-          <div id="ciri-action-orb" onclick="handleCiriSend()"></div>
-      </div>
-      <div class="ciri-disclaimer-text">CIRI Can Make Mistakes Double-Check Each Answer</div>
-  </div>
-
-  <video id="ciri-screen-video" autoplay playsinline></video>
-  <canvas id="ciri-screen-canvas"></canvas>
-
-  <!-- ======================== -->
-  <!-- INTERNAL APP SETTINGS    -->
-  <!-- ======================== -->
-  <template id="code-settings">
-    <style>
-    :root{--accent-cyan:#00f3ff;--accent-danger:#ff4444;--glass-bg:rgba(15,15,20,0.6);--glass-border:rgba(255,255,255,0.05);--glass-hover:rgba(255,255,255,0.1);}
-    *{box-sizing:border-box;user-select:none;}
-    body{background:transparent;color:white;padding:25px;font-family:'Rajdhani',sans-serif;overflow-y:auto;}
-    body::-webkit-scrollbar{width:8px;}
-    body::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:4px;}
-    h2{font-family:'Orbitron',sans-serif;border-bottom:2px solid var(--accent-cyan);padding-bottom:10px;margin-bottom:20px;letter-spacing:3px;font-size:1.6rem;}
-    .cat{color:var(--accent-cyan);font-weight:700;margin-top:25px;margin-bottom:15px;letter-spacing:2px;font-size:1.1rem;text-transform:uppercase;display:flex;align-items:center;gap:10px;}
-    .cat::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--glass-border),transparent);}
-    .setting-card{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;background:var(--glass-bg);padding:16px 20px;border-radius:12px;border:1px solid var(--glass-border);transition:all 0.2s;}
-    .setting-card:hover{border-color:rgba(0,243,255,0.4);background:var(--glass-hover);}
-    .setting-info{display:flex;align-items:center;gap:15px;}
-    .setting-icon{font-size:1.5rem;color:#888;width:30px;text-align:center;}
-    .setting-card:hover .setting-icon{color:var(--accent-cyan);}
-    .setting-text span{font-size:1.1rem;font-weight:600;letter-spacing:1px;color:#fff;}
-    .setting-text small{display:block;color:#aaa;font-size:0.85rem;margin-top:4px;}
-    .switch{position:relative;display:inline-block;width:46px;height:24px;}
-    .switch input{opacity:0;width:0;height:0;}
-    .slider{position:absolute;cursor:pointer;inset:0;background-color:#222;transition:.3s;border-radius:34px;border:1px solid #444;}
-    .slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background-color:#888;transition:.3s;border-radius:50%;}
-    input:checked+.slider{background-color:rgba(0,243,255,0.2);border-color:var(--accent-cyan);}
-    input:checked+.slider:before{transform:translateX(22px);background-color:var(--accent-cyan);}
-    .select-input{background:#111;color:#fff;border:1px solid var(--glass-border);padding:8px 12px;border-radius:6px;font-family:'Rajdhani',sans-serif;font-size:1rem;outline:none;cursor:pointer;}
-    #faq-modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(5px);z-index:999;display:none;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity 0.3s;}
-    #faq-modal.open{display:flex;opacity:1;}
-    .faq-box{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:12px;padding:25px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto;}
-    .faq-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:10px;margin-bottom:15px;}
-    .faq-item{margin-bottom:20px;background:rgba(0,0,0,0.4);padding:15px;border-radius:8px;border:1px solid rgba(255,255,255,0.05);}
-    .faq-item h3{color:var(--accent-cyan);margin-bottom:8px;font-size:1.2rem;letter-spacing:1px;text-transform:uppercase;}
-    .faq-item p{color:#ccc;font-size:0.95rem;line-height:1.5;}
-    </style>
-    <div id="faq-modal">
-      <div class="faq-box">
-        <div class="faq-header">
-          <h2 style="margin:0; border:none; padding:0;">SYSTEM FAQ</h2>
-          <i class="fas fa-times" style="font-size:1.5rem; color:#888; cursor:pointer;" onclick="toggleFaq()"></i>
-        </div>
-        <div class="faq-item">
-          <h3>MOVIE NOT WORKING!</h3>
-          <p>If the movies do not work for you, open the Browser app, click on Ultraviolet, and search for anything. This will fix the issue. Go back to Movies and they should play!</p>
-        </div>
-        <div class="faq-item">
-          <h3>TOO MANY GAMES</h3>
-          <p>If you downloaded too many games and want to start fresh, open a new tab in your normal browser, press Ctrl + H, and clear your cache. This resets your saved data so you can start over.</p>
-        </div>
+  <div class="time-wrapper">
+    <span id="current-time">0:00</span>
+    <div class="progress-hit-area" id="progress-hit-area">
+      <div class="progress-bg">
+        <div class="progress-fill" id="progress-fill"></div>
       </div>
     </div>
-    <h2>SYSTEM CONFIG</h2>
-    <div class="cat"><i class="fas fa-microchip"></i> PERFORMANCE</div>
-    <div class="setting-card">
-      <div class="setting-info"><i class="fas fa-film setting-icon"></i><div class="setting-text"><span>Optimized Background</span><small>Disables video background to save resources</small></div></div>
-      <label class="switch"><input type="checkbox" id="chk-bg" onchange="window.parent.updateSysSetting('optBg',this.checked)"><span class="slider"></span></label>
+    <span id="total-time">LIVE</span>
+  </div>
+  <div class="controls">
+    <button class="ctrl-btn" id="skip-back" title="Back 15s">
+      <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.85 8 12.5 8z"/></svg>
+    </button>
+    <button class="ctrl-btn play-pause-btn" id="play-pause">
+      <svg id="icon-play" viewBox="0 0 24 24" style="width:16px; height:16px; margin-left:2px; display:none;"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="icon-pause" viewBox="0 0 24 24" style="width:16px; height:16px;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+    </button>
+    <button class="ctrl-btn" id="skip-forward" title="Skip 15s">
+      <svg viewBox="0 0 24 24"><path d="M11.5 8c-4.35 0-7.98 2.9-9.98 7.22l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6c-1.84-1.61-4.24-2.6-6.9-2.6z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- SETTINGS TEMPLATE -->
+<template id="code-settings">
+  <div id="faq-modal">
+    <div class="faq-box">
+      <div class="faq-header">
+        <h2 style="margin:0; border:none; padding:0; color:#fff;">SYSTEM FAQ</h2>
+        <i class="fas fa-times" style="font-size:1.5rem; color:#888; cursor:pointer;" onclick="toggleFaq()"></i>
+      </div>
+      <div class="faq-item">
+        <h3 style="color:#fff;">MOVIE NOT WORKING!</h3>
+        <p style="color:#aaa;">If the movies do not work for you, open the Browser app, click on Ultraviolet, and search for anything. This will fix the issue. Go back to Movies and they should play!</p>
+      </div>
+      <div class="faq-item">
+        <h3 style="color:#fff;">TOO MANY GAMES</h3>
+        <p style="color:#aaa;">If you downloaded too many games and want to start fresh, open a new tab in your normal browser, press Ctrl + H, and clear your cache. This resets your saved data so you can start over.</p>
+      </div>
     </div>
-    <div class="setting-card">
-      <div class="setting-info"><i class="fas fa-bolt setting-icon"></i><div class="setting-text"><span>Fast Boot</span><small>Skips the startup sequence</small></div></div>
-      <label class="switch"><input type="checkbox" id="chk-boot" onchange="window.parent.updateSysSetting('shortBoot',this.checked)"><span class="slider"></span></label>
-    </div>
-    <div class="cat"><i class="fas fa-user-secret"></i> CLOAKING & STEALTH</div>
-    <div class="setting-card">
-      <div class="setting-info"><i class="fas fa-mask setting-icon"></i><div class="setting-text"><span>Tab Cloak</span><small>Disguises the OS tab name and icon</small></div></div>
-      <select class="select-input" id="cloak-select" onchange="window.parent.updateCloak(this.value)">
-        <option value="none">None (Cine-OS)</option><option value="google">Google</option>
-        <option value="drive">Google Drive</option><option value="canvas">Canvas</option>
-        <option value="classroom">Google Classroom</option>
-      </select>
-    </div>
-    <div class="cat"><i class="fas fa-keyboard"></i> SHORTCUTS & LINKS</div>
-    <div class="setting-card">
-      <div class="setting-info"><i class="fas fa-exclamation-triangle setting-icon" style="color:var(--accent-danger)"></i><div class="setting-text"><span>Panic Key</span><small>Quick close tab key</small></div></div>
-      <input type="text" id="panic-input" maxlength="1" style="width:40px;height:30px;color:#fff;background:#222;border:1px solid #555;text-align:center;font-size:1.2rem;font-weight:bold;outline:none;border-radius:4px;" onkeyup="window.parent.updateSysSetting('panicKey',this.value)">
-    </div>
-    <div class="setting-card" style="cursor:pointer;" onclick="window.open('https://discord.gg/bQCRJgtC74','_blank')">
-      <div class="setting-info"><i class="fab fa-discord setting-icon" style="color:#5865F2"></i><div class="setting-text"><span>Join Discord</span><small>Official Community Hub</small></div></div>
-    </div>
-    <div class="setting-card" style="cursor:pointer;" onclick="toggleFaq()">
-      <div class="setting-info"><i class="fas fa-question-circle setting-icon" style="color:#00f3ff"></i><div class="setting-text"><span>System FAQ</span><small>Troubleshooting & Help</small></div></div>
-    </div>
-    <div class="cat"><i class="fas fa-tools"></i> UTILITIES</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:10px;">
-      <button onclick="window.parent.downloadLocally()" style="width:100%;padding:12px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.05);color:#ddd;border-radius:8px;cursor:pointer;font-family:var(--font-main);font-weight:bold;"><i class="fas fa-download"></i> Download Local</button>
-      <button onclick="window.parent.openAboutBlank()" style="width:100%;padding:12px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.05);color:#ddd;border-radius:8px;cursor:pointer;font-family:var(--font-main);font-weight:bold;"><i class="fas fa-external-link-alt"></i> Open in about:blank</button>
-    </div>
-    <script>
-    function toggleFaq(){const m=document.getElementById('faq-modal');if(m.classList.contains('open')){m.classList.remove('open');setTimeout(()=>m.style.display='none',300);}else{m.style.display='flex';setTimeout(()=>m.classList.add('open'),10);}}
-    document.addEventListener('keydown',function(e){if(window.parent&&window.parent.sysConfig&&window.parent.sysConfig.panicKey&&e.key&&e.key.toLowerCase()===window.parent.sysConfig.panicKey.toLowerCase()){window.parent.location.href="https://google.com";}});
-    if(window.parent.sysConfig){
-      document.getElementById('chk-bg').checked=window.parent.sysConfig.optBg;
-      document.getElementById('chk-boot').checked=window.parent.sysConfig.shortBoot;
-      document.getElementById('panic-input').value=window.parent.sysConfig.panicKey;
-      if(window.parent.sysConfig.cloak)document.getElementById('cloak-select').value=window.parent.sysConfig.cloak;
-    }
-    </script>
-  </template>
+  </div>
   
-  <!-- EXTERNAL JAVASCRIPT LOADED HERE -->
-  <script src="script.js"></script>
-</body>
-</html>
-</textarea>
+  <h2 style="color:#fff; border-bottom:2px solid #333; padding-bottom:10px;">SYSTEM CONFIG</h2>
+  <div class="cat" style="color:#fff;"><i class="fas fa-microchip"></i> PERFORMANCE</div>
+  <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
+    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
+      <i class="fas fa-film setting-icon" style="color:#888; font-size:1.5rem;"></i>
+      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Optimized Background</span><small style="display:block; color:#888;">Disables video background to save resources</small></div>
+    </div>
+    <label class="switch"><input type="checkbox" id="chk-bg" onchange="window.parent.updateSysSetting('optBg',this.checked)"><span class="slider"></span></label>
+  </div>
+  <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
+    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
+      <i class="fas fa-bolt setting-icon" style="color:#888; font-size:1.5rem;"></i>
+      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Fast Boot</span><small style="display:block; color:#888;">Skips the startup sequence</small></div>
+    </div>
+    <label class="switch"><input type="checkbox" id="chk-boot" onchange="window.parent.updateSysSetting('shortBoot',this.checked)"><span class="slider"></span></label>
+  </div>
 
-<script>
-let keyHistory=[];const secretCombo=['ArrowUp','ArrowDown','ArrowUp','ArrowDown'];
-document.addEventListener('keydown',function(event){
-  keyHistory.push(event.key);if(keyHistory.length>secretCombo.length)keyHistory.shift();
-  if(JSON.stringify(keyHistory)===JSON.stringify(secretCombo)){launchSecret();}
-});
-function launchSecret(){var payload=document.getElementById('secret-html-payload').value;window.OS_PAYLOAD=payload;document.open();document.write(payload);document.close();}
-</script>
+  <div class="cat" style="color:#fff; margin-top:20px;"><i class="fas fa-user-secret"></i> CLOAKING & STEALTH</div>
+  <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
+    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
+      <i class="fas fa-mask setting-icon" style="color:#888; font-size:1.5rem;"></i>
+      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Tab Cloak</span><small style="display:block; color:#888;">Disguises the OS tab name and icon</small></div>
+    </div>
+    <select class="select-input" id="cloak-select" onchange="window.parent.updateCloak(this.value)" style="background:#111; color:#fff; border:1px solid #333; padding:5px; border-radius:5px;">
+      <option value="none">None (Cine-OS)</option><option value="google">Google</option>
+      <option value="drive">Google Drive</option><option value="canvas">Canvas</option>
+      <option value="classroom">Google Classroom</option>
+    </select>
+  </div>
+
+  <div class="cat" style="color:#fff; margin-top:20px;"><i class="fas fa-keyboard"></i> SHORTCUTS & LINKS</div>
+  <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
+    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
+      <i class="fas fa-exclamation-triangle setting-icon" style="color:#fff; font-size:1.5rem;"></i>
+      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Panic Key</span><small style="display:block; color:#888;">Quick close tab key</small></div>
+    </div>
+    <input type="text" id="panic-input" maxlength="1" style="width:40px;height:30px;color:#fff;background:#222;border:1px solid #555;text-align:center;font-size:1.2rem;font-weight:bold;outline:none;border-radius:4px;" onkeyup="window.parent.updateSysSetting('panicKey',this.value)">
+  </div>
+  <div class="setting-card" style="cursor:pointer; background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px;" onclick="window.open('https://discord.gg/bQCRJgtC74','_blank')">
+    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
+      <i class="fab fa-discord setting-icon" style="color:#fff; font-size:1.5rem;"></i>
+      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Join Discord</span><small style="display:block; color:#888;">Official Community Hub</small></div>
+    </div>
+  </div>
+  <div class="setting-card" style="cursor:pointer; background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px;" onclick="toggleFaq()">
+    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
+      <i class="fas fa-question-circle setting-icon" style="color:#fff; font-size:1.5rem;"></i>
+      <div class="setting-text"><span style="color:#fff; font-weight:bold;">System FAQ</span><small style="display:block; color:#888;">Troubleshooting & Help</small></div>
+    </div>
+  </div>
+</template>
+
+<script src="script.js"></script>
 </body>
 </html>
