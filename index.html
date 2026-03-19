@@ -2,287 +2,96 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Cine-OS V2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ciri Assistant Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css"> <!-- Links to the master CSS file -->
 </head>
-
-<body id="desktop-area">
-
-<!-- MOBILE WARNING -->
-<div id="mobile-warning">
-  <div class="mobile-box">
-    <i class="fas fa-exclamation-triangle"></i>
-    <h2>Device is not fully supported</h2>
-    <p>Double tap anywhere to continue</p>
-  </div>
+<body class="ciri-app-body">
+<div id="ciri-app-container">
+<div id="ciri-boot-screen">
+<div id="boot-ciri-text" class="boot-ciri">CIRI.</div>
+<div id="boot-sub-text" class="boot-sub">Cine-Hub SOFTWARES</div>
+<div id="boot-loader" class="boot-loader">
+<div id="boot-spinner" class="spinner"></div>
+<div id="boot-status-text" class="boot-status">Connecting To Gemini...</div>
+<div class="boot-warning">If network restricts Gemini, launch via proxy giving up LIVE mode.</div>
 </div>
-
-<div id="top-trigger"></div>
-<div id="bottom-trigger"></div>
-
-<!-- BOOT SEQUENCE -->
-<div id="boot-layer">
-  <div id="boot-content">
-    <div class="boot-logo">CINE-OS</div>
-    <div class="boot-sub">Cine-Hub Softwares // V2</div>
-    <button id="boot-btn" onclick="startBootSequence()">Enter CINE</button>
-    <div style="margin-top:20px; font-size:0.8rem; color:#555;">Double-Tap ENTER to skip sequence</div>
-  </div>
-  <video id="boot-video" playsinline><source src="Videos/Boot.mp4" type="video/mp4"></video>
 </div>
-
-<!-- LOCK SCREEN -->
-<div id="lock-screen" onclick="unlockSystem()">
-  <video id="lock-video" autoplay loop muted playsinline></video>
-  <div id="lock-ui">
-    <div class="l-greet" id="lock-greet">GOOD AFTERNOON</div>
-    <div class="l-day" id="lock-day-large">MONDAY</div>
-    <div class="l-date" id="lock-date">03 MARCH</div>
-    <div class="l-time" id="lock-time">04:48 PM</div>
-  </div>
+<div id="status-pill">
+<span>CIRI</span>
+<div id="status-icon" class="status-icon"></div>
+<span id="status-text"></span>
 </div>
-
-<!-- DESKTOP BACKGROUND -->
-<video id="bg-video" loop muted playsinline></video>
-<canvas id="snow-fx"></canvas>
-<div id="hud-top"><div class="hud-day" id="lbl-day">SUNDAY</div></div>
-
-<!-- DRAG PROXY FOR APPS/FOLDERS -->
-<div id="drag-proxy">
-  <div id="folder-badge" style="display:none;">2</div>
-  <img id="proxy-img" src="">
+<div id="chat-history"></div>
+<div id="bottom-wrapper">
+<div id="img-preview-box">
+<img id="img-preview" src="" alt="preview">
+<span onclick="clearImage()">✕</span>
 </div>
-
-<!-- BOTTOM DOCK -->
-<div id="dock-container"></div>
-<div id="windows-layer"></div>
-
-<!-- REVAMPED WALLPAPER MENU (BLACK/GRAY/WHITE) -->
-<div id="wallpaper-menu">
-  <div class="wp-modal-header">
-    <h2>WALLPAPER PROTOCOLS</h2>
-    <i class="fas fa-times" style="cursor:pointer; font-size: 1.5rem; color:#fff;" onclick="document.getElementById('wallpaper-menu').classList.remove('open')"></i>
-  </div>
-  
-  <div class="wp-controls-row">
-    <div class="segmented-control">
-      <label><input type="radio" name="wpmd" value="both" checked onclick="window.wpMode='both'"><span>Both</span></label>
-      <label><input type="radio" name="wpmd" value="home" onclick="window.wpMode='home'"><span>Homescreen</span></label>
-      <label><input type="radio" name="wpmd" value="lock" onclick="window.wpMode='lock'"><span>Lockscreen</span></label>
-    </div>
-    
-    <div class="loop-toggle-container">
-      <span class="loop-label">Loop Wallpaper</span>
-      <label class="switch wp-loop-switch">
-        <input type="checkbox" id="wp-loop-chk">
-        <span class="slider"></span>
-      </label>
-    </div>
-  </div>
-
-  <div class="wp-grid-container">
-    <div id="wp-grid-unlocked" class="wp-grid"></div>
-    <h3 class="wp-section-title">Encrypted</h3>
-    <div id="wp-grid-locked" class="wp-grid"></div>
-  </div>
+<input type="file" id="file-upload" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
+<button class="icon-btn" onclick="document.getElementById('file-upload').click()">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+</button>
+<textarea id="chat-input" placeholder="Message Ciri..." rows="1" oninput="autoGrow(this)"></textarea>
+<div id="mode-toggle" onclick="cycleMode()">FAST</div>
+<div id="action-orb" onclick="handleSend()"></div>
 </div>
-
-<!-- START MENU -->
-<div id="start-menu" class="os-menu">
-  <div class="start-search-bar">
-    <i class="fas fa-search" style="color:#888"></i>
-    <input type="text" id="start-search-input" placeholder="Type secret code to unlock papers..." style="background:transparent; border:none; color:white; width:100%; outline:none;">
-  </div>
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-    <h3 style="font-size:15px; color:#fff;">Pinned</h3>
-  </div>
-  <div class="pinned-grid" id="pinned-grid"></div>
-  <div class="start-footer">
-    <div class="user-profile"><div class="user-avatar"><i class="fas fa-user" style="color:#aaa"></i></div><span style="font-size:12px;color:#ddd;">Administrator</span></div>
-    <i class="fas fa-power-off" style="cursor:pointer; color:#fff; font-size:18px;" onclick="location.reload()"></i>
-  </div>
-</div>
-
-<!-- APP DRAWER -->
-<div id="app-drawer" onclick="if(event.target.id==='app-drawer')toggleAppDrawer()">
-  <div class="start-search-bar" style="max-width:600px; margin:0 auto 40px auto; background:#1a1a1a; border:1px solid #333;">
-    <i class="fas fa-search" style="color:#888"></i>
-    <input type="text" placeholder="Search apps..." style="background:transparent; border:none; color:white; width:100%; outline:none;" onkeyup="filterDrawer(this.value)">
-  </div>
-  <div class="drawer-grid" id="drawer-grid"></div>
-</div>
-
-<!-- CONTEXT MENU -->
-<div id="desktop-context-menu" class="os-context-menu">
-  <div class="ctx-item" onclick="openWallpaperMenu(); document.getElementById('desktop-context-menu').style.display='none';"><i class="fas fa-image fa-fw"></i> Change Wallpaper</div>
-  <div class="ctx-separator"></div>
-  <div class="ctx-row">
-    <button class="ctx-btn" onclick="toggleDesktopSize(true)" title="Large Icons (Hide Names)"><i class="fas fa-expand-arrows-alt"></i></button>
-    <button class="ctx-btn" onclick="toggleDesktopSize(false)" title="Default Size"><i class="fas fa-compress-arrows-alt"></i></button>
-  </div>
-  <div class="ctx-separator"></div>
-  <div class="ctx-item" onclick="location.reload()"><i class="fas fa-sync fa-fw"></i> Refresh System</div>
-</div>
-
-<div id="toast-container"></div>
-
-<!-- CIRI ASSISTANT PRO -->
-<div id="ciri-backdrop" onclick="closeCiri()"></div>
-<div id="ciri-window">
-  <div id="ciri-boot-screen">
-    <div id="boot-ciri-text" class="boot-ciri">CIRI.</div>
-    <div id="boot-sub-text" class="boot-sub">Cine-Hub SOFTWARES</div>
-    <div id="boot-loader" class="boot-loader">
-      <div id="boot-spinner" class="spinner"></div>
-      <div id="boot-status-text" class="boot-status">Connecting To Gemini...</div>
-      <div class="boot-warning">If network restricts Gemini, This webOS needs to be launched through a proxy giving up LIVE mode.</div>
-    </div>
-  </div>
-
-  <div id="status-pill">
-    <span>CIRI</span>
-    <div id="status-icon" class="status-icon"></div>
-    <span id="status-text"></span>
-  </div>
-  <div id="chat-history"></div>
-
-  <div id="bottom-wrapper">
-    <div id="img-preview-box">
-      <img id="img-preview" src="" alt="preview">
-      <span onclick="clearImage()">✕</span>
-    </div>
-    <input type="file" id="file-upload" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
-    <button class="icon-btn" onclick="document.getElementById('file-upload').click()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-    </button>
-    <textarea id="chat-input" placeholder="Message Ciri..." rows="1" oninput="autoGrow(this)"></textarea>
-    <div id="mode-toggle" onclick="cycleMode()">FAST</div>
-    <div id="action-orb" onclick="handleSend()"></div>
-  </div>
 </div>
 <video id="screen-video" autoplay playsinline style="display:none;"></video>
 <canvas id="screen-canvas" style="display:none;"></canvas>
 
-<!-- CINE-NOTI AUDIO WIDGET -->
-<button id="restore-btn" title="Restore Player">
-  <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-</button>
-<div id="cine-noti">
-  <div class="window-actions">
-    <button class="action-btn" id="minimize-noti-btn" title="Minimize">
-      <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-    </button>
-    <button class="action-btn" id="close-noti-btn" title="Close">
-      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-    </button>
-  </div>
-  <div class="player-main">
-    <img class="album-art" id="noti-album-art" src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=200&auto=format&fit=crop" alt="Album Art">
-    <div class="track-info">
-      <div class="title" id="noti-title">System Audio</div>
-      <div class="artist" id="noti-artist">Now Playing</div>
-      <canvas id="visualizer"></canvas>
-    </div>
-  </div>
-  <div class="time-wrapper">
-    <span id="current-time">0:00</span>
-    <div class="progress-hit-area" id="progress-hit-area">
-      <div class="progress-bg">
-        <div class="progress-fill" id="progress-fill"></div>
-      </div>
-    </div>
-    <span id="total-time">LIVE</span>
-  </div>
-  <div class="controls">
-    <button class="ctrl-btn" id="skip-back" title="Back 15s">
-      <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.85 8 12.5 8z"/></svg>
-    </button>
-    <button class="ctrl-btn play-pause-btn" id="play-pause">
-      <svg id="icon-play" viewBox="0 0 24 24" style="width:16px; height:16px; margin-left:2px; display:none;"><path d="M8 5v14l11-7z"/></svg>
-      <svg id="icon-pause" viewBox="0 0 24 24" style="width:16px; height:16px;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-    </button>
-    <button class="ctrl-btn" id="skip-forward" title="Skip 15s">
-      <svg viewBox="0 0 24 24"><path d="M11.5 8c-4.35 0-7.98 2.9-9.98 7.22l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6c-1.84-1.61-4.24-2.6-6.9-2.6z"/></svg>
-    </button>
-  </div>
-</div>
+<script>
+const MODES=['FAST','THINKING','LIVE'];let currentModeIndex=0;let expectingApiKey=false;let screenStream=null;let currentImageBase64=null;let currentImageMime=null;
+const statusText=document.getElementById('status-text');const statusIcon=document.getElementById('status-icon');const chatHistory=document.getElementById('chat-history');const chatInput=document.getElementById('chat-input');const modeToggle=document.getElementById('mode-toggle');const actionOrb=document.getElementById('action-orb');const imgPreviewBox=document.getElementById('img-preview-box');const imgPreview=document.getElementById('img-preview');const videoElement=document.getElementById('screen-video');const canvasElement=document.getElementById('screen-canvas');
+const svgSecure=`<svg class="secure-svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>`;const svgUnstable=`<svg class="unstable-svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
 
-<!-- SETTINGS TEMPLATE -->
-<template id="code-settings">
-  <div id="faq-modal">
-    <div class="faq-box">
-      <div class="faq-header">
-        <h2 style="margin:0; border:none; padding:0; color:#fff;">SYSTEM FAQ</h2>
-        <i class="fas fa-times" style="font-size:1.5rem; color:#888; cursor:pointer;" onclick="toggleFaq()"></i>
-      </div>
-      <div class="faq-item">
-        <h3 style="color:#fff;">MOVIE NOT WORKING!</h3>
-        <p style="color:#aaa;">If the movies do not work for you, open the Browser app, click on Ultraviolet, and search for anything. This will fix the issue. Go back to Movies and they should play!</p>
-      </div>
-      <div class="faq-item">
-        <h3 style="color:#fff;">TOO MANY GAMES</h3>
-        <p style="color:#aaa;">If you downloaded too many games and want to start fresh, open a new tab in your normal browser, press Ctrl + H, and clear your cache. This resets your saved data so you can start over.</p>
-      </div>
-    </div>
-  </div>
-  
-  <h2 style="color:#fff; border-bottom:2px solid #333; padding-bottom:10px;">SYSTEM CONFIG</h2>
-  <div class="cat" style="color:#fff;"><i class="fas fa-microchip"></i> PERFORMANCE</div>
-  <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
-    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
-      <i class="fas fa-film setting-icon" style="color:#888; font-size:1.5rem;"></i>
-      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Optimized Background</span><small style="display:block; color:#888;">Disables video background to save resources</small></div>
-    </div>
-    <label class="switch"><input type="checkbox" id="chk-bg" onchange="window.parent.updateSysSetting('optBg',this.checked)"><span class="slider"></span></label>
-  </div>
-  <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
-    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
-      <i class="fas fa-bolt setting-icon" style="color:#888; font-size:1.5rem;"></i>
-      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Fast Boot</span><small style="display:block; color:#888;">Skips the startup sequence</small></div>
-    </div>
-    <label class="switch"><input type="checkbox" id="chk-boot" onchange="window.parent.updateSysSetting('shortBoot',this.checked)"><span class="slider"></span></label>
-  </div>
+window.onload=()=>{
+ checkApiKeyStatus();
+ const bootScreen=document.getElementById('ciri-boot-screen');const bootCiri=document.getElementById('boot-ciri-text');const bootSub=document.getElementById('boot-sub-text');const bootLoader=document.getElementById('boot-loader');const bootStatusText=document.getElementById('boot-status-text');const bootSpinner=document.getElementById('boot-spinner');
+ setTimeout(()=>bootCiri.classList.add('typing'),300);setTimeout(()=>bootSub.classList.add('show'),1100);
+ setTimeout(()=>{bootLoader.style.opacity='1';const pingStart=Date.now();
+ fetch('https://generativelanguage.googleapis.com/v1beta/models').then(()=>handleNetworkResult("Connection Established.")).catch(()=>handleNetworkResult("Network Restricted."));
+ function handleNetworkResult(message){const elapsed=Date.now()-pingStart;const remainingTime=Math.max(0,1500-elapsed);setTimeout(()=>{bootStatusText.textContent=message;bootSpinner.style.display='none';setTimeout(()=>{bootScreen.style.filter='blur(10px)';bootScreen.style.opacity='0';setTimeout(()=>{bootScreen.style.display='none';chatInput.focus();},800);},1800);},remainingTime);}
+ },2200);
+};
 
-  <div class="cat" style="color:#fff; margin-top:20px;"><i class="fas fa-user-secret"></i> CLOAKING & STEALTH</div>
-  <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
-    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
-      <i class="fas fa-mask setting-icon" style="color:#888; font-size:1.5rem;"></i>
-      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Tab Cloak</span><small style="display:block; color:#888;">Disguises the OS tab name and icon</small></div>
-    </div>
-    <select class="select-input" id="cloak-select" onchange="window.parent.updateCloak(this.value)" style="background:#111; color:#fff; border:1px solid #333; padding:5px; border-radius:5px;">
-      <option value="none">None (Cine-OS)</option><option value="google">Google</option>
-      <option value="drive">Google Drive</option><option value="canvas">Canvas</option>
-      <option value="classroom">Google Classroom</option>
-    </select>
-  </div>
+function checkApiKeyStatus(){if(localStorage.getItem('ciri_key')){statusText.textContent="Secure";statusText.className="secure";statusIcon.innerHTML=svgSecure;}else{statusText.textContent="Unstable";statusText.className="unstable";statusIcon.innerHTML=svgUnstable;}}
+window.autoGrow=function(element){element.style.height="5px";element.style.height=(element.scrollHeight)+"px";};
+window.cycleMode=async function(){currentModeIndex=(currentModeIndex+1)%MODES.length;const newMode=MODES[currentModeIndex];modeToggle.textContent=newMode;modeToggle.className=newMode==='LIVE'?'live-active':'';if(newMode==='LIVE'){try{screenStream=await navigator.mediaDevices.getDisplayMedia({video:{displaySurface:"monitor"}});videoElement.srcObject=screenStream;appendMessage("ciri","LIVE Vision active. I can now see your screen.");}catch(err){appendMessage("ciri","Failed to access screen. Reverting mode.");cycleMode();}}else{stopScreenShare();}};
+function stopScreenShare(){if(screenStream){screenStream.getTracks().forEach(track=>track.stop());screenStream=null;}}
+async function captureScreen(){if(!screenStream)return null;canvasElement.width=videoElement.videoWidth;canvasElement.height=videoElement.videoHeight;canvasElement.getContext('2d').drawImage(videoElement,0,0);return canvasElement.toDataURL('image/jpeg',0.8).split(',')[1];}
+chatInput.addEventListener('paste',(e)=>{const items=(e.clipboardData||e.originalEvent.clipboardData).items;for(let item of items){if(item.type.indexOf('image')===0)processImage(item.getAsFile());}});
+window.handleFileUpload=function(e){if(e.target.files&&e.target.files[0])processImage(e.target.files[0]);};
+function processImage(file){const reader=new FileReader();reader.onload=(e)=>{currentImageBase64=e.target.result.split(',')[1];currentImageMime=file.type;imgPreview.src=e.target.result;imgPreviewBox.style.display='flex';};reader.readAsDataURL(file);}
+window.clearImage=function(){currentImageBase64=null;currentImageMime=null;imgPreviewBox.style.display='none';document.getElementById('file-upload').value="";};
+chatInput.addEventListener('keypress',(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSend();}});
+function parseWithMath(text){let mathBlocks=[];let temp=text.replace(/\$\$([\s\S]+?)\$\$/g,(match)=>{mathBlocks.push(match);return `%%MATH_${mathBlocks.length-1}%%`;});temp=temp.replace(/(?<!\$)\$([^$\n]+?)\$(?!\$)/g,(match)=>{mathBlocks.push(match);return `%%MATH_${mathBlocks.length-1}%%`;});let html=marked.parse(temp);mathBlocks.forEach((block,i)=>{html=html.replace(`%%MATH_${i}%%`,block);});return html;}
 
-  <div class="cat" style="color:#fff; margin-top:20px;"><i class="fas fa-keyboard"></i> SHORTCUTS & LINKS</div>
-  <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
-    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
-      <i class="fas fa-exclamation-triangle setting-icon" style="color:#fff; font-size:1.5rem;"></i>
-      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Panic Key</span><small style="display:block; color:#888;">Quick close tab key</small></div>
-    </div>
-    <input type="text" id="panic-input" maxlength="1" style="width:40px;height:30px;color:#fff;background:#222;border:1px solid #555;text-align:center;font-size:1.2rem;font-weight:bold;outline:none;border-radius:4px;" onkeyup="window.parent.updateSysSetting('panicKey',this.value)">
-  </div>
-  <div class="setting-card" style="cursor:pointer; background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px;" onclick="window.open('https://discord.gg/bQCRJgtC74','_blank')">
-    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
-      <i class="fab fa-discord setting-icon" style="color:#fff; font-size:1.5rem;"></i>
-      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Join Discord</span><small style="display:block; color:#888;">Official Community Hub</small></div>
-    </div>
-  </div>
-  <div class="setting-card" style="cursor:pointer; background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px;" onclick="toggleFaq()">
-    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
-      <i class="fas fa-question-circle setting-icon" style="color:#fff; font-size:1.5rem;"></i>
-      <div class="setting-text"><span style="color:#fff; font-weight:bold;">System FAQ</span><small style="display:block; color:#888;">Troubleshooting & Help</small></div>
-    </div>
-  </div>
-</template>
+window.handleSend=async function(){
+ const text=chatInput.value.trim();if(!text&&!currentImageBase64)return;
+ if(expectingApiKey){localStorage.setItem('ciri_key',text);chatInput.value='';chatInput.style.height='auto';expectingApiKey=false;checkApiKeyStatus();appendMessage("ciri","API Key secured.");return;}
+ const apiKey=localStorage.getItem('ciri_key');if(!apiKey){appendMessage("user",text);chatInput.value='';chatInput.style.height='auto';expectingApiKey=true;appendMessage("ciri","Please provide your Gemini API key.");return;}
+ appendMessage("user",text,imgPreview.src);chatInput.value='';chatInput.style.height='auto';const payloadImage=currentImageBase64;const payloadMime=currentImageMime;clearImage();actionOrb.classList.add('thinking');
+ const tempLoadingId="loading-"+Date.now();let loadingHtml=`<div class="message ciri" id="${tempLoadingId}"><span style="color: #a1a1aa; font-style: italic; font-weight: 500;">Processing...</span></div>`;chatHistory.insertAdjacentHTML('beforeend',loadingHtml);scrollToBottom();
+ const parts=[];if(text)parts.push({text:text});if(payloadImage)parts.push({inline_data:{mime_type:payloadMime,data:payloadImage}});
+ if(MODES[currentModeIndex]==='LIVE'&&screenStream){const screenB64=await captureScreen();if(screenB64)parts.push({inline_data:{mime_type:"image/jpeg",data:screenB64}});}
+ const requestBody={contents:[{parts:parts}]};
+ if(MODES[currentModeIndex]==='THINKING'){requestBody.system_instruction={parts:[{text:"You are Ciri, an advanced AI. You MUST think step-by-step before answering. Enclose your entirely literal, internal thought process inside <think>...</think> tags. After the closing </think> tag, provide your final formatted answer. You are also an expert mathematician. Always use standard LaTeX for math. Use $$ for block equations and $ for inline equations."}]};}else{requestBody.system_instruction={parts:[{text:"You are Ciri. You are an expert mathematician. Always use standard LaTeX for math. Use $$ for block equations and $ for inline equations."}]};}
+ try{
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(requestBody)});
+  const data=await res.json();if(data.error)throw new Error(data.error.message);
+  let responseText=data.candidates[0].content.parts[0].text;let realThoughts="";
+  if(MODES[currentModeIndex]==='THINKING'){const thinkMatch=responseText.match(/<think>([\s\S]*?)<\/think>/);if(thinkMatch){realThoughts=thinkMatch[1].trim();responseText=responseText.replace(/<think>[\s\S]*?<\/think>/,'').trim();}}
+  document.getElementById(tempLoadingId).remove();actionOrb.classList.remove('thinking');await typeMarkdownResponse(responseText,realThoughts);
+ }catch(err){document.getElementById(tempLoadingId).remove();actionOrb.classList.remove('thinking');await typeMarkdownResponse("Error: "+err.message);}
+};
 
-<script src="script.js"></script>
+function appendMessage(sender,text,imgSrc=null){const div=document.createElement('div');div.className=`message ${sender}`;let html="";if(imgSrc&&imgSrc!==window.location.href)html+=`<img src="${imgSrc}" style="max-width: 100%; border-radius: 12px; margin-bottom: 12px;">`;if(text)html+=parseWithMath(text);div.innerHTML=html;chatHistory.appendChild(div);if(window.MathJax)MathJax.typesetPromise([div]).catch((err)=>console.log(err));scrollToBottom();}
+function scrollToBottom(){chatHistory.scrollTop=chatHistory.scrollHeight;}
+function typeMarkdownResponse(fullText,realThoughts=""){return new Promise((resolve)=>{const div=document.createElement('div');div.className='message ciri';let htmlStructure="";if(realThoughts){htmlStructure+=`<details class="thought-process"><summary>Internal Monologue</summary><div class="thought-content">${realThoughts.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div></details>`;}const contentDiv=document.createElement('div');div.innerHTML=htmlStructure;div.appendChild(contentDiv);chatHistory.appendChild(div);let i=0;let currentStr="";const speed=MODES[currentModeIndex]==='FAST'?2:5;const chunkSize=MODES[currentModeIndex]==='FAST'?4:2;function typeChar(){const scrollTolerance=40;const isNearBottom=Math.abs(chatHistory.scrollHeight-chatHistory.clientHeight-chatHistory.scrollTop)<=scrollTolerance;if(i<fullText.length){currentStr+=fullText.substring(i,i+chunkSize);i+=chunkSize;contentDiv.innerHTML=parseWithMath(currentStr);if(window.MathJax)MathJax.typesetPromise([contentDiv]).catch((err)=>console.log(err));if(isNearBottom)scrollToBottom();setTimeout(typeChar,speed);}else{contentDiv.innerHTML=parseWithMath(fullText);if(window.MathJax)MathJax.typesetPromise([contentDiv]);if(isNearBottom)scrollToBottom();resolve();}}typeChar();});}
+</script>
 </body>
 </html>
