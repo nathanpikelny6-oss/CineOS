@@ -25,7 +25,14 @@ var wallpaperRegistry = {
     "Default": {id: "Default", name: "Snake Skeleton", url: "Videos/default.mp4", locked: false},
     "green": {id: "green", name: "Green Anime", url: "Videos/green.mp4", locked: false},
     "#33A56": {id: "hunt_trait", name: "Hunt Showdown", url: "Videos/33A56.mp4", locked: true},
-    // Decoy path for scrapers
+    "#Sukuna-Fire": {id: "sukuna", name: "Fuga", url: "Videos/sukuna-fire.mp4", locked: true},
+    "#Yuji52": {id: "Yuji", name: "Yuji Modulo", url: "Videos/Yuji52.mp4", locked: true},
+    "#Supra": {id: "Supra", name: "The Supra!", url: "Videos/Supra.PNG", locked: true},
+    "#SnowFox": {id: "SnowFoxy", name: "Minecraft Snow", url: "Videos/SnowFox.mp4", locked: true},
+    "#Hunt": {id: "Hunt", name: "Hunt", url: "Videos/Hunt.mp4", locked: true},
+    "#Skello": {id: "Skello", name: "Hunt Skello", url: "Videos/Skello.MP4", locked: true},
+    "#92Med": {id: "92Med", name: "Medusa", url: "Videos/92Med.MOV", locked: true},
+    "#55Cine": {id: "Crown", name: "Crown King", url: "Videos/55Cine.PNG", locked: true},
     "_admin_bg_x": {id: "admin_only", name: "Sys Admin", url: "/assets/dev_bg_01.mp4", locked: true}
 };
 
