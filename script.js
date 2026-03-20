@@ -23,7 +23,6 @@ var APPS = {
 // Wallpapers
 var wallpaperRegistry = {
     "Default": {id: "Default", name: "Snake Skeleton", url: "Videos/default.mp4", locked: false},
-    "#Brother": {id: "Brother", name: "Showdown", url: "Videos/Brother.mp4", locked: true},
     "green": {id: "green", name: "Green Anime", url: "Videos/green.mp4", locked: false},
     "#33A56": {id: "hunt_trait", name: "Hunt Showdown", url: "Videos/33A56.mp4", locked: true},
     "#Sukuna-Fire": {id: "sukuna", name: "Fuga", url: "Videos/sukuna-fire.mp4", locked: true},
@@ -31,6 +30,7 @@ var wallpaperRegistry = {
     "#Supra": {id: "Supra", name: "The Supra!", url: "Videos/Supra.PNG", locked: true},
     "#SnowFox": {id: "SnowFoxy", name: "Minecraft Snow", url: "Videos/SnowFox.mp4", locked: true},
     "#Hunt": {id: "Hunt", name: "Hunt", url: "Videos/Hunt.mp4", locked: true},
+    "#Brothers": {id: "Brother", name: "Showdown-Brothers", url: "Videos/Brother.mp4", locked: true},
     "#Skello": {id: "Skello", name: "Hunt Skello", url: "Videos/Skello.MP4", locked: true},
     "#92Med": {id: "92Med", name: "Medusa", url: "Videos/92Med.MOV", locked: true},
     "#55Cine": {id: "Crown", name: "Crown King", url: "Videos/55Cine.PNG", locked: true},
