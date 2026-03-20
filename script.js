@@ -23,6 +23,7 @@ var APPS = {
 // Wallpapers
 var wallpaperRegistry = {
     "Default": {id: "Default", name: "Snake Skeleton", url: "Videos/default.mp4", locked: false},
+    "#Brother": {id: "Brother", name: "Showdown", url: "Videos/Brother.mp4", locked: true},
     "green": {id: "green", name: "Green Anime", url: "Videos/green.mp4", locked: false},
     "#33A56": {id: "hunt_trait", name: "Hunt Showdown", url: "Videos/33A56.mp4", locked: true},
     "#Sukuna-Fire": {id: "sukuna", name: "Fuga", url: "Videos/sukuna-fire.mp4", locked: true},
