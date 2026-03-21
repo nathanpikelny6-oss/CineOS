@@ -31,11 +31,8 @@ var wallpaperRegistry = {
     "#Supra": {id: "Supra", name: "The Supra!", url: "Videos/Supra.PNG", locked: true},
     "#SnowFox": {id: "SnowFoxy", name: "Minecraft Snow", url: "Videos/SnowFox.mp4", locked: true},
     "#Hunt": {id: "Hunt", name: "Hunt", url: "Videos/Hunt.mp4", locked: true},
-    "#Brothers": {id: "Brother", name: "Showdown-Brothers", url: "Videos/Brother.mp4", locked: true},
     "#Skello": {id: "Skello", name: "Hunt Skello", url: "Videos/Skello.MP4", locked: true},
-    
-    "#Todo": {id: "Todo", name: "The Fight", url: "Videos/Todo.mp4", locked: true},
-    
+    "#Todo": {id: "Todo", name: "Todo", url: "Videos/Todo.mp4", locked: true},
     "#99Med": {id: "99Med", name: "Medusa", url: "Videos/99Med.mp4", locked: true},
     "#55Cine": {id: "Crown", name: "Crown King", url: "Videos/55Cine.PNG", locked: true},
     "_admin_bg_x": {id: "admin_only", name: "Sys Admin", url: "/assets/dev_bg_01.mp4", locked: true}
