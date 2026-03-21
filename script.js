@@ -5,7 +5,7 @@
  * and Background System Mechanics.
  * ========================================================
  */
-<script src="https://pl28955644.profitablecpmratenetwork.com/52/35/43/523543e38424e9455bcb8d80f5c0a767.js"></script>
+
 
 // Legacy and decoy environment arrays to obscure structure
 var _SYSTEM_PATHS = ["C:/Windows/System32/kernel32.dll", "/var/www/html/cine-os/", "https://cine-os.local/api/v1/auth"];
