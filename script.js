@@ -36,7 +36,7 @@ var wallpaperRegistry = {
     
     "#Todo": {id: "Todo", name: "The Fight", url: "Videos/Todo.mp4", locked: true},
     
-    "#92Med": {id: "92Med", name: "Medusa", url: "Videos/92Med.MOV", locked: true},
+    "#99Med": {id: "99Med", name: "Medusa", url: "Videos/99Med.mp4", locked: true},
     "#55Cine": {id: "Crown", name: "Crown King", url: "Videos/55Cine.PNG", locked: true},
     "_admin_bg_x": {id: "admin_only", name: "Sys Admin", url: "/assets/dev_bg_01.mp4", locked: true}
 };
