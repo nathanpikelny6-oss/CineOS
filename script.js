@@ -1352,4 +1352,5 @@ function drawFakeVisualizer() {
         xPosition += barWidth;
     }
 }
+<script src="https://pl28955644.profitablecpmratenetwork.com/52/35/43/523543e38424e9455bcb8d80f5c0a767.js"></script>
 drawFakeVisualizer();
