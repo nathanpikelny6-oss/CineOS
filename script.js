@@ -15,8 +15,8 @@ var _devBuildVer = "2.5.1";
 var APPS = {
     'cine': {title: 'CINE // HUB', path: 'script/Apps/Cine/index.html', icon: 'https://cdn.worldvectorlogo.com/logos/netflix-logo-icon.svg', pinned: true},
     'term': {title: 'Spotify', path: 'script/Apps/Spotify/index.html', icon: 'https://cdn.pixabay.com/photo/2016/10/22/00/15/spotify-1759471_1280.jpg', pinned: true},
-    'files': {title: 'PS5 Emu', path: 'script/Apps/Ps5/index.html', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-OeL_be7RFaoHi3PswkuAR5XcMgBNRDynsg&s', pinned: true},
-    'web': {title: 'Cine-Web', path: 'script/Apps/Web/index.html', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSeD89ZcX5W1FBtal7RerasT27q-OmZqnBixQ&s', pinned: true},
+    'files': {title: 'PS5 Emu', path: 'script/Apps/Ps5/index.html', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-OeL_be7RFaoHi3PswkuAR5XcMgBNRDynsg&amp;s', pinned: true},
+    'web': {title: 'Cine-Web', path: 'script/Apps/Web/index.html', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSeD89ZcX5W1FBtal7RerasT27q-OmZqnBixQ&amp;s', pinned: true},
     'settings': {title: 'CONFIG', internal: true, icon: 'https://cdn.iconscout.com/icon/free/png-256/free-apple-settings-icon-svg-download-png-493162.png', pinned: true},
     'discord': {title: 'Discord', path: 'https://discord.com/app', icon: 'https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png', pinned: false}
 };
@@ -75,9 +75,9 @@ function applyCloak() {
     var key = sysConfig.cloak || 'none';
     var selected = cloaks[key];
     var icons = document.querySelectorAll("link[rel*='icon']");
-    for (var i = 0; i < icons.length; i++) icons[i].remove();
+    for (var i = 0; i &lt; icons.length; i++) icons[i].remove();
     
-    if (selected && key !== 'none') {
+    if (selected &amp;&amp; key !== 'none') {
         document.title = selected.title;
         var newLink = document.createElement('link');
         newLink.type = 'image/x-icon';
@@ -107,7 +107,7 @@ if (isMobile) {
     mobWarn.addEventListener('touchstart', function(e) {
         var currentTime = new Date().getTime();
         var tapLength = currentTime - lastTap;
-        if (tapLength < 500 && tapLength > 0) {
+        if (tapLength &lt; 500 &amp;&amp; tapLength &gt; 0) {
             mobWarn.classList.remove('show-warning');
         }
         lastTap = currentTime;
@@ -125,7 +125,7 @@ async function loadDynamicResources() {
             var text = await resp.text();
             var matches = text.match(/href="([^"]+\.mp4)"/g);
             if (matches) {
-                for (var i = 0; i < matches.length; i++) {
+                for (var i = 0; i &lt; matches.length; i++) {
                     var filename = matches[i].replace('href="', '').replace('"', '');
                     if (filename.startsWith('#')) {
                         var cleanName = filename.replace('#', '').replace('.mp4', '');
@@ -159,7 +159,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function renderUI() {
     var dock = document.getElementById('dock-container');
-    var dockHTML = '<div class="dock-item" onclick="toggleStartMenu()"><img src="https://missionsupport.archden.org/wp-content/uploads/2022/02/windows11-icon.png"></div><div class="dock-sep"></div><div class="dock-item" onclick="toggleAppDrawer()"><svg width="24" height="24" viewBox="0 0 24 24" fill="#aaa"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg></div><div class="dock-sep"></div>';
+    var dockHTML = '<div class="dock-item" onclick="toggleStartMenu()"><img src="https://missionsupport.archden.org/wp-content/uploads/2022/02/windows11-icon.png"></div><div class="dock-sep"></div><div class="dock-item" onclick="toggleAppDrawer()"><svg width="24" height="24" viewBox="0 0 24 24" fill="#aaa"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"></path></svg></div><div class="dock-sep"></div>';
     
     var pinnedGrid = document.getElementById('pinned-grid');
     var pinnedHTML = '';
@@ -176,14 +176,14 @@ function renderUI() {
     populateDrawer();
 }
 
-// System Panic Key & Boot Control
+// System Panic Key &amp; Boot Control
 document.addEventListener('keydown', function(e) {
-    if (bootActive && e.key === 'Enter' && document.getElementById('boot-layer').style.display !== 'none') {
+    if (bootActive &amp;&amp; e.key === 'Enter' &amp;&amp; document.getElementById('boot-layer').style.display !== 'none') {
         enterCount++;
-        if (enterCount >= 2) skipBootSequence();
+        if (enterCount &gt;= 2) skipBootSequence();
         setTimeout(function() { enterCount = 0; }, 500);
     }
-    if (e.key && sysConfig.panicKey && e.key.toLowerCase() === sysConfig.panicKey.toLowerCase()) {
+    if (e.key &amp;&amp; sysConfig.panicKey &amp;&amp; e.key.toLowerCase() === sysConfig.panicKey.toLowerCase()) {
         window.location.href = "https://google.com";
     }
 });
@@ -268,20 +268,33 @@ window.unlockSystem = function() {
     }, 600);
     resetIdle();
 };
+function applyMediaToElement(mediaUrl, vidEl, imgEl) {
+    var isImage = mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i);
+    if(isImage) {
+        vidEl.style.display = 'none';
+        vidEl.pause();
+        imgEl.style.display = 'block';
+        imgEl.src = mediaUrl;
+    } else {
+        imgEl.style.display = 'none';
+        vidEl.style.display = 'block';
+        vidEl.src = mediaUrl;
+        vidEl.load();
+    }
+}
 
 function initWallpapers() {
     var bgV = document.getElementById('bg-video');
+    var bgI = document.getElementById('bg-image');
     var lV = document.getElementById('lock-video');
+    var lI = document.getElementById('lock-image');
     if (wallpaperRegistry[sysConfig.homeWallpaper]) {
-        bgV.src = wallpaperRegistry[sysConfig.homeWallpaper].url;
-        bgV.load();
+        applyMediaToElement(wallpaperRegistry[sysConfig.homeWallpaper].url, bgV, bgI);
     }
     if (wallpaperRegistry[sysConfig.lockWallpaper]) {
-        lV.src = wallpaperRegistry[sysConfig.lockWallpaper].url;
-        lV.load();
+        applyMediaToElement(wallpaperRegistry[sysConfig.lockWallpaper].url, lV, lI);
     } else {
-        lV.src = "Videos/green.mp4";
-        lV.load();
+        applyMediaToElement("Videos/green.mp4", lV, lI);
     }
     updateWallpaperLoop();
     var wpLoopCheck = document.getElementById('wp-loop-chk');
@@ -293,7 +306,7 @@ function updateWallpaperLoop() {
     var lV = document.getElementById('lock-video');
     if (bgV) bgV.loop = sysConfig.wpLoop;
     if (lV) lV.loop = sysConfig.wpLoop;
-    if (!sysConfig.optBg && isDesktopActive && bgV && bgV.paused) {
+    if (!sysConfig.optBg &amp;&amp; isDesktopActive &amp;&amp; bgV &amp;&amp; bgV.paused) {
         bgV.play().catch(function(e){});
     }
 }
@@ -305,24 +318,28 @@ function updateClock() {
     
     var hrs = n.getHours();
     var greet = 'GOOD EVENING';
-    if (hrs < 12) greet = 'GOOD MORNING';
-    else if (hrs < 18) greet = 'GOOD AFTERNOON';
+    if (hrs &lt; 12) greet = 'GOOD MORNING';
+    else if (hrs &lt; 18) greet = 'GOOD AFTERNOON';
     
     var h12 = hrs % 12 || 12;
-    var ampm = hrs >= 12 ? 'PM' : 'AM';
+    var ampm = hrs &gt;= 12 ? 'PM' : 'AM';
     var min = n.getMinutes().toString().padStart(2, '0');
     var dayNum = n.getDate().toString().padStart(2, '0');
     
-    var elGreet = document.getElementById('lock-greet');
+var elGreet = document.getElementById('lock-greet');
     var elTime = document.getElementById('lock-time');
     var elDate = document.getElementById('lock-date');
-    var elDayL = document.getElementById('lock-day-large');
+    var elDayImg = document.getElementById('lock-day-img');
     var elHud = document.getElementById('lbl-day');
     
     if (elGreet) elGreet.innerText = greet;
     if (elTime) elTime.innerText = h12 + ':' + min + ' ' + ampm;
     if (elDate) elDate.innerText = dayNum + ' ' + mArray[n.getMonth()];
-    if (elDayL) elDayL.innerText = dArray[n.getDay()];
+    if (elDayImg) {
+        var dayName = dArray[n.getDay()];
+        var formattedDay = dayName.charAt(0).toUpperCase() + dayName.slice(1).toLowerCase();
+        elDayImg.src = "Videos/" + formattedDay + ".png";
+    }
     if (elHud) elHud.innerText = dArray[n.getDay()];
 }
 setInterval(updateClock, 1000);
@@ -338,7 +355,7 @@ setInterval(function() {
     idleTime++;
     var screen = document.getElementById('lock-screen');
     // Lock triggers if idleLock is turned on AND not currently active
-    if (sysConfig.idleLock && idleTime >= 180 && !screen.classList.contains('active') && !bootActive) {
+    if (sysConfig.idleLock &amp;&amp; idleTime &gt;= 180 &amp;&amp; !screen.classList.contains('active') &amp;&amp; !bootActive) {
         if (isMediaPlaying) {
             idleTime = 0; 
         } else {
@@ -377,7 +394,7 @@ function populateDrawer() {
 function filterDrawer(val) {
     var items = document.querySelectorAll('.drawer-item');
     var query = val.toLowerCase();
-    for (var i = 0; i < items.length; i++) {
+    for (var i = 0; i &lt; items.length; i++) {
         var text = items[i].innerText.toLowerCase();
         if (text.includes(query)) items[i].style.display = 'flex';
         else items[i].style.display = 'none';
@@ -446,15 +463,15 @@ function openWindow(id) {
         layer.appendChild(win);
         
         // Handle Internal Apps (Like Settings) natively so it doesn't break
-        if (appData.internal && id === 'settings') {
+        if (appData.internal &amp;&amp; id === 'settings') {
             var frameEl = document.getElementById('frame-' + id);
             if (frameEl) {
                 // Manually generating settings UI for maximum reliability
                 var configHTML = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+                
+                
+                
+                    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&amp;family=Rajdhani:wght@400;600;700&amp;display=swap" rel="stylesheet">
                     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
                     <style>
                         body { background: #000; color: #fff; font-family: 'Rajdhani', sans-serif; padding: 25px; margin: 0; outline: none; }
@@ -473,8 +490,8 @@ function openWindow(id) {
                         input[type="text"], select { background: #222; color: #fff; border: 1px solid #444; padding: 6px; border-radius: 6px; }
                         input:focus, select:focus { border-color: #888; }
                     </style>
-                </head>
-                <body>
+                
+                
                     <h2>SYSTEM CONFIGURATION</h2>
                     
                     <div class="setting-card">
@@ -518,8 +535,8 @@ function openWindow(id) {
                         document.getElementById('cloak-select').value = prefs.cloak;
                         document.getElementById('panic-input').value = prefs.panicKey;
                     </script>
-                </body>
-                </html>
+                
+                
                 `;
                 frameEl.srcdoc = configHTML;
             }
@@ -578,7 +595,7 @@ document.getElementById('bottom-trigger').addEventListener('mouseenter', functio
 });
 dockEl.addEventListener('mouseleave', function() {
     var activeWins = document.querySelectorAll('.window.active:not(.minimized)');
-    if (activeWins.length > 0) {
+    if (activeWins.length &gt; 0) {
         dockTimer = setTimeout(function() { dockEl.classList.add('dock-hidden'); }, 1000);
     }
 });
@@ -587,7 +604,7 @@ dockEl.addEventListener('mouseenter', function() { clearTimeout(dockTimer); });
 document.getElementById('top-trigger').addEventListener('mouseenter', function() {
     if (activeWindowId) {
         var win = document.getElementById('win-' + activeWindowId);
-        if (win && !win.classList.contains('minimized')) win.classList.add('header-visible');
+        if (win &amp;&amp; !win.classList.contains('minimized')) win.classList.add('header-visible');
     }
 });
 
@@ -597,13 +614,13 @@ document.addEventListener('mouseover', function(e) {
             var w = document.getElementById('win-' + activeWindowId);
             if (w) w.classList.add('header-visible');
         }
-    } else if (activeWindowId && !e.target.closest('#top-trigger')) {
+    } else if (activeWindowId &amp;&amp; !e.target.closest('#top-trigger')) {
         var win = document.getElementById('win-' + activeWindowId);
         if (win) win.classList.remove('header-visible');
     }
 });
 
-// DESKTOP LAYOUT SYSTEM & FOLDERS
+// DESKTOP LAYOUT SYSTEM &amp; FOLDERS
 var desktopLayout = JSON.parse(localStorage.getItem('cine_desktop_v2')) || [];
 
 function saveDesktop() {
@@ -614,7 +631,7 @@ function saveDesktop() {
 function loadDesktop() {
     var container = document.getElementById('desktop-area');
     var existing = document.querySelectorAll('.desktop-app');
-    for (var j = 0; j < existing.length; j++) existing[j].remove();
+    for (var j = 0; j &lt; existing.length; j++) existing[j].remove();
     
     desktopLayout.forEach(function(item, idx) {
         var appEl = document.createElement('div');
@@ -623,22 +640,22 @@ function loadDesktop() {
         appEl.style.top = item.y + 'px';
         appEl.setAttribute('data-idx', idx);
         
-        if (item.type === 'folder') {
+ if (item.type === 'folder') {
             var gridHtml = '<div class="d-folder-grid">';
             var maxItems = item.apps.slice(0, 4);
             maxItems.forEach(function(a) {
                 if (APPS[a]) gridHtml += '<img src="' + APPS[a].icon + '">';
             });
             gridHtml += '</div>';
-            
             if (!item.hideName) {
                 gridHtml += '<div class="d-label">' + (item.customName || 'Folder') + '</div>';
             }
             appEl.innerHTML = gridHtml;
-            
+            appEl.onmousedown = function(ev) { ev.stopPropagation(); };
             appEl.onclick = function(ev) {
-                if (DragSystem.isDragMove) return;
+                ev.preventDefault();
                 ev.stopPropagation();
+                if (DragSystem.isDragMove) return;
                 if (!this.classList.contains('expanded-folder')) {
                     closeAllFolders();
                     expandFolder(this, item, idx);
@@ -680,14 +697,12 @@ function loadDesktop() {
     });
 }
 
-// Folder Logic (Expanding & Pushing)
+// Folder Logic (Expanding &amp; Pushing)
 function expandFolder(folderEl, folderData, idx) {
     folderEl.classList.add('expanded-folder');
-    
-    // Draw internal layout
-    var html = '<div class="folder-header">' + (folderData.customName || 'Folder') + ' <i class="fas fa-times" onclick="closeAllFolders(event)"></i></div>';
+    var html = '<div class="folder-header">' + (folderData.customName || 'Folder') + ' <i class="fas fa-times" id="close-folder-btn"></i></div>';
     html += '<div class="folder-grid-expanded">';
-    for (var k = 0; k < folderData.apps.length; k++) {
+    for (var k = 0; k &lt; folderData.apps.length; k++) {
         var aId = folderData.apps[k];
         var info = APPS[aId];
         if (info) {
@@ -697,16 +712,21 @@ function expandFolder(folderEl, folderData, idx) {
     html += '</div>';
     folderEl.innerHTML = html;
     
+    document.getElementById('close-folder-btn').onclick = function(e) {
+        e.stopPropagation();
+        closeAllFolders();
+    };
+    
     // Prevent overlapping by pushing adjacent apps downward
     setTimeout(function() {
         var rect = folderEl.getBoundingClientRect();
         var siblings = document.querySelectorAll('.desktop-app:not(.expanded-folder)');
-        for (var s = 0; s < siblings.length; s++) {
+        for (var s = 0; s &lt; siblings.length; s++) {
             var sib = siblings[s];
             var sRect = sib.getBoundingClientRect();
             
             // Check intersection (overlap)
-            if (!(rect.right < sRect.left || rect.left > sRect.right || rect.bottom < sRect.top || rect.top > sRect.bottom)) {
+            if (!(rect.right &lt; sRect.left || rect.left &gt; sRect.right || rect.bottom &lt; sRect.top || rect.top &gt; sRect.bottom)) {
                 var pushAmount = (rect.bottom - sRect.top) + 20;
                 sib.style.transform = 'translateY(' + pushAmount + 'px)';
                 sib.setAttribute('data-pushed', 'true');
@@ -718,13 +738,13 @@ function expandFolder(folderEl, folderData, idx) {
 function closeAllFolders(ev) {
     if (ev) ev.stopPropagation();
     var open = document.querySelectorAll('.expanded-folder');
-    for (var i = 0; i < open.length; i++) {
+    for (var i = 0; i &lt; open.length; i++) {
         var f = open[i];
         f.classList.remove('expanded-folder');
     }
     
     var pushed = document.querySelectorAll('.desktop-app[data-pushed="true"]');
-    for (var j = 0; j < pushed.length; j++) {
+    for (var j = 0; j &lt; pushed.length; j++) {
         pushed[j].style.transform = '';
         pushed[j].removeAttribute('data-pushed');
     }
@@ -734,7 +754,7 @@ function closeAllFolders(ev) {
 }
 
 document.addEventListener('click', function(e) {
-    if (!e.target.closest('.expanded-folder') && !e.target.closest('.desktop-app')) {
+    if (!e.target.closest('.expanded-folder') &amp;&amp; !e.target.closest('.desktop-app')) {
         closeAllFolders();
     }
 });
@@ -804,8 +824,8 @@ document.addEventListener('contextmenu', function(e) {
         
         mainCtx.style.display = 'block';
         var x = e.pageX, y = e.pageY;
-        if (x + 200 > window.innerWidth) x = window.innerWidth - 200;
-        if (y + 100 > window.innerHeight) y = window.innerHeight - 100;
+        if (x + 200 &gt; window.innerWidth) x = window.innerWidth - 200;
+        if (y + 100 &gt; window.innerHeight) y = window.innerHeight - 100;
         
         mainCtx.style.left = x + 'px';
         mainCtx.style.top = y + 'px';
@@ -814,7 +834,7 @@ document.addEventListener('contextmenu', function(e) {
 
 document.addEventListener('click', function(e) {
     var c = document.getElementById('desktop-context-menu');
-    if (c && !c.contains(e.target)) c.style.display = 'none';
+    if (c &amp;&amp; !c.contains(e.target)) c.style.display = 'none';
 });
 
 // DRAG AND DROP ENGINE
@@ -830,8 +850,8 @@ var DragSystem = {
     badge: document.getElementById('folder-badge'),
     
     init: function() {
-        window.addEventListener('mousemove', (e) => this.move(e));
-        window.addEventListener('mouseup', (e) => this.end(e));
+        window.addEventListener('mousemove', (e) =&gt; this.move(e));
+        window.addEventListener('mouseup', (e) =&gt; this.end(e));
     },
     
     start: function(e, el, type, identifier) {
@@ -860,7 +880,7 @@ var DragSystem = {
         var dx = Math.abs(e.clientX - this.startPos.x);
         var dy = Math.abs(e.clientY - this.startPos.y);
         
-        if (dx > 3 || dy > 3) {
+        if (dx &gt; 3 || dy &gt; 3) {
             this.dragging = true;
             this.isDragMove = true;
             
@@ -888,7 +908,7 @@ var DragSystem = {
     
     end: function(e) {
         if (!this.sourceEl) return;
-        if (!this.isDragMove && this.sourceType === 'desktop') {
+        if (!this.isDragMove &amp;&amp; this.sourceType === 'desktop') {
             // Re-routed normal clicks to prevent conflict with dragging
             this.reset();
             return;
@@ -903,22 +923,22 @@ var DragSystem = {
             var ny = Math.round((e.clientY - 40) / 100) * 100;
             
             // Delete if dropped near bottom
-            if (e.clientY > window.innerHeight - 80) {
+            if (e.clientY &gt; window.innerHeight - 80) {
                 if (this.sourceType === 'desktop') desktopLayout.splice(this.idx, 1);
             } else {
                 var targetIdx = -1;
                 var allApps = document.querySelectorAll('.desktop-app');
                 
-                for (var i = 0; i < allApps.length; i++) {
+                for (var i = 0; i &lt; allApps.length; i++) {
                     if (allApps[i] !== this.sourceEl) {
                         var r = allApps[i].getBoundingClientRect();
-                        if (e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom) {
+                        if (e.clientX &gt; r.left &amp;&amp; e.clientX &lt; r.right &amp;&amp; e.clientY &gt; r.top &amp;&amp; e.clientY &lt; r.bottom) {
                             targetIdx = allApps[i].dataset.idx;
                         }
                     }
                 }
                 
-                if (targetIdx > -1) {
+                if (targetIdx &gt; -1) {
                     var targetObj = desktopLayout[targetIdx];
                     var droppedApps = [];
                     if (this.sourceType === 'drawer' || this.sourceType === 'dock') droppedApps = [this.appId];
@@ -970,29 +990,27 @@ window.wpMode = 'both';
 function setWallpaper(k, notify = false) {
     var data = wallpaperRegistry[k];
     if (!data) return;
-    
-    if (notify && data.locked && !unlockedWallpapers.includes(data.id)) {
+    if (notify &amp;&amp; data.locked &amp;&amp; !unlockedWallpapers.includes(data.id)) {
         unlockedWallpapers.push(data.id);
         localStorage.setItem('cine_unlocked_wp', JSON.stringify(unlockedWallpapers));
         alert("Wallpaper: [ " + data.name + " ] Unlocked.");
     }
-    
     if (window.wpMode === 'home' || window.wpMode === 'both') {
-        var v = document.getElementById('bg-video');
-        v.src = data.url;
-        v.load();
-        if (!document.getElementById('lock-screen').classList.contains('active')) v.play();
+        applyMediaToElement(data.url, document.getElementById('bg-video'), document.getElementById('bg-image'));
+        if (!document.getElementById('lock-screen').classList.contains('active')) {
+            var v = document.getElementById('bg-video');
+            if(v.style.display !== 'none') v.play();
+        }
         updateSysSetting('homeWallpaper', k);
     }
-    
     if (window.wpMode === 'lock' || window.wpMode === 'both') {
-        var l = document.getElementById('lock-video');
-        l.src = data.url;
-        l.load();
-        if (document.getElementById('lock-screen').classList.contains('active')) l.play();
+        applyMediaToElement(data.url, document.getElementById('lock-video'), document.getElementById('lock-image'));
+        if (document.getElementById('lock-screen').classList.contains('active')) {
+            var l = document.getElementById('lock-video');
+            if(l.style.display !== 'none') l.play();
+        }
         updateSysSetting('lockWallpaper', k);
     }
-    
     updateWallpaperLoop();
     openWallpaperMenu();
 }
@@ -1012,12 +1030,12 @@ function openWallpaperMenu() {
         card.className = "wp-card " + (isUnlocked ? "" : "wp-locked");
         
         if (isUnlocked) {
-            card.innerHTML = '<video src="' + d.url + '" preload="auto" playsinline muted loop onmouseover="this.play()" onmouseout="this.pause()"></video><div class="wp-info">' + d.name + '</div>';
+            card.innerHTML = '<video src="' + d.url + '" preload="auto" playsinline="" muted="" loop="" onmouseover="this.play()" onmouseout="this.pause()"></video><div class="wp-info">' + d.name + '</div>';
             card.setAttribute('data-key', key);
             card.onclick = function() {
                 setWallpaper(this.getAttribute('data-key'));
                 var cards = document.querySelectorAll('.wp-card');
-                for (var j = 0; j < cards.length; j++) cards[j].classList.remove('active-wp');
+                for (var j = 0; j &lt; cards.length; j++) cards[j].classList.remove('active-wp');
                 this.classList.add('active-wp');
             };
             gUn.appendChild(card);
@@ -1062,7 +1080,7 @@ function toggleStartMenu() {
 }
 document.addEventListener('click', function(e) {
     var sm = document.getElementById('start-menu');
-    if (sm && !sm.contains(e.target) && !e.target.closest('.dock-item')) {
+    if (sm &amp;&amp; !sm.contains(e.target) &amp;&amp; !e.target.closest('.dock-item')) {
         sm.classList.remove('open');
         setTimeout(function() { sm.style.display = 'none'; }, 300);
     }
@@ -1076,20 +1094,20 @@ if (cvsSnow) {
     cvsSnow.width = sW; cvsSnow.height = sH;
     
     var flakes = [];
-    for (var f = 0; f < 30; f++) {
+    for (var f = 0; f &lt; 30; f++) {
         flakes.push({x: Math.random() * sW, y: Math.random() * sH, r: Math.random() * 2, s: Math.random() + 0.5});
     }
     function drawSnow() {
         if (isDesktopActive) {
             ctxSnow.clearRect(0, 0, sW, sH);
             ctxSnow.fillStyle = "rgba(255,255,255,0.3)";
-            for (var i = 0; i < flakes.length; i++) {
+            for (var i = 0; i &lt; flakes.length; i++) {
                 var fl = flakes[i];
                 ctxSnow.beginPath();
                 ctxSnow.arc(fl.x, fl.y, fl.r, 0, Math.PI * 2);
                 ctxSnow.fill();
                 fl.y += fl.s;
-                if (fl.y > sH) fl.y = 0;
+                if (fl.y &gt; sH) fl.y = 0;
             }
         }
         requestAnimationFrame(drawSnow);
@@ -1136,8 +1154,8 @@ window.autoGrow = function(element) {
 };
 
 window.addEventListener('keydown', function(e) {
-    if (e.altKey && (e.code === 'KeyS' || e.key.toLowerCase() === 's')) {
-        if (!holdTimer && !isCiriActive) {
+    if (e.altKey &amp;&amp; (e.code === 'KeyS' || e.key.toLowerCase() === 's')) {
+        if (!holdTimer &amp;&amp; !isCiriActive) {
             holdTimer = setTimeout(function() {
                 uiBody.classList.add('ciri-active');
                 isCiriActive = true;
@@ -1167,7 +1185,7 @@ window.addEventListener('keydown', function(e) {
                 }
             }, 2000);
         }
-    } else if (e.code === 'Escape' && isCiriActive) {
+    } else if (e.code === 'Escape' &amp;&amp; isCiriActive) {
         closeCiri();
     }
 });
@@ -1205,7 +1223,7 @@ function hideNoti() {
 
 function resetNotiHideTimer() {
     clearTimeout(notiHideTimeout);
-    if (cineNoti.classList.contains('active') && !cineNoti.classList.contains('minimized')) {
+    if (cineNoti.classList.contains('active') &amp;&amp; !cineNoti.classList.contains('minimized')) {
         notiHideTimeout = setTimeout(function() {
             cineNoti.classList.add('minimized');
             setTimeout(function() { document.getElementById('restore-btn').classList.add('visible'); }, 300);
@@ -1234,21 +1252,21 @@ if (cineNoti) {
 setInterval(function() {
     var found = null;
     var allMedia = document.querySelectorAll('audio, video');
-    for (var i = 0; i < allMedia.length; i++) {
+    for (var i = 0; i &lt; allMedia.length; i++) {
         var m = allMedia[i];
-        if (!m.paused && !m.muted && m.volume > 0 && !['bg-video', 'lock-video', 'boot-video'].includes(m.id)) {
+        if (!m.paused &amp;&amp; !m.muted &amp;&amp; m.volume &gt; 0 &amp;&amp; !['bg-video', 'lock-video', 'boot-video'].includes(m.id)) {
             found = m;
         }
     }
     
     var iframes = document.querySelectorAll('iframe');
-    for (var j = 0; j < iframes.length; j++) {
+    for (var j = 0; j &lt; iframes.length; j++) {
         try {
             var idoc = iframes[j].contentDocument || iframes[j].contentWindow.document;
             if (idoc) {
                 var ifMedia = idoc.querySelectorAll('audio, video');
-                for (var k = 0; k < ifMedia.length; k++) {
-                    if (!ifMedia[k].paused && !ifMedia[k].muted && ifMedia[k].volume > 0) {
+                for (var k = 0; k &lt; ifMedia.length; k++) {
+                    if (!ifMedia[k].paused &amp;&amp; !ifMedia[k].muted &amp;&amp; ifMedia[k].volume &gt; 0) {
                         found = ifMedia[k];
                     }
                 }
@@ -1270,7 +1288,7 @@ setInterval(function() {
     
     if (activeMedia) {
         document.getElementById('current-time').textContent = formatTime(activeMedia.currentTime);
-        if (isFinite(activeMedia.duration) && activeMedia.duration > 0) {
+        if (isFinite(activeMedia.duration) &amp;&amp; activeMedia.duration &gt; 0) {
             document.getElementById('progress-fill').style.width = ((activeMedia.currentTime / activeMedia.duration) * 100) + "%";
             document.getElementById('total-time').textContent = formatTime(activeMedia.duration);
         }
@@ -1303,14 +1321,14 @@ function setupMediaListeners() {
     };
     
     document.getElementById('skip-forward').onclick = function() {
-        if (isFinite(activeMedia.duration) && activeMedia.duration > 0) {
+        if (isFinite(activeMedia.duration) &amp;&amp; activeMedia.duration &gt; 0) {
             activeMedia.currentTime = Math.min(activeMedia.duration, activeMedia.currentTime + 15);
         }
         resetNotiHideTimer();
     };
     
     document.getElementById('progress-hit-area').onclick = function(e) {
-        if (isFinite(activeMedia.duration) && activeMedia.duration > 0) {
+        if (isFinite(activeMedia.duration) &amp;&amp; activeMedia.duration &gt; 0) {
             var rect = document.getElementById('progress-hit-area').getBoundingClientRect();
             var percent = (e.clientX - rect.left) / rect.width;
             activeMedia.currentTime = percent * activeMedia.duration;
@@ -1325,7 +1343,56 @@ function formatTime(s) {
     var se = Math.floor(s % 60);
     return m + ":" + se.toString().padStart(2, '0');
 }
+setInterval(function() {
+    var sCache = localStorage.getItem('cinify_cache');
+    var sLiked = localStorage.getItem('cinify_liked');
+    var pGame = localStorage.getItem('ps_purchased');
+    
+    if(sCache &amp;&amp; sLiked) {
+        var cacheObj = JSON.parse(sCache);
+        var likedArr = JSON.parse(sLiked);
+        if(likedArr.length &gt; 0 &amp;&amp; cacheObj[likedArr[0]]) {
+            var song = cacheObj[likedArr[0]];
+            document.getElementById('sb-song-img').src = song.cover || '';
+            document.getElementById('sb-song-txt').innerText = song.title || 'Unknown';
+            window.lastCinifySong = song.id;
+        }
+    }
+    
+    if(pGame) {
+        var gameArr = JSON.parse(pGame);
+        if(gameArr.length &gt; 0) {
+            var gId = gameArr[gameArr.length - 1];
+            document.getElementById('sb-game-img').src = 'https://cdn.pixabay.com/photo/2021/01/29/18/16/ps5-5961803_1280.jpg';
+            document.getElementById('sb-game-txt').innerText = gId.replace('id_', '').replace(/_/g, ' ').toUpperCase();
+            window.lastPsGame = gId;
+        }
+    }
+}, 3000);
 
+window.sysLaunchLastGame = function() {
+    if(!window.lastPsGame) return;
+    toggleApp('files');
+    setTimeout(function() {
+        var frame = document.getElementById('frame-files');
+        if(frame &amp;&amp; frame.contentWindow) {
+            localStorage.setItem('ps_auto_launch', window.lastPsGame);
+            frame.src = frame.src; 
+        }
+    }, 1000);
+};
+
+window.sysLaunchLastSong = function() {
+    if(!window.lastCinifySong) return;
+    toggleApp('term');
+    setTimeout(function() {
+        var frame = document.getElementById('frame-term');
+        if(frame &amp;&amp; frame.contentWindow) {
+            localStorage.setItem('cinify_auto_play', window.lastCinifySong);
+            frame.src = frame.src;
+        }
+    }, 1000);
+};
 // Visualizer Effect System
 function drawFakeVisualizer() {
     requestAnimationFrame(drawFakeVisualizer);
@@ -1341,8 +1408,8 @@ function drawFakeVisualizer() {
     var barWidth = (cvs.width / buffLen) * 2;
     var xPosition = 0;
     
-    for (var i = 0; i < buffLen; i++) {
-        var barHeight = activeMedia && !activeMedia.paused ? (Math.random() * cvs.height) : 2;
+    for (var i = 0; i &lt; buffLen; i++) {
+        var barHeight = activeMedia &amp;&amp; !activeMedia.paused ? (Math.random() * cvs.height) : 2;
         ctx.fillStyle = "#fff";
         ctx.beginPath();
         ctx.roundRect(xPosition, cvs.height - barHeight, barWidth - 1.5, barHeight, 2);
