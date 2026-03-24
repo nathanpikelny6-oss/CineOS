@@ -237,7 +237,7 @@ body {
 
 #hud-top {
     position: absolute;
-    top: -1%;
+    top: -7%;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
