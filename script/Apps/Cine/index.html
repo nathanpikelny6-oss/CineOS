@@ -3,110 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamX Premium</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Cinehub | Premium Streaming</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <nav id="sidebar">
+    <div id="intro-screen">
+        <video id="intro-video" muted playsinline>
+            <source src="Netflix.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <nav class="sidebar">
+        <div class="logo"><i class="fa-solid fa-n"></i></div>
         <div class="nav-links">
-            <a href="#" class="nav-item" id="nav-search"><i class="fas fa-search"></i><span>Search</span></a>
-            <a href="#" class="nav-item active" id="nav-home"><i class="fas fa-home"></i><span>Home</span></a>
-            <a href="#" class="nav-item" id="nav-shuffle"><i class="fas fa-random"></i><span>Surprise Me</span></a>
-            <a href="#" class="nav-item" id="nav-trending"><i class="fas fa-fire"></i><span>Trending</span></a>
-            <a href="#" class="nav-item" id="nav-tv"><i class="fas fa-tv"></i><span>Series</span></a>
-            <a href="#" class="nav-item" id="nav-movies"><i class="fas fa-film"></i><span>Movies</span></a>
-            <a href="#" class="nav-item" id="nav-list"><i class="fas fa-plus"></i><span>My List</span></a>
-            <a href="#" class="nav-item" id="nav-crunchy"><i class="fas fa-star"></i><span>Crunchyroll</span></a>
+            <a href="#" class="active" title="Home"><i class="fa-solid fa-house"></i></a>
+            <a href="#" id="btn-random" title="Surprise Me"><i class="fa-solid fa-dice"></i></a>
+            <a href="#" id="btn-watch-later" title="Watch Later"><i class="fa-solid fa-clock"></i></a>
+            <a href="#" id="btn-crunchyroll" title="Anime"><i class="fa-solid fa-dragon"></i></a>
         </div>
-        <div class="nav-profile">
-            <a href="#" class="nav-item"><i class="fas fa-user-circle"></i><span>Profile</span></a>
+        <div class="nav-bottom">
+            <a href="#" id="btn-chat" title="Global Chat"><i class="fa-solid fa-comment-dots"></i></a>
         </div>
     </nav>
 
-    <div id="hero-container">
-        <video id="hero-video" autoplay loop muted playsinline src="Netflix.mp4"></video>
-        <div class="hero-vignette"></div>
-        <div class="hero-content">
-            <h1 id="hero-title">Loading...</h1>
-            <div class="hero-meta">
-                <span class="rating-badge" id="hero-rating">Top 10</span>
-                <span id="hero-desc">Discovering the best content for you...</span>
+    <main class="content">
+        <section id="hero" class="hero">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h1 id="hero-title"></h1>
+                <div class="hero-meta">
+                    <span id="hero-rating" class="rating"></span>
+                    <span id="hero-year"></span>
+                </div>
+                <p id="hero-desc"></p>
+                <div class="hero-actions">
+                    <button id="hero-play" class="btn-primary"><i class="fa-solid fa-play"></i> Play</button>
+                    <button id="hero-info" class="btn-secondary"><i class="fa-solid fa-circle-info"></i> More Info</button>
+                </div>
             </div>
-            <div class="hero-actions">
-                <button class="btn btn-primary" id="hero-play"><i class="fas fa-play"></i> Play</button>
-                <button class="btn btn-secondary" id="hero-info"><i class="fas fa-info-circle"></i> More Info</button>
-            </div>
-        </div>
-    </div>
+        </section>
 
-    <main id="main-content">
-        <div id="rows-container"></div>
+        <div class="rows-container" id="main-rows"></div>
     </main>
 
-    <div id="detail-modal" class="modal">
+    <div id="details-modal" class="modal">
         <div class="modal-content">
-            <button class="close-modal"><i class="fas fa-times"></i></button>
+            <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
             <div class="modal-hero">
-                <video autoplay loop muted playsinline src="Netflix.mp4" class="modal-bg-video"></video>
-                <div class="modal-vignette"></div>
-                <div class="modal-info-layer">
+                <div class="modal-hero-overlay"></div>
+                <iframe id="modal-trailer" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                <img id="modal-backdrop" src="" alt="">
+            </div>
+            <div class="modal-body">
+                <div class="modal-info-left">
                     <h2 id="modal-title"></h2>
-                    <div class="modal-actions-row">
-                        <button class="btn btn-primary" id="modal-play"><i class="fas fa-play"></i> Play</button>
-                        <button class="icon-btn" id="modal-add-list"><i class="fas fa-plus"></i></button>
-                        <button class="icon-btn" id="modal-like"><i class="fas fa-thumbs-up"></i></button>
-                        <button class="icon-btn" id="modal-dislike"><i class="fas fa-thumbs-down"></i></button>
-                        <span id="modal-likes-count" class="likes-counter"></span>
+                    <div class="modal-meta">
+                        <span id="modal-rating" class="rating"></span>
+                        <span id="modal-runtime"></span>
+                        <span id="modal-date"></span>
                     </div>
-                    <p id="modal-desc" class="modal-description"></p>
-                    <div class="modal-meta-cast" id="modal-cast"></div>
+                    <p id="modal-desc"></p>
+                    <div class="modal-actions-row">
+                        <button id="modal-play" class="btn-primary"><i class="fa-solid fa-play"></i> Play</button>
+                        <button id="modal-watch-later" class="btn-icon"><i class="fa-solid fa-plus"></i></button>
+                        <button id="modal-like" class="btn-icon"><i class="fa-solid fa-thumbs-up"></i></button>
+                        <span id="like-count" class="count-display">0</span>
+                        <button id="modal-dislike" class="btn-icon"><i class="fa-solid fa-thumbs-down"></i></button>
+                    </div>
+                    <div id="series-selector" class="hidden">
+                        <select id="season-select"></select>
+                        <div id="episodes-list" class="episodes-container"></div>
+                    </div>
+                </div>
+                <div class="modal-info-right">
+                    <div class="cast-section">
+                        <h3>Cast</h3>
+                        <div id="modal-cast" class="cast-list"></div>
+                    </div>
                 </div>
             </div>
-            <div class="modal-bottom-sections">
-                <div id="seasons-container" class="hidden">
-                    <select id="season-selector"></select>
-                    <div id="episodes-list"></div>
+            <div class="comments-section">
+                <h3>Discussion</h3>
+                <div class="comment-input">
+                    <input type="text" id="new-comment" placeholder="What did you think?">
+                    <button id="post-comment"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
-                <div class="recommendations-section">
-                    <h3>More Like This</h3>
-                    <div id="modal-recs" class="recs-grid"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="player-modal" class="modal">
-        <div class="player-wrapper">
-            <button class="close-player"><i class="fas fa-arrow-left"></i></button>
-            <iframe id="video-frame" allowfullscreen></iframe>
-        </div>
-    </div>
-
-    <div id="completion-prompt" class="hidden">
-        <div class="prompt-box">
-            <h3>Did you finish watching?</h3>
-            <p>We can clear this from your continue watching list.</p>
-            <div class="prompt-actions">
-                <button id="btn-keep-watching" class="btn btn-secondary">Keep Watching</button>
-                <button id="btn-mark-watched" class="btn btn-primary">Mark as Watched</button>
+                <div id="comments-list"></div>
             </div>
         </div>
     </div>
 
-    <div id="chat-widget">
+    <div id="player-overlay" class="player-overlay">
+        <button id="close-player"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <button id="mark-finished" class="btn-secondary" style="position: absolute; top: 20px; right: 20px; z-index: 9999;"><i class="fa-solid fa-check"></i> Mark Finished</button>
+        <iframe id="video-frame" src="" frameborder="0" allowfullscreen></iframe>
+    </div>
+
+    <div id="chat-panel" class="chat-panel">
         <div class="chat-header">
-            <span><i class="fas fa-comments"></i> Global Chat</span>
-            <button id="chat-toggle"><i class="fas fa-chevron-up"></i></button>
+            <h3>CINEHUB</h3>
+            <button id="close-chat"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="chat-body" id="chat-messages"></div>
+        <div id="chat-messages" class="chat-messages"></div>
         <div class="chat-input-area">
-            <input type="text" id="chat-input" placeholder="Say something...">
-            <button id="chat-send"><i class="fas fa-paper-plane"></i></button>
+            <input type="text" id="chat-input" placeholder="Type a message...">
+            <button id="send-chat"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
     </div>
-
-    <div id="toast"></div>
 
     <script src="script.js"></script>
 </body>
