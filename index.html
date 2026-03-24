@@ -1,17 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Cine-OS V2</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&amp;family=Rajdhani:wght@400;600;700&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <link rel="stylesheet" href="style.css">
-</head>
 
-<body id="desktop-area">
+
+
 
 <!-- MOBILE WARNING -->
 <div id="mobile-warning">
@@ -33,24 +30,55 @@
     <button id="boot-btn" onclick="startBootSequence()">Enter CINE</button>
     <div style="margin-top:20px; font-size:0.8rem; color:#555;">Double-Tap ENTER to skip sequence</div>
   </div>
-  <video id="boot-video" playsinline><source src="Videos/Boot.mp4" type="video/mp4"></video>
+  <video id="boot-video" playsinline=""><source src="Videos/Boot.mp4" type="video/mp4"></video>
 </div>
 
-<!-- LOCK SCREEN -->
 <div id="lock-screen" onclick="unlockSystem()">
-  <video id="lock-video" autoplay loop muted playsinline></video>
+  <video id="lock-video" autoplay="" loop="" muted="" playsinline=""></video>
+  <img id="lock-image" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1;">
   <div id="lock-ui">
-    <div class="l-greet" id="lock-greet">GOOD AFTERNOON</div>
-    <div class="l-day" id="lock-day-large">MONDAY</div>
-    <div class="l-date" id="lock-date">03 MARCH</div>
-    <div class="l-time" id="lock-time">04:48 PM</div>
+    <div id="l-line"></div>
+    <div id="l-content">
+      <div class="l-greet" id="lock-greet">GOOD AFTERNOON</div>
+      <img class="l-day-img" id="lock-day-img" src="">
+      <div class="l-date" id="lock-date">03 MARCH</div>
+      <div class="l-time" id="lock-time">04:48 PM</div>
+    </div>
   </div>
 </div>
 
-<!-- DESKTOP BACKGROUND -->
-<video id="bg-video" loop muted playsinline></video>
+<video id="bg-video" loop="" muted="" playsinline=""></video>
+<img id="bg-image" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:var(--z-bg); opacity:0.9;">
 <canvas id="snow-fx"></canvas>
 <div id="hud-top"><div class="hud-day" id="lbl-day">SUNDAY</div></div>
+
+<div id="right-sidebar">
+  <div class="sb-widget" onclick="sysLaunchLastGame()">
+    <div class="sb-title">Jump Back In!</div>
+    <div class="sb-card"><img id="sb-game-img" src=""><span id="sb-game-txt">No Game Found</span></div>
+  </div>
+  <div class="sb-widget" onclick="sysLaunchLastSong()">
+    <div class="sb-title">Quick Play</div>
+    <div class="sb-card"><img id="sb-song-img" src=""><span id="sb-song-txt">No Song Found</span></div>
+  </div>
+  <div class="sb-widget" onclick="document.getElementById('update-modal').style.display='flex'">
+    <div class="sb-title">System Logs</div>
+    <div class="sb-box">View Update Log</div>
+  </div>
+</div>
+
+<div id="update-modal" onclick="this.style.display='none'">
+  <div class="um-content" onclick="event.stopPropagation()">
+    <h2>Update Log</h2>
+    <ul>
+      <li>Added PS5 &amp; Spotify Sidebar Integration</li>
+      <li>New Animated Lock Screen with Image Assets</li>
+      <li>Universal Wallpaper Support (PNG, JPG, MOV, MP4)</li>
+      <li>Fixed Folder Expansion System</li>
+    </ul>
+    <button onclick="document.getElementById('update-modal').style.display='none'">Close</button>
+  </div>
+</div>
 
 <!-- DRAG PROXY FOR APPS/FOLDERS -->
 <div id="drag-proxy">
@@ -71,7 +99,7 @@
   <script src="https://pl28955644.profitablecpmratenetwork.com/52/35/43/523543e38424e9455bcb8d80f5c0a767.js"></script>
   <div class="wp-controls-row">
     <div class="segmented-control">
-      <label><input type="radio" name="wpmd" value="both" checked onclick="window.wpMode='both'"><span>Both</span></label>
+      <label><input type="radio" name="wpmd" value="both" checked="" onclick="window.wpMode='both'"><span>Both</span></label>
       <label><input type="radio" name="wpmd" value="home" onclick="window.wpMode='home'"><span>Homescreen</span></label>
       <label><input type="radio" name="wpmd" value="lock" onclick="window.wpMode='lock'"><span>Lockscreen</span></label>
     </div>
@@ -104,7 +132,7 @@
   <div class="pinned-grid" id="pinned-grid"></div>
   <div class="start-footer">
     <div class="user-profile"><div class="user-avatar"><i class="fas fa-user" style="color:#aaa"></i></div><span style="font-size:12px;color:#ddd;">Administrator</span></div>
-    <i class="fas fa-power-off" style="cursor:pointer; color:#fff; font-size:18px;" onclick="location.reload()"></i>
+    <i class="fas fa-power-off" style="cursor:pointer; color:#fff; font-size:18px;" onclick="location.removedByCodePen()"></i>
   </div>
 </div>
 
@@ -126,7 +154,7 @@
     <button class="ctx-btn" onclick="toggleDesktopSize(false)" title="Default Size"><i class="fas fa-compress-arrows-alt"></i></button>
   </div>
   <div class="ctx-separator"></div>
-  <div class="ctx-item" onclick="location.reload()"><i class="fas fa-sync fa-fw"></i> Refresh System</div>
+  <div class="ctx-item" onclick="location.removedByCodePen()"><i class="fas fa-sync fa-fw"></i> Refresh System</div>
 </div>
 
 <div id="toast-container"></div>
@@ -165,12 +193,12 @@
     <div id="action-orb" onclick="handleSend()"></div>
   </div>
 </div>
-<video id="screen-video" autoplay playsinline style="display:none;"></video>
+<video id="screen-video" autoplay="" playsinline="" style="display:none;"></video>
 <canvas id="screen-canvas" style="display:none;"></canvas>
 
 <!-- CINE-NOTI AUDIO WIDGET -->
 <button id="restore-btn" title="Restore Player">
-  <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+  <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"></path></svg>
 </button>
 <div id="cine-noti">
   <div class="window-actions">
@@ -182,7 +210,7 @@
     </button>
   </div>
   <div class="player-main">
-    <img class="album-art" id="noti-album-art" src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=200&auto=format&fit=crop" alt="Album Art">
+    <img class="album-art" id="noti-album-art" src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&amp;w=200&amp;auto=format&amp;fit=crop" alt="Album Art">
     <div class="track-info">
       <div class="title" id="noti-title">System Audio</div>
       <div class="artist" id="noti-artist">Now Playing</div>
@@ -200,14 +228,14 @@
   </div>
   <div class="controls">
     <button class="ctrl-btn" id="skip-back" title="Back 15s">
-      <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.85 8 12.5 8z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.85 8 12.5 8z"></path></svg>
     </button>
     <button class="ctrl-btn play-pause-btn" id="play-pause">
-      <svg id="icon-play" viewBox="0 0 24 24" style="width:16px; height:16px; margin-left:2px; display:none;"><path d="M8 5v14l11-7z"/></svg>
-      <svg id="icon-pause" viewBox="0 0 24 24" style="width:16px; height:16px;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      <svg id="icon-play" viewBox="0 0 24 24" style="width:16px; height:16px; margin-left:2px; display:none;"><path d="M8 5v14l11-7z"></path></svg>
+      <svg id="icon-pause" viewBox="0 0 24 24" style="width:16px; height:16px;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>
     </button>
     <button class="ctrl-btn" id="skip-forward" title="Skip 15s">
-      <svg viewBox="0 0 24 24"><path d="M11.5 8c-4.35 0-7.98 2.9-9.98 7.22l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6c-1.84-1.61-4.24-2.6-6.9-2.6z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M11.5 8c-4.35 0-7.98 2.9-9.98 7.22l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6c-1.84-1.61-4.24-2.6-6.9-2.6z"></path></svg>
     </button>
   </div>
 </div>
@@ -248,7 +276,7 @@
     <label class="switch"><input type="checkbox" id="chk-boot" onchange="window.parent.updateSysSetting('shortBoot',this.checked)"><span class="slider"></span></label>
   </div>
 
-  <div class="cat" style="color:#fff; margin-top:20px;"><i class="fas fa-user-secret"></i> CLOAKING & STEALTH</div>
+  <div class="cat" style="color:#fff; margin-top:20px;"><i class="fas fa-user-secret"></i> CLOAKING &amp; STEALTH</div>
   <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
     <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
       <i class="fas fa-mask setting-icon" style="color:#888; font-size:1.5rem;"></i>
@@ -261,7 +289,7 @@
     </select>
   </div>
 
-  <div class="cat" style="color:#fff; margin-top:20px;"><i class="fas fa-keyboard"></i> SHORTCUTS & LINKS</div>
+  <div class="cat" style="color:#fff; margin-top:20px;"><i class="fas fa-keyboard"></i> SHORTCUTS &amp; LINKS</div>
   <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
     <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
       <i class="fas fa-exclamation-triangle setting-icon" style="color:#fff; font-size:1.5rem;"></i>
@@ -278,11 +306,9 @@
   <div class="setting-card" style="cursor:pointer; background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px;" onclick="toggleFaq()">
     <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
       <i class="fas fa-question-circle setting-icon" style="color:#fff; font-size:1.5rem;"></i>
-      <div class="setting-text"><span style="color:#fff; font-weight:bold;">System FAQ</span><small style="display:block; color:#888;">Troubleshooting & Help</small></div>
+      <div class="setting-text"><span style="color:#fff; font-weight:bold;">System FAQ</span><small style="display:block; color:#888;">Troubleshooting &amp; Help</small></div>
     </div>
   </div>
 </template>
 
 <script src="script.js"></script>
-</body>
-</html>
