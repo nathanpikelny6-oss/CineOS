@@ -246,7 +246,7 @@ body {
     text-shadow: 0 10px 40px rgba(0,0,0,0.8);
 }
 
-.hud-day-img { max-height: 200px; object-fit: contain; opacity: 0.8; }
+.hud-day-img { max-height: 500px; object-fit: contain; opacity: 0.8; }
 
 #right-sidebar {
     position: fixed;
