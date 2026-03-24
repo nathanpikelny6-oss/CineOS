@@ -231,7 +231,7 @@ body {
 }
 
 .l-greet { font-family: 'Rajdhani', sans-serif; font-size: 1.4rem; letter-spacing: 6px; font-weight: 700; color: #ccc; }
-.l-day-img { max-height: 90px; margin: 15px 0; object-fit: contain; }
+.l-day-img { max-height: 200px; margin: 15px 0; object-fit: contain; }
 .l-date { font-family: 'Rajdhani', sans-serif; font-size: 1.6rem; letter-spacing: 3px; margin-bottom: 8px; text-transform: uppercase; color: #aaa; }
 .l-time { font-family: 'Rajdhani', sans-serif; font-size: 1.4rem; letter-spacing: 2px; color: #888; }
 
@@ -246,7 +246,7 @@ body {
     text-shadow: 0 10px 40px rgba(0,0,0,0.8);
 }
 
-.hud-day-img { max-height: 80px; object-fit: contain; opacity: 0.8; }
+.hud-day-img { max-height: 200px; object-fit: contain; opacity: 0.8; }
 
 #right-sidebar {
     position: fixed;
