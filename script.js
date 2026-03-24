@@ -1,44 +1,24 @@
-/* 
- * ========================================================
- * CINE-OS V2 CORE SCRIPT
- * Written manually to handle Desktop, Applications, Settings
- * and Background System Mechanics.
- * ========================================================
- */
-
-
-// Legacy and decoy environment arrays to obscure structure
 var _SYSTEM_PATHS = ["C:/Windows/System32/kernel32.dll", "/var/www/html/cine-os/", "https://cine-os.local/api/v1/auth"];
-var _devBuildVer = "2.5.1";
+var _devBuildVer = "3.0.0";
 
-// App definitions
 var APPS = {
     'cine': {title: 'CINE // HUB', path: 'script/Apps/Cine/index.html', icon: 'https://cdn.worldvectorlogo.com/logos/netflix-logo-icon.svg', pinned: true},
     'term': {title: 'Spotify', path: 'script/Apps/Spotify/index.html', icon: 'https://cdn.pixabay.com/photo/2016/10/22/00/15/spotify-1759471_1280.jpg', pinned: true},
-    'files': {title: 'PS5 Emu', path: 'script/Apps/Ps5/index.html', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-OeL_be7RFaoHi3PswkuAR5XcMgBNRDynsg&amp;s', pinned: true},
-    'web': {title: 'Cine-Web', path: 'script/Apps/Web/index.html', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSeD89ZcX5W1FBtal7RerasT27q-OmZqnBixQ&amp;s', pinned: true},
+    'files': {title: 'PS5 Emu', path: 'script/Apps/Ps5/index.html', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-OeL_be7RFaoHi3PswkuAR5XcMgBNRDynsg&s', pinned: true},
+    'web': {title: 'Cine-Web', path: 'script/Apps/Web/index.html', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSeD89ZcX5W1FBtal7RerasT27q-OmZqnBixQ&s', pinned: true},
     'settings': {title: 'CONFIG', internal: true, icon: 'https://cdn.iconscout.com/icon/free/png-256/free-apple-settings-icon-svg-download-png-493162.png', pinned: true},
     'discord': {title: 'Discord', path: 'https://discord.com/app', icon: 'https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png', pinned: false}
 };
 
-// Wallpapers
 var wallpaperRegistry = {
     "Default": {id: "Default", name: "Snake Skeleton", url: "Videos/default.mp4", locked: false},
     "green": {id: "green", name: "Green Anime", url: "Videos/green.mp4", locked: false},
+    "static_art": {id: "static_art", name: "Static Art", url: "Videos/art.png", locked: false},
+    "dynamic_mov": {id: "dynamic_mov", name: "Dynamic Flow", url: "Videos/flow.mov", locked: false},
     "#33A56": {id: "hunt_trait", name: "Hunt Showdown", url: "Videos/33A56.mp4", locked: true},
-    "#Sukuna-Fire": {id: "sukuna", name: "Fuga", url: "Videos/sukuna-fire.mp4", locked: true},
-    "#Yuji52": {id: "Yuji", name: "Yuji Modulo", url: "Videos/Yuji52.mp4", locked: true},
-    "#Supra": {id: "Supra", name: "The Supra!", url: "Videos/Supra.PNG", locked: true},
-    "#SnowFox": {id: "SnowFoxy", name: "Minecraft Snow", url: "Videos/SnowFox.mp4", locked: true},
-    "#Hunt": {id: "Hunt", name: "Hunt", url: "Videos/Hunt.mp4", locked: true},
-    "#Skello": {id: "Skello", name: "Hunt Skello", url: "Videos/Skello.MP4", locked: true},
-    "#Todo": {id: "Todo", name: "Todo", url: "Videos/Todo.mp4", locked: true},
-    "#99Med": {id: "99Med", name: "Medusa", url: "Videos/99Med.mp4", locked: true},
-    "#55Cine": {id: "Crown", name: "Crown King", url: "Videos/55Cine.PNG", locked: true},
     "_admin_bg_x": {id: "admin_only", name: "Sys Admin", url: "/assets/dev_bg_01.mp4", locked: true}
 };
 
-// Retrieve configurations from storage
 var sysConfig = JSON.parse(localStorage.getItem('cine_sys_config')) || {};
 if (sysConfig.optBg === undefined) sysConfig.optBg = false;
 if (sysConfig.shortBoot === undefined) sysConfig.shortBoot = false;
@@ -50,7 +30,6 @@ if (!sysConfig.homeWallpaper) sysConfig.homeWallpaper = 'Default';
 if (!sysConfig.lockWallpaper) sysConfig.lockWallpaper = 'green';
 if (!sysConfig.cloak) sysConfig.cloak = 'none';
 
-// System settings update router
 window.updateSysSetting = function(key, value) {
     sysConfig[key] = value;
     localStorage.setItem('cine_sys_config', JSON.stringify(sysConfig));
@@ -58,7 +37,6 @@ window.updateSysSetting = function(key, value) {
     if (key === 'wpLoop') updateWallpaperLoop();
 };
 
-// Site Cloaking
 var cloaks = {
     none: {title: "Cine-OS", icon: ""},
     google: {title: "Google", icon: "https://www.google.com/favicon.ico"},
@@ -66,18 +44,20 @@ var cloaks = {
     canvas: {title: "Dashboard", icon: "https://du11hjcvx0uqb.cloudfront.net/br/dist/images/favicon-e10d657a73.ico"},
     classroom: {title: "Classes", icon: "https://ssl.gstatic.com/classroom/favicon.png"}
 };
+
 window.updateCloak = function(key) {
     sysConfig.cloak = key;
     localStorage.setItem('cine_sys_config', JSON.stringify(sysConfig));
     applyCloak();
 };
+
 function applyCloak() {
     var key = sysConfig.cloak || 'none';
     var selected = cloaks[key];
     var icons = document.querySelectorAll("link[rel*='icon']");
-    for (var i = 0; i &lt; icons.length; i++) icons[i].remove();
+    for (var i = 0; i < icons.length; i++) icons[i].remove();
     
-    if (selected &amp;&amp; key !== 'none') {
+    if (selected && key !== 'none') {
         document.title = selected.title;
         var newLink = document.createElement('link');
         newLink.type = 'image/x-icon';
@@ -90,7 +70,6 @@ function applyCloak() {
 }
 setInterval(applyCloak, 2000);
 
-// Global UI State
 var isDesktopActive = false;
 var bootActive = true;
 var enterCount = 0;
@@ -99,7 +78,6 @@ var activeWindowId = null;
 var isMediaPlaying = false;
 var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-// Handle Mobile warnings
 if (isMobile) {
     var mobWarn = document.getElementById('mobile-warning');
     mobWarn.classList.add('show-warning');
@@ -107,7 +85,7 @@ if (isMobile) {
     mobWarn.addEventListener('touchstart', function(e) {
         var currentTime = new Date().getTime();
         var tapLength = currentTime - lastTap;
-        if (tapLength &lt; 500 &amp;&amp; tapLength &gt; 0) {
+        if (tapLength < 500 && tapLength > 0) {
             mobWarn.classList.remove('show-warning');
         }
         lastTap = currentTime;
@@ -117,31 +95,29 @@ if (isMobile) {
     });
 }
 
-// Automatically load extra video and application directories (Mock fetching)
 async function loadDynamicResources() {
     try {
         var resp = await fetch('Videos/');
         if (resp.ok) {
             var text = await resp.text();
-            var matches = text.match(/href="([^"]+\.mp4)"/g);
+            var matches = text.match(/href="([^"]+\.(mp4|mov|png|jpg|jpeg))"/gi);
             if (matches) {
-                for (var i = 0; i &lt; matches.length; i++) {
-                    var filename = matches[i].replace('href="', '').replace('"', '');
+                for (var i = 0; i < matches.length; i++) {
+                    var filename = matches[i].replace(/href="|"/g, '');
                     if (filename.startsWith('#')) {
-                        var cleanName = filename.replace('#', '').replace('.mp4', '');
+                        var cleanName = filename.replace('#', '').split('.')[0];
                         wallpaperRegistry[filename] = { id: cleanName, name: cleanName, url: "Videos/" + filename, locked: true };
                     }
                 }
             }
         }
-    } catch (e) { /* silent fail on local */ }
+    } catch (e) {}
     
     renderUI();
     initWallpapers();
     setupAppContextMenu();
 }
 
-// GoGuardian Redirect Defense
 window.onbeforeunload = function(e) {
     if (sysConfig.redirectConfirm) {
         var message = "Are you sure you want to leave? This helps block GoGuardian redirects.";
@@ -155,11 +131,12 @@ document.addEventListener("DOMContentLoaded", function() {
     loadDynamicResources();
     document.getElementById('boot-layer').style.display = 'flex';
     loadDesktop();
+    updateSidebarData();
 });
 
 function renderUI() {
     var dock = document.getElementById('dock-container');
-    var dockHTML = '<div class="dock-item" onclick="toggleStartMenu()"><img src="https://missionsupport.archden.org/wp-content/uploads/2022/02/windows11-icon.png"></div><div class="dock-sep"></div><div class="dock-item" onclick="toggleAppDrawer()"><svg width="24" height="24" viewBox="0 0 24 24" fill="#aaa"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"></path></svg></div><div class="dock-sep"></div>';
+    var dockHTML = '<div class="dock-item" onclick="toggleStartMenu()"><img src="https://missionsupport.archden.org/wp-content/uploads/2022/02/windows11-icon.png"></div><div class="dock-sep"></div><div class="dock-item" onclick="toggleAppDrawer()"><svg width="24" height="24" viewBox="0 0 24 24" fill="#aaa"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg></div><div class="dock-sep"></div>';
     
     var pinnedGrid = document.getElementById('pinned-grid');
     var pinnedHTML = '';
@@ -176,14 +153,13 @@ function renderUI() {
     populateDrawer();
 }
 
-// System Panic Key &amp; Boot Control
 document.addEventListener('keydown', function(e) {
-    if (bootActive &amp;&amp; e.key === 'Enter' &amp;&amp; document.getElementById('boot-layer').style.display !== 'none') {
+    if (bootActive && e.key === 'Enter' && document.getElementById('boot-layer').style.display !== 'none') {
         enterCount++;
-        if (enterCount &gt;= 2) skipBootSequence();
+        if (enterCount >= 2) skipBootSequence();
         setTimeout(function() { enterCount = 0; }, 500);
     }
-    if (e.key &amp;&amp; sysConfig.panicKey &amp;&amp; e.key.toLowerCase() === sysConfig.panicKey.toLowerCase()) {
+    if (e.key && sysConfig.panicKey && e.key.toLowerCase() === sysConfig.panicKey.toLowerCase()) {
         window.location.href = "https://google.com";
     }
 });
@@ -223,8 +199,11 @@ function skipBootSequence() {
     if (layer) {
         layer.style.opacity = '0';
         document.getElementById('lock-screen').classList.add('active');
+        
         var lockVid = document.getElementById('lock-video');
-        lockVid.play().catch(function(e) { console.log(e); });
+        if(lockVid.style.display !== 'none') {
+            lockVid.play().catch(function(e) {});
+        }
         
         setTimeout(function() {
             layer.style.display = 'none';
@@ -233,7 +212,6 @@ function skipBootSequence() {
     }
 }
 
-// Notification System
 function showNotification(title, msg) {
     var container = document.getElementById('toast-container');
     var toast = document.createElement('div');
@@ -258,8 +236,10 @@ window.unlockSystem = function() {
         screen.classList.remove('active');
         isDesktopActive = true;
         document.getElementById('lock-video').pause();
+        
         if (!sysConfig.optBg) {
-            document.getElementById('bg-video').play().catch(function(e) { console.log(e); });
+            var bgV = document.getElementById('bg-video');
+            if(bgV.style.display !== 'none') bgV.play().catch(function(e) {});
         }
         if (!welcomeShown) {
             showNotification("Welcome To Cine V2", "Checkout Settings for FAQ!");
@@ -268,34 +248,40 @@ window.unlockSystem = function() {
     }, 600);
     resetIdle();
 };
-function applyMediaToElement(mediaUrl, vidEl, imgEl) {
-    var isImage = mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i);
-    if(isImage) {
+
+function applyMediaToElements(url, vidEl, imgEl, isBg) {
+    if(!url) return;
+    var isImg = url.match(/\.(png|jpg|jpeg|gif)$/i);
+    if(isImg) {
         vidEl.style.display = 'none';
         vidEl.pause();
         imgEl.style.display = 'block';
-        imgEl.src = mediaUrl;
+        imgEl.src = url;
     } else {
         imgEl.style.display = 'none';
         vidEl.style.display = 'block';
-        vidEl.src = mediaUrl;
+        vidEl.src = url;
         vidEl.load();
+        if(isBg && isDesktopActive && !sysConfig.optBg) vidEl.play().catch(function(e){});
+        if(!isBg && document.getElementById('lock-screen').classList.contains('active')) vidEl.play().catch(function(e){});
     }
 }
 
 function initWallpapers() {
     var bgV = document.getElementById('bg-video');
-    var bgI = document.getElementById('bg-image');
+    var bgI = document.getElementById('bg-img');
     var lV = document.getElementById('lock-video');
-    var lI = document.getElementById('lock-image');
+    var lI = document.getElementById('lock-img');
+    
     if (wallpaperRegistry[sysConfig.homeWallpaper]) {
-        applyMediaToElement(wallpaperRegistry[sysConfig.homeWallpaper].url, bgV, bgI);
+        applyMediaToElements(wallpaperRegistry[sysConfig.homeWallpaper].url, bgV, bgI, true);
     }
     if (wallpaperRegistry[sysConfig.lockWallpaper]) {
-        applyMediaToElement(wallpaperRegistry[sysConfig.lockWallpaper].url, lV, lI);
+        applyMediaToElements(wallpaperRegistry[sysConfig.lockWallpaper].url, lV, lI, false);
     } else {
-        applyMediaToElement("Videos/green.mp4", lV, lI);
+        applyMediaToElements("Videos/green.mp4", lV, lI, false);
     }
+    
     updateWallpaperLoop();
     var wpLoopCheck = document.getElementById('wp-loop-chk');
     if (wpLoopCheck) wpLoopCheck.checked = sysConfig.wpLoop;
@@ -306,7 +292,7 @@ function updateWallpaperLoop() {
     var lV = document.getElementById('lock-video');
     if (bgV) bgV.loop = sysConfig.wpLoop;
     if (lV) lV.loop = sysConfig.wpLoop;
-    if (!sysConfig.optBg &amp;&amp; isDesktopActive &amp;&amp; bgV &amp;&amp; bgV.paused) {
+    if (!sysConfig.optBg && isDesktopActive && bgV && bgV.paused && bgV.style.display !== 'none') {
         bgV.play().catch(function(e){});
     }
 }
@@ -318,33 +304,31 @@ function updateClock() {
     
     var hrs = n.getHours();
     var greet = 'GOOD EVENING';
-    if (hrs &lt; 12) greet = 'GOOD MORNING';
-    else if (hrs &lt; 18) greet = 'GOOD AFTERNOON';
+    if (hrs < 12) greet = 'GOOD MORNING';
+    else if (hrs < 18) greet = 'GOOD AFTERNOON';
     
     var h12 = hrs % 12 || 12;
-    var ampm = hrs &gt;= 12 ? 'PM' : 'AM';
+    var ampm = hrs >= 12 ? 'PM' : 'AM';
     var min = n.getMinutes().toString().padStart(2, '0');
     var dayNum = n.getDate().toString().padStart(2, '0');
+    var dayName = dArray[n.getDay()];
     
-var elGreet = document.getElementById('lock-greet');
+    var elGreet = document.getElementById('lock-greet');
     var elTime = document.getElementById('lock-time');
     var elDate = document.getElementById('lock-date');
-    var elDayImg = document.getElementById('lock-day-img');
-    var elHud = document.getElementById('lbl-day');
+    var elDayImgLock = document.getElementById('lock-day-img');
+    var elDayImgHud = document.getElementById('lbl-day-img');
     
     if (elGreet) elGreet.innerText = greet;
     if (elTime) elTime.innerText = h12 + ':' + min + ' ' + ampm;
     if (elDate) elDate.innerText = dayNum + ' ' + mArray[n.getMonth()];
-    if (elDayImg) {
-        var dayName = dArray[n.getDay()];
-        var formattedDay = dayName.charAt(0).toUpperCase() + dayName.slice(1).toLowerCase();
-        elDayImg.src = "Videos/" + formattedDay + ".png";
-    }
-    if (elHud) elHud.innerText = dArray[n.getDay()];
+    
+    var dayImgPath = "Videos/" + dayName + ".png";
+    if (elDayImgLock) { elDayImgLock.src = dayImgPath; elDayImgLock.alt = dayName; }
+    if (elDayImgHud) { elDayImgHud.src = dayImgPath; elDayImgHud.alt = dayName; }
 }
 setInterval(updateClock, 1000);
 
-// User Inactivity Monitoring (Idle Lock)
 var idleTime = 0;
 function resetIdle() { idleTime = 0; }
 document.addEventListener('mousemove', resetIdle);
@@ -354,8 +338,7 @@ document.addEventListener('click', resetIdle);
 setInterval(function() {
     idleTime++;
     var screen = document.getElementById('lock-screen');
-    // Lock triggers if idleLock is turned on AND not currently active
-    if (sysConfig.idleLock &amp;&amp; idleTime &gt;= 180 &amp;&amp; !screen.classList.contains('active') &amp;&amp; !bootActive) {
+    if (sysConfig.idleLock && idleTime >= 180 && !screen.classList.contains('active') && !bootActive) {
         if (isMediaPlaying) {
             idleTime = 0; 
         } else {
@@ -363,12 +346,44 @@ setInterval(function() {
             screen.classList.remove('slide-up');
             screen.classList.add('active');
             document.getElementById('bg-video').pause();
-            document.getElementById('lock-video').play().catch(function(e){ console.log(e); });
+            var lV = document.getElementById('lock-video');
+            if(lV.style.display !== 'none') lV.play().catch(function(e){});
         }
     }
 }, 1000);
 
-// App Drawer Controls
+window.launchLastPlayed = function() {
+    toggleApp('files');
+};
+
+window.resumeSpotify = function() {
+    toggleApp('term');
+};
+
+window.openUpdateLog = function() {
+    document.getElementById('update-modal').style.display = 'flex';
+};
+
+function updateSidebarData() {
+    try {
+        var psData = JSON.parse(localStorage.getItem('ps_purchased'));
+        if(psData && psData.length > 0) {
+            document.getElementById('last-game-name').innerText = "PS5 Library Ready";
+        }
+        var spotData = JSON.parse(localStorage.getItem('cinify_cache'));
+        if(spotData) {
+            var keys = Object.keys(spotData);
+            if(keys.length > 0) {
+                document.getElementById('spotify-track-name').innerText = spotData[keys[keys.length-1]].title || "Liked Song";
+                if(spotData[keys[keys.length-1]].cover) {
+                    document.getElementById('spotify-album-art').src = spotData[keys[keys.length-1]].cover;
+                }
+            }
+        }
+    } catch(e) {}
+}
+setInterval(updateSidebarData, 5000);
+
 function populateDrawer() {
     var grid = document.getElementById('drawer-grid');
     grid.innerHTML = '';
@@ -379,7 +394,6 @@ function populateDrawer() {
         item.dataset.id = key;
         item.innerHTML = '<img src="' + a.icon + '" style="pointer-events:none;"><span>' + a.title + '</span>';
         
-        // Use mousedown for drag and click to open the app
         item.onmousedown = function(e) { DragSystem.start(e, this, 'drawer', this.dataset.id); };
         item.onclick = function(e) {
             if (!DragSystem.isDragMove) {
@@ -394,7 +408,7 @@ function populateDrawer() {
 function filterDrawer(val) {
     var items = document.querySelectorAll('.drawer-item');
     var query = val.toLowerCase();
-    for (var i = 0; i &lt; items.length; i++) {
+    for (var i = 0; i < items.length; i++) {
         var text = items[i].innerText.toLowerCase();
         if (text.includes(query)) items[i].style.display = 'flex';
         else items[i].style.display = 'none';
@@ -412,7 +426,6 @@ function toggleAppDrawer() {
     }
 }
 
-// Window Controller
 function toggleApp(id) {
     var win = document.getElementById('win-' + id);
     if (win) {
@@ -462,16 +475,14 @@ function openWindow(id) {
         
         layer.appendChild(win);
         
-        // Handle Internal Apps (Like Settings) natively so it doesn't break
-        if (appData.internal &amp;&amp; id === 'settings') {
+        if (appData.internal && id === 'settings') {
             var frameEl = document.getElementById('frame-' + id);
             if (frameEl) {
-                // Manually generating settings UI for maximum reliability
                 var configHTML = `
-                
-                
-                
-                    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&amp;family=Rajdhani:wght@400;600;700&amp;display=swap" rel="stylesheet">
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
                     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
                     <style>
                         body { background: #000; color: #fff; font-family: 'Rajdhani', sans-serif; padding: 25px; margin: 0; outline: none; }
@@ -490,10 +501,9 @@ function openWindow(id) {
                         input[type="text"], select { background: #222; color: #fff; border: 1px solid #444; padding: 6px; border-radius: 6px; }
                         input:focus, select:focus { border-color: #888; }
                     </style>
-                
-                
+                </head>
+                <body>
                     <h2>SYSTEM CONFIGURATION</h2>
-                    
                     <div class="setting-card">
                         <div class="setting-text"><b>Optimized Background</b><small>Disables video background</small></div>
                         <label class="switch"><input type="checkbox" id="chk-bg" onchange="window.parent.updateSysSetting('optBg',this.checked)"><span class="slider"></span></label>
@@ -510,7 +520,6 @@ function openWindow(id) {
                         <div class="setting-text"><b>Redirect Confirmation</b><small>Helps Protect Against GoGuardian tracking!</small></div>
                         <label class="switch"><input type="checkbox" id="chk-redir" onchange="window.parent.updateSysSetting('redirectConfirm',this.checked)"><span class="slider"></span></label>
                     </div>
-                    
                     <div class="setting-card">
                         <div class="setting-text"><b>Tab Cloaking</b><small>Disguises OS as another site</small></div>
                         <select id="cloak-select" onchange="window.parent.updateCloak(this.value)">
@@ -520,12 +529,10 @@ function openWindow(id) {
                             <option value="canvas">Canvas</option>
                         </select>
                     </div>
-                    
                     <div class="setting-card">
                         <div class="setting-text"><b>Panic Key</b><small>Instant site redirection shortcut</small></div>
                         <input type="text" id="panic-input" maxlength="1" style="width:40px; text-align:center; font-weight:bold; font-size:16px;" onkeyup="window.parent.updateSysSetting('panicKey',this.value)">
                     </div>
-
                     <script>
                         var prefs = window.parent.sysConfig;
                         document.getElementById('chk-bg').checked = prefs.optBg;
@@ -535,8 +542,8 @@ function openWindow(id) {
                         document.getElementById('cloak-select').value = prefs.cloak;
                         document.getElementById('panic-input').value = prefs.panicKey;
                     </script>
-                
-                
+                </body>
+                </html>
                 `;
                 frameEl.srcdoc = configHTML;
             }
@@ -586,7 +593,6 @@ function endImmersiveMode() {
     }
 }
 
-// Dock Hover Logic
 var dockTimer;
 var dockEl = document.getElementById('dock-container');
 document.getElementById('bottom-trigger').addEventListener('mouseenter', function() {
@@ -595,7 +601,7 @@ document.getElementById('bottom-trigger').addEventListener('mouseenter', functio
 });
 dockEl.addEventListener('mouseleave', function() {
     var activeWins = document.querySelectorAll('.window.active:not(.minimized)');
-    if (activeWins.length &gt; 0) {
+    if (activeWins.length > 0) {
         dockTimer = setTimeout(function() { dockEl.classList.add('dock-hidden'); }, 1000);
     }
 });
@@ -604,7 +610,7 @@ dockEl.addEventListener('mouseenter', function() { clearTimeout(dockTimer); });
 document.getElementById('top-trigger').addEventListener('mouseenter', function() {
     if (activeWindowId) {
         var win = document.getElementById('win-' + activeWindowId);
-        if (win &amp;&amp; !win.classList.contains('minimized')) win.classList.add('header-visible');
+        if (win && !win.classList.contains('minimized')) win.classList.add('header-visible');
     }
 });
 
@@ -614,13 +620,12 @@ document.addEventListener('mouseover', function(e) {
             var w = document.getElementById('win-' + activeWindowId);
             if (w) w.classList.add('header-visible');
         }
-    } else if (activeWindowId &amp;&amp; !e.target.closest('#top-trigger')) {
+    } else if (activeWindowId && !e.target.closest('#top-trigger')) {
         var win = document.getElementById('win-' + activeWindowId);
         if (win) win.classList.remove('header-visible');
     }
 });
 
-// DESKTOP LAYOUT SYSTEM &amp; FOLDERS
 var desktopLayout = JSON.parse(localStorage.getItem('cine_desktop_v2')) || [];
 
 function saveDesktop() {
@@ -631,7 +636,7 @@ function saveDesktop() {
 function loadDesktop() {
     var container = document.getElementById('desktop-area');
     var existing = document.querySelectorAll('.desktop-app');
-    for (var j = 0; j &lt; existing.length; j++) existing[j].remove();
+    for (var j = 0; j < existing.length; j++) existing[j].remove();
     
     desktopLayout.forEach(function(item, idx) {
         var appEl = document.createElement('div');
@@ -640,22 +645,22 @@ function loadDesktop() {
         appEl.style.top = item.y + 'px';
         appEl.setAttribute('data-idx', idx);
         
- if (item.type === 'folder') {
+        if (item.type === 'folder') {
             var gridHtml = '<div class="d-folder-grid">';
             var maxItems = item.apps.slice(0, 4);
             maxItems.forEach(function(a) {
                 if (APPS[a]) gridHtml += '<img src="' + APPS[a].icon + '">';
             });
             gridHtml += '</div>';
+            
             if (!item.hideName) {
                 gridHtml += '<div class="d-label">' + (item.customName || 'Folder') + '</div>';
             }
             appEl.innerHTML = gridHtml;
-            appEl.onmousedown = function(ev) { ev.stopPropagation(); };
+            
             appEl.onclick = function(ev) {
-                ev.preventDefault();
-                ev.stopPropagation();
                 if (DragSystem.isDragMove) return;
+                ev.stopPropagation();
                 if (!this.classList.contains('expanded-folder')) {
                     closeAllFolders();
                     expandFolder(this, item, idx);
@@ -670,7 +675,7 @@ function loadDesktop() {
                 if (!item.hideName) aHtml += '<div class="d-label">' + label + '</div>';
                 
                 appEl.innerHTML = aHtml;
-                appEl.ondblclick = function() { toggleApp(item.id); };
+                appEl.ondblclick = function(ev) { ev.stopPropagation(); toggleApp(item.id); };
             }
         }
         
@@ -679,7 +684,6 @@ function loadDesktop() {
             if (ev.button === 0) DragSystem.start(ev, appEl, 'desktop', idx);
         };
         
-        // Attach Context Menu manually
         appEl.oncontextmenu = function(ev) {
             ev.preventDefault();
             ev.stopPropagation();
@@ -697,36 +701,28 @@ function loadDesktop() {
     });
 }
 
-// Folder Logic (Expanding &amp; Pushing)
 function expandFolder(folderEl, folderData, idx) {
     folderEl.classList.add('expanded-folder');
-    var html = '<div class="folder-header">' + (folderData.customName || 'Folder') + ' <i class="fas fa-times" id="close-folder-btn"></i></div>';
+    
+    var html = '<div class="folder-header">' + (folderData.customName || 'Folder') + ' <i class="fas fa-times" onclick="closeAllFolders(event)"></i></div>';
     html += '<div class="folder-grid-expanded">';
-    for (var k = 0; k &lt; folderData.apps.length; k++) {
+    for (var k = 0; k < folderData.apps.length; k++) {
         var aId = folderData.apps[k];
         var info = APPS[aId];
         if (info) {
-            html += '<div class="f-app" onclick="toggleApp(\'' + aId + '\')"><img src="' + info.icon + '"><span>' + info.title + '</span></div>';
+            html += '<div class="f-app" onclick="event.stopPropagation(); toggleApp(\'' + aId + '\')"><img src="' + info.icon + '"><span>' + info.title + '</span></div>';
         }
     }
     html += '</div>';
     folderEl.innerHTML = html;
     
-    document.getElementById('close-folder-btn').onclick = function(e) {
-        e.stopPropagation();
-        closeAllFolders();
-    };
-    
-    // Prevent overlapping by pushing adjacent apps downward
     setTimeout(function() {
         var rect = folderEl.getBoundingClientRect();
         var siblings = document.querySelectorAll('.desktop-app:not(.expanded-folder)');
-        for (var s = 0; s &lt; siblings.length; s++) {
+        for (var s = 0; s < siblings.length; s++) {
             var sib = siblings[s];
             var sRect = sib.getBoundingClientRect();
-            
-            // Check intersection (overlap)
-            if (!(rect.right &lt; sRect.left || rect.left &gt; sRect.right || rect.bottom &lt; sRect.top || rect.top &gt; sRect.bottom)) {
+            if (!(rect.right < sRect.left || rect.left > sRect.right || rect.bottom < sRect.top || rect.top > sRect.bottom)) {
                 var pushAmount = (rect.bottom - sRect.top) + 20;
                 sib.style.transform = 'translateY(' + pushAmount + 'px)';
                 sib.setAttribute('data-pushed', 'true');
@@ -738,32 +734,29 @@ function expandFolder(folderEl, folderData, idx) {
 function closeAllFolders(ev) {
     if (ev) ev.stopPropagation();
     var open = document.querySelectorAll('.expanded-folder');
-    for (var i = 0; i &lt; open.length; i++) {
-        var f = open[i];
-        f.classList.remove('expanded-folder');
+    if (open.length === 0) return;
+    
+    for (var i = 0; i < open.length; i++) {
+        open[i].classList.remove('expanded-folder');
     }
     
     var pushed = document.querySelectorAll('.desktop-app[data-pushed="true"]');
-    for (var j = 0; j &lt; pushed.length; j++) {
+    for (var j = 0; j < pushed.length; j++) {
         pushed[j].style.transform = '';
         pushed[j].removeAttribute('data-pushed');
     }
-    
-    // Slight delay to allow transitions, then re-render standard desktop
     setTimeout(loadDesktop, 250);
 }
 
 document.addEventListener('click', function(e) {
-    if (!e.target.closest('.expanded-folder') &amp;&amp; !e.target.closest('.desktop-app')) {
+    if (!e.target.closest('.expanded-folder') && !e.target.closest('.desktop-app')) {
         closeAllFolders();
     }
 });
 
-// Right Click Desktop App Context Menu Injection
 function setupAppContextMenu() {
-    var menu = document.createElement('div');
-    menu.id = 'app-context-menu';
-    menu.className = 'os-context-menu';
+    var menu = document.getElementById('app-context-menu');
+    if(!menu) return;
     menu.innerHTML = `
         <div class="ctx-item" id="ctx-rename"><i class="fas fa-edit fa-fw"></i> Rename</div>
         <div class="ctx-item" id="ctx-hidename"><i class="fas fa-eye-slash fa-fw"></i> Toggle Name</div>
@@ -771,7 +764,6 @@ function setupAppContextMenu() {
         <div class="ctx-separator"></div>
         <div class="ctx-item" id="ctx-delete"><i class="fas fa-trash fa-fw" style="color:#aaa;"></i> Remove</div>
     `;
-    document.body.appendChild(menu);
     
     document.getElementById('ctx-rename').onclick = function() {
         var idx = menu.getAttribute('data-target-idx');
@@ -813,10 +805,9 @@ function setupAppContextMenu() {
     });
 }
 
-// Global OS Context Menu
 document.addEventListener('contextmenu', function(e) {
-    var allowedBgIds = ['desktop-area', 'windows-layer', 'bg-video', 'snow-fx'];
-    if (allowedBgIds.includes(e.target.id) || e.target.tagName === 'BODY') {
+    var allowedBgIds = ['desktop-area', 'windows-layer', 'bg-video', 'bg-img', 'snow-fx', 'right-sidebar'];
+    if (allowedBgIds.includes(e.target.id) || e.target.tagName === 'BODY' || e.target.closest('#right-sidebar')) {
         e.preventDefault();
         var mainCtx = document.getElementById('desktop-context-menu');
         var appCtx = document.getElementById('app-context-menu');
@@ -824,8 +815,8 @@ document.addEventListener('contextmenu', function(e) {
         
         mainCtx.style.display = 'block';
         var x = e.pageX, y = e.pageY;
-        if (x + 200 &gt; window.innerWidth) x = window.innerWidth - 200;
-        if (y + 100 &gt; window.innerHeight) y = window.innerHeight - 100;
+        if (x + 200 > window.innerWidth) x = window.innerWidth - 200;
+        if (y + 100 > window.innerHeight) y = window.innerHeight - 100;
         
         mainCtx.style.left = x + 'px';
         mainCtx.style.top = y + 'px';
@@ -834,10 +825,9 @@ document.addEventListener('contextmenu', function(e) {
 
 document.addEventListener('click', function(e) {
     var c = document.getElementById('desktop-context-menu');
-    if (c &amp;&amp; !c.contains(e.target)) c.style.display = 'none';
+    if (c && !c.contains(e.target)) c.style.display = 'none';
 });
 
-// DRAG AND DROP ENGINE
 var DragSystem = {
     dragging: false,
     startPos: {x: 0, y: 0},
@@ -850,8 +840,8 @@ var DragSystem = {
     badge: document.getElementById('folder-badge'),
     
     init: function() {
-        window.addEventListener('mousemove', (e) =&gt; this.move(e));
-        window.addEventListener('mouseup', (e) =&gt; this.end(e));
+        window.addEventListener('mousemove', (e) => this.move(e));
+        window.addEventListener('mouseup', (e) => this.end(e));
     },
     
     start: function(e, el, type, identifier) {
@@ -880,7 +870,7 @@ var DragSystem = {
         var dx = Math.abs(e.clientX - this.startPos.x);
         var dy = Math.abs(e.clientY - this.startPos.y);
         
-        if (dx &gt; 3 || dy &gt; 3) {
+        if (dx > 3 || dy > 3) {
             this.dragging = true;
             this.isDragMove = true;
             
@@ -908,8 +898,7 @@ var DragSystem = {
     
     end: function(e) {
         if (!this.sourceEl) return;
-        if (!this.isDragMove &amp;&amp; this.sourceType === 'desktop') {
-            // Re-routed normal clicks to prevent conflict with dragging
+        if (!this.isDragMove && this.sourceType === 'desktop') {
             this.reset();
             return;
         }
@@ -922,23 +911,22 @@ var DragSystem = {
             var nx = Math.round((e.clientX - 40) / 90) * 90;
             var ny = Math.round((e.clientY - 40) / 100) * 100;
             
-            // Delete if dropped near bottom
-            if (e.clientY &gt; window.innerHeight - 80) {
+            if (e.clientY > window.innerHeight - 80) {
                 if (this.sourceType === 'desktop') desktopLayout.splice(this.idx, 1);
             } else {
                 var targetIdx = -1;
                 var allApps = document.querySelectorAll('.desktop-app');
                 
-                for (var i = 0; i &lt; allApps.length; i++) {
+                for (var i = 0; i < allApps.length; i++) {
                     if (allApps[i] !== this.sourceEl) {
                         var r = allApps[i].getBoundingClientRect();
-                        if (e.clientX &gt; r.left &amp;&amp; e.clientX &lt; r.right &amp;&amp; e.clientY &gt; r.top &amp;&amp; e.clientY &lt; r.bottom) {
+                        if (e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom) {
                             targetIdx = allApps[i].dataset.idx;
                         }
                     }
                 }
                 
-                if (targetIdx &gt; -1) {
+                if (targetIdx > -1) {
                     var targetObj = desktopLayout[targetIdx];
                     var droppedApps = [];
                     if (this.sourceType === 'drawer' || this.sourceType === 'dock') droppedApps = [this.appId];
@@ -976,41 +964,39 @@ var DragSystem = {
 };
 DragSystem.init();
 
-// Desktop Size Options
 window.toggleDesktopSize = function(isLarge) {
     if (isLarge) document.getElementById('desktop-area').classList.add('desktop-large-mode');
     else document.getElementById('desktop-area').classList.remove('desktop-large-mode');
     document.getElementById('desktop-context-menu').style.display = 'none';
 };
 
-// Wallpaper Mechanics
 var unlockedWallpapers = JSON.parse(localStorage.getItem('cine_unlocked_wp')) || ['default'];
 window.wpMode = 'both';
 
 function setWallpaper(k, notify = false) {
     var data = wallpaperRegistry[k];
     if (!data) return;
-    if (notify &amp;&amp; data.locked &amp;&amp; !unlockedWallpapers.includes(data.id)) {
+    
+    if (notify && data.locked && !unlockedWallpapers.includes(data.id)) {
         unlockedWallpapers.push(data.id);
         localStorage.setItem('cine_unlocked_wp', JSON.stringify(unlockedWallpapers));
         alert("Wallpaper: [ " + data.name + " ] Unlocked.");
     }
+    
     if (window.wpMode === 'home' || window.wpMode === 'both') {
-        applyMediaToElement(data.url, document.getElementById('bg-video'), document.getElementById('bg-image'));
-        if (!document.getElementById('lock-screen').classList.contains('active')) {
-            var v = document.getElementById('bg-video');
-            if(v.style.display !== 'none') v.play();
-        }
+        var bgV = document.getElementById('bg-video');
+        var bgI = document.getElementById('bg-img');
+        applyMediaToElements(data.url, bgV, bgI, true);
         updateSysSetting('homeWallpaper', k);
     }
+    
     if (window.wpMode === 'lock' || window.wpMode === 'both') {
-        applyMediaToElement(data.url, document.getElementById('lock-video'), document.getElementById('lock-image'));
-        if (document.getElementById('lock-screen').classList.contains('active')) {
-            var l = document.getElementById('lock-video');
-            if(l.style.display !== 'none') l.play();
-        }
+        var lV = document.getElementById('lock-video');
+        var lI = document.getElementById('lock-img');
+        applyMediaToElements(data.url, lV, lI, false);
         updateSysSetting('lockWallpaper', k);
     }
+    
     updateWallpaperLoop();
     openWallpaperMenu();
 }
@@ -1030,12 +1016,20 @@ function openWallpaperMenu() {
         card.className = "wp-card " + (isUnlocked ? "" : "wp-locked");
         
         if (isUnlocked) {
-            card.innerHTML = '<video src="' + d.url + '" preload="auto" playsinline="" muted="" loop="" onmouseover="this.play()" onmouseout="this.pause()"></video><div class="wp-info">' + d.name + '</div>';
+            var mediaHtml = "";
+            var isImg = d.url.match(/\.(png|jpg|jpeg|gif)$/i);
+            if(isImg) {
+                mediaHtml = '<img src="' + d.url + '">';
+            } else {
+                mediaHtml = '<video src="' + d.url + '" preload="auto" playsinline muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>';
+            }
+            
+            card.innerHTML = mediaHtml + '<div class="wp-info">' + d.name + '</div>';
             card.setAttribute('data-key', key);
             card.onclick = function() {
                 setWallpaper(this.getAttribute('data-key'));
                 var cards = document.querySelectorAll('.wp-card');
-                for (var j = 0; j &lt; cards.length; j++) cards[j].classList.remove('active-wp');
+                for (var j = 0; j < cards.length; j++) cards[j].classList.remove('active-wp');
                 this.classList.add('active-wp');
             };
             gUn.appendChild(card);
@@ -1053,7 +1047,6 @@ function openWallpaperMenu() {
     }
 }
 
-// OS Start Menu and Search
 var searchInput = document.getElementById('start-search-input');
 if (searchInput) {
     searchInput.addEventListener('keydown', function(e) {
@@ -1080,13 +1073,12 @@ function toggleStartMenu() {
 }
 document.addEventListener('click', function(e) {
     var sm = document.getElementById('start-menu');
-    if (sm &amp;&amp; !sm.contains(e.target) &amp;&amp; !e.target.closest('.dock-item')) {
+    if (sm && !sm.contains(e.target) && !e.target.closest('.dock-item')) {
         sm.classList.remove('open');
         setTimeout(function() { sm.style.display = 'none'; }, 300);
     }
 });
 
-// Particle Snow Effect
 var cvsSnow = document.getElementById('snow-fx');
 if (cvsSnow) {
     var ctxSnow = cvsSnow.getContext('2d');
@@ -1094,20 +1086,20 @@ if (cvsSnow) {
     cvsSnow.width = sW; cvsSnow.height = sH;
     
     var flakes = [];
-    for (var f = 0; f &lt; 30; f++) {
+    for (var f = 0; f < 30; f++) {
         flakes.push({x: Math.random() * sW, y: Math.random() * sH, r: Math.random() * 2, s: Math.random() + 0.5});
     }
     function drawSnow() {
         if (isDesktopActive) {
             ctxSnow.clearRect(0, 0, sW, sH);
             ctxSnow.fillStyle = "rgba(255,255,255,0.3)";
-            for (var i = 0; i &lt; flakes.length; i++) {
+            for (var i = 0; i < flakes.length; i++) {
                 var fl = flakes[i];
                 ctxSnow.beginPath();
                 ctxSnow.arc(fl.x, fl.y, fl.r, 0, Math.PI * 2);
                 ctxSnow.fill();
                 fl.y += fl.s;
-                if (fl.y &gt; sH) fl.y = 0;
+                if (fl.y > sH) fl.y = 0;
             }
         }
         requestAnimationFrame(drawSnow);
@@ -1115,7 +1107,6 @@ if (cvsSnow) {
     drawSnow();
 }
 
-// Ciri Assistant Core (Retained mostly as is for functional logic)
 var MODES = ['FAST', 'THINKING', 'LIVE'];
 var currentModeIndex = 0;
 var isCiriActive = false;
@@ -1154,8 +1145,8 @@ window.autoGrow = function(element) {
 };
 
 window.addEventListener('keydown', function(e) {
-    if (e.altKey &amp;&amp; (e.code === 'KeyS' || e.key.toLowerCase() === 's')) {
-        if (!holdTimer &amp;&amp; !isCiriActive) {
+    if (e.altKey && (e.code === 'KeyS' || e.key.toLowerCase() === 's')) {
+        if (!holdTimer && !isCiriActive) {
             holdTimer = setTimeout(function() {
                 uiBody.classList.add('ciri-active');
                 isCiriActive = true;
@@ -1185,7 +1176,7 @@ window.addEventListener('keydown', function(e) {
                 }
             }, 2000);
         }
-    } else if (e.code === 'Escape' &amp;&amp; isCiriActive) {
+    } else if (e.code === 'Escape' && isCiriActive) {
         closeCiri();
     }
 });
@@ -1202,7 +1193,6 @@ window.closeCiri = function() {
     isCiriActive = false;
 };
 
-// Dynamic Media Scanner (For Cine Noti)
 var activeMedia = null;
 var notiHideTimeout;
 var cineNoti = document.getElementById('cine-noti');
@@ -1223,7 +1213,7 @@ function hideNoti() {
 
 function resetNotiHideTimer() {
     clearTimeout(notiHideTimeout);
-    if (cineNoti.classList.contains('active') &amp;&amp; !cineNoti.classList.contains('minimized')) {
+    if (cineNoti.classList.contains('active') && !cineNoti.classList.contains('minimized')) {
         notiHideTimeout = setTimeout(function() {
             cineNoti.classList.add('minimized');
             setTimeout(function() { document.getElementById('restore-btn').classList.add('visible'); }, 300);
@@ -1252,26 +1242,26 @@ if (cineNoti) {
 setInterval(function() {
     var found = null;
     var allMedia = document.querySelectorAll('audio, video');
-    for (var i = 0; i &lt; allMedia.length; i++) {
+    for (var i = 0; i < allMedia.length; i++) {
         var m = allMedia[i];
-        if (!m.paused &amp;&amp; !m.muted &amp;&amp; m.volume &gt; 0 &amp;&amp; !['bg-video', 'lock-video', 'boot-video'].includes(m.id)) {
+        if (!m.paused && !m.muted && m.volume > 0 && !['bg-video', 'lock-video', 'boot-video'].includes(m.id)) {
             found = m;
         }
     }
     
     var iframes = document.querySelectorAll('iframe');
-    for (var j = 0; j &lt; iframes.length; j++) {
+    for (var j = 0; j < iframes.length; j++) {
         try {
             var idoc = iframes[j].contentDocument || iframes[j].contentWindow.document;
             if (idoc) {
                 var ifMedia = idoc.querySelectorAll('audio, video');
-                for (var k = 0; k &lt; ifMedia.length; k++) {
-                    if (!ifMedia[k].paused &amp;&amp; !ifMedia[k].muted &amp;&amp; ifMedia[k].volume &gt; 0) {
+                for (var k = 0; k < ifMedia.length; k++) {
+                    if (!ifMedia[k].paused && !ifMedia[k].muted && ifMedia[k].volume > 0) {
                         found = ifMedia[k];
                     }
                 }
             }
-        } catch (e) { /* cross-origin catch */ }
+        } catch (e) {}
     }
     
     isMediaPlaying = !!found;
@@ -1288,7 +1278,7 @@ setInterval(function() {
     
     if (activeMedia) {
         document.getElementById('current-time').textContent = formatTime(activeMedia.currentTime);
-        if (isFinite(activeMedia.duration) &amp;&amp; activeMedia.duration &gt; 0) {
+        if (isFinite(activeMedia.duration) && activeMedia.duration > 0) {
             document.getElementById('progress-fill').style.width = ((activeMedia.currentTime / activeMedia.duration) * 100) + "%";
             document.getElementById('total-time').textContent = formatTime(activeMedia.duration);
         }
@@ -1321,14 +1311,14 @@ function setupMediaListeners() {
     };
     
     document.getElementById('skip-forward').onclick = function() {
-        if (isFinite(activeMedia.duration) &amp;&amp; activeMedia.duration &gt; 0) {
+        if (isFinite(activeMedia.duration) && activeMedia.duration > 0) {
             activeMedia.currentTime = Math.min(activeMedia.duration, activeMedia.currentTime + 15);
         }
         resetNotiHideTimer();
     };
     
     document.getElementById('progress-hit-area').onclick = function(e) {
-        if (isFinite(activeMedia.duration) &amp;&amp; activeMedia.duration &gt; 0) {
+        if (isFinite(activeMedia.duration) && activeMedia.duration > 0) {
             var rect = document.getElementById('progress-hit-area').getBoundingClientRect();
             var percent = (e.clientX - rect.left) / rect.width;
             activeMedia.currentTime = percent * activeMedia.duration;
@@ -1343,57 +1333,7 @@ function formatTime(s) {
     var se = Math.floor(s % 60);
     return m + ":" + se.toString().padStart(2, '0');
 }
-setInterval(function() {
-    var sCache = localStorage.getItem('cinify_cache');
-    var sLiked = localStorage.getItem('cinify_liked');
-    var pGame = localStorage.getItem('ps_purchased');
-    
-    if(sCache &amp;&amp; sLiked) {
-        var cacheObj = JSON.parse(sCache);
-        var likedArr = JSON.parse(sLiked);
-        if(likedArr.length &gt; 0 &amp;&amp; cacheObj[likedArr[0]]) {
-            var song = cacheObj[likedArr[0]];
-            document.getElementById('sb-song-img').src = song.cover || '';
-            document.getElementById('sb-song-txt').innerText = song.title || 'Unknown';
-            window.lastCinifySong = song.id;
-        }
-    }
-    
-    if(pGame) {
-        var gameArr = JSON.parse(pGame);
-        if(gameArr.length &gt; 0) {
-            var gId = gameArr[gameArr.length - 1];
-            document.getElementById('sb-game-img').src = 'https://cdn.pixabay.com/photo/2021/01/29/18/16/ps5-5961803_1280.jpg';
-            document.getElementById('sb-game-txt').innerText = gId.replace('id_', '').replace(/_/g, ' ').toUpperCase();
-            window.lastPsGame = gId;
-        }
-    }
-}, 3000);
 
-window.sysLaunchLastGame = function() {
-    if(!window.lastPsGame) return;
-    toggleApp('files');
-    setTimeout(function() {
-        var frame = document.getElementById('frame-files');
-        if(frame &amp;&amp; frame.contentWindow) {
-            localStorage.setItem('ps_auto_launch', window.lastPsGame);
-            frame.src = frame.src; 
-        }
-    }, 1000);
-};
-
-window.sysLaunchLastSong = function() {
-    if(!window.lastCinifySong) return;
-    toggleApp('term');
-    setTimeout(function() {
-        var frame = document.getElementById('frame-term');
-        if(frame &amp;&amp; frame.contentWindow) {
-            localStorage.setItem('cinify_auto_play', window.lastCinifySong);
-            frame.src = frame.src;
-        }
-    }, 1000);
-};
-// Visualizer Effect System
 function drawFakeVisualizer() {
     requestAnimationFrame(drawFakeVisualizer);
     var cvs = document.getElementById('visualizer');
@@ -1408,8 +1348,8 @@ function drawFakeVisualizer() {
     var barWidth = (cvs.width / buffLen) * 2;
     var xPosition = 0;
     
-    for (var i = 0; i &lt; buffLen; i++) {
-        var barHeight = activeMedia &amp;&amp; !activeMedia.paused ? (Math.random() * cvs.height) : 2;
+    for (var i = 0; i < buffLen; i++) {
+        var barHeight = activeMedia && !activeMedia.paused ? (Math.random() * cvs.height) : 2;
         ctx.fillStyle = "#fff";
         ctx.beginPath();
         ctx.roundRect(xPosition, cvs.height - barHeight, barWidth - 1.5, barHeight, 2);
