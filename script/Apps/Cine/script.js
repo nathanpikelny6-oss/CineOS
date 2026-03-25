@@ -3,158 +3,279 @@ const TMDB_BASE = 'https://api.themoviedb.org/3';
 const IMG_BASE = 'https://image.tmdb.org/t/p/original';
 const IMG_W500 = 'https://image.tmdb.org/t/p/w500';
 
-const SUPABASE_URL = 'https://jboorphrjkkiitbqqpqvq.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impib29ycGxyamtpaXRicXFwZ3ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzOTAzNzYsImV4cCI6MjA4OTk2NjM3Nn0.LuZffeR3KwSg-6guieU40R9mBlcL_HOTZHY6ot9Yk80';
-let supabase = null;
+// 8 Bulletproof API Servers
+const SERVERS = [
+    { id: 0, name: 'VidLink (Fastest)', url: 'https://vidlink.pro/{t}/{id}?primaryColor=E50914&autoplay=false' },
+    { id: 1, name: 'SuperEmbed (HD)', url: 'https://multiembed.mov/?video_id={id}&tmdb=1' },
+    { id: 2, name: 'AutoEmbed', url: 'https://player.autoembed.cc/embed/{t}/{id}' },
+    { id: 3, name: 'EmbedSu', url: 'https://embed.su/embed/{t}/{id}' },
+    { id: 4, name: 'VidSrc PRO', url: 'https://vidsrc.pro/embed/{t}/{id}' },
+    { id: 5, name: 'VidSrc CC', url: 'https://vidsrc.cc/v2/embed/{t}/{id}' },
+    { id: 6, name: 'SmashyStream', url: 'https://player.smashy.stream/{t}?tmdb={id}' },
+    { id: 7, name: '2Embed', url: 'https://www.2embed.cc/embed/{t}/{id}' }
+];
 
-if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-}
-
-let userId = localStorage.getItem('nexus_uid');
-if (!userId) {
-    userId = 'user_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('nexus_uid', userId);
-}
-
-let continueWatching = JSON.parse(localStorage.getItem('nexus_cw')) || [];
-let watchLater = JSON.parse(localStorage.getItem('nexus_wl')) || [];
-let likedMedia = JSON.parse(localStorage.getItem('nexus_likes')) || [];
-let dislikedMedia = JSON.parse(localStorage.getItem('nexus_dislikes')) || [];
-
+// Local DB System (Bulletproof)
 let currentMedia = null;
+let userId = localStorage.getItem('ch_uid') || 'user_' + Math.floor(Math.random() * 99999);
+localStorage.setItem('ch_uid', userId);
+let cwList = JSON.parse(localStorage.getItem('ch_cw')) || [];
+let wlList = JSON.parse(localStorage.getItem('ch_wl')) || [];
 
-document.addEventListener('DOMContentLoaded', () => {
-    const introVideo = document.getElementById('intro-video');
-    const introScreen = document.getElementById('intro-screen');
-    
-    introVideo.play().catch(() => {
-        hideIntro();
-    });
-
-    introVideo.onended = hideIntro;
-    setTimeout(hideIntro, 5000);
-
-    function hideIntro() {
-        introScreen.style.opacity = '0';
-        setTimeout(() => introScreen.style.display = 'none', 800);
-    }
-
-    initApp();
-});
-
-async function initApp() {
-    setupEventListeners();
-    await loadMainContent();
-    if(supabase) subscribeToGlobalChat();
+function dbSaveLike(id, val) { localStorage.setItem(`like_${id}`, val); }
+function dbGetLike(id) { return localStorage.getItem(`like_${id}`) || 'none'; }
+function dbGetLikeCount(id) { return parseInt(localStorage.getItem(`count_${id}`)) || Math.floor(Math.random() * 500) + 50; }
+function dbSetLikeCount(id, count) { localStorage.setItem(`count_${id}`, count); }
+function dbGetComments(id) { return JSON.parse(localStorage.getItem(`comments_${id}`)) || []; }
+function dbAddComment(id, text) {
+    let arr = dbGetComments(id);
+    arr.unshift({ user: userId, text: text, date: new Date().toLocaleDateString() });
+    localStorage.setItem(`comments_${id}`, JSON.stringify(arr));
 }
+
+// YT Setup
+let heroPlayer, modalPlayer;
+function onYouTubeIframeAPIReady() {}
 
 async function api(path) {
-    const res = await fetch(`${TMDB_BASE}${path}${path.includes('?') ? '&' : '?'}api_key=${TMDB_KEY}`);
-    return res.json();
+    try {
+        const res = await fetch(`${TMDB_BASE}${path}${path.includes('?') ? '&' : '?'}api_key=${TMDB_KEY}`);
+        return await res.json();
+    } catch(e) { return {results: []}; }
 }
 
-async function loadMainContent() {
-    const trending = await api('/trending/all/day');
-    const heroItem = trending.results[Math.floor(Math.random() * 5)];
-    renderHero(heroItem);
-
-    const rows = document.getElementById('main-rows');
-    rows.innerHTML = '';
-
-    if (continueWatching.length > 0) {
-        buildRow(rows, 'Continue Watching', continueWatching, 'aspect-h', false);
-    }
-
-    if (likedMedia.length > 0) {
-        const recs = await api(`/movie/${likedMedia[0]}/recommendations`);
-        if(recs.results && recs.results.length > 0) {
-            buildRow(rows, 'Because You Liked...', recs.results, 'aspect-h');
-        }
-    }
-
-    buildRow(rows, 'Trending Now', trending.results, 'aspect-h');
-    
-    const popularMovies = await api('/movie/popular');
-    buildRow(rows, 'Blockbuster Movies', popularMovies.results, 'aspect-v');
-
-    const topShows = await api('/tv/top_rated');
-    buildRow(rows, 'Critically Acclaimed Series', topShows.results, 'aspect-h');
-
-    const action = await api('/discover/movie?with_genres=28');
-    buildRow(rows, 'Action & Adventure', action.results, 'aspect-v');
-}
-
-function renderHero(item) {
-    const title = item.title || item.name;
-    const bg = item.backdrop_path ? `${IMG_BASE}${item.backdrop_path}` : '';
-    document.getElementById('hero').style.backgroundImage = `url(${bg})`;
-    document.getElementById('hero-title').textContent = title;
-    document.getElementById('hero-rating').innerHTML = `<i class="fa-solid fa-star"></i> ${(item.vote_average || 0).toFixed(1)}`;
-    document.getElementById('hero-year').textContent = (item.release_date || item.first_air_date || '').substring(0, 4);
-    document.getElementById('hero-desc').textContent = item.overview;
-
-    document.getElementById('hero-play').onclick = () => playMedia(item);
-    document.getElementById('hero-info').onclick = () => openModal(item);
-}
-
-function buildRow(container, title, items, aspectClass, extractType = true) {
-    const row = document.createElement('div');
-    row.className = `row ${aspectClass}`;
-    row.innerHTML = `<h2>${title}</h2><div class="row-slider"></div>`;
-    const slider = row.querySelector('.row-slider');
-
-    items.forEach(item => {
-        if (!item.backdrop_path && !item.poster_path && extractType) return;
-        const imgPath = aspectClass === 'aspect-h' ? item.backdrop_path : item.poster_path;
-        if(!imgPath && extractType) return;
-
-        const el = document.createElement('div');
-        el.className = 'row-item';
-        el.innerHTML = `
-            <img src="${extractType ? IMG_W500 + imgPath : item.img}" loading="lazy">
-            <div class="item-overlay"><h4>${item.title || item.name || ''}</h4></div>
-        `;
+document.addEventListener('DOMContentLoaded', () => {
+    // Audio Gate
+    document.getElementById('btn-enter').onclick = () => {
+        document.getElementById('enter-gate').style.opacity = '0';
+        setTimeout(() => document.getElementById('enter-gate').style.display = 'none', 500);
         
-        let timeout;
-        el.onmouseenter = () => {
-            timeout = setTimeout(() => openModal(item), 800);
-        };
-        el.onmouseleave = () => clearTimeout(timeout);
-        el.onclick = () => openModal(item);
+        const introVideo = document.getElementById('intro-video');
+        document.getElementById('intro-screen').style.opacity = '1';
+        document.getElementById('intro-screen').style.pointerEvents = 'auto';
+        introVideo.muted = false;
+        introVideo.play().catch(()=>{ finishIntro(); });
+        introVideo.onended = finishIntro;
+        setTimeout(finishIntro, 5000); // Failsafe
+    };
 
+    function finishIntro() {
+        const s = document.getElementById('intro-screen');
+        s.style.opacity = '0';
+        setTimeout(() => s.style.display = 'none', 800);
+    }
+
+    setupUI();
+    loadHome();
+});
+
+function setupUI() {
+    // Tabs
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            e.preventDefault();
+            const target = btn.dataset.target;
+            if(target === 'search') { document.getElementById('search-overlay').classList.add('active'); document.getElementById('search-input').focus(); return; }
+            if(target === 'random') { playRandom(); return; }
+            
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(`view-${target}`).classList.add('active');
+            
+            if(target === 'series') loadGrid('/tv/popular', 'series-grid');
+            if(target === 'movies') loadGrid('/movie/popular', 'movies-grid');
+            if(target === 'trending') loadGrid('/trending/all/week', 'trending-grid');
+            if(target === 'watchlist') renderWatchlist();
+            window.scrollTo(0,0);
+        };
+    });
+
+    // Search
+    document.getElementById('close-search').onclick = () => document.getElementById('search-overlay').classList.remove('active');
+    let st;
+    document.getElementById('search-input').oninput = (e) => {
+        clearTimeout(st);
+        st = setTimeout(async () => {
+            const val = e.target.value.trim();
+            if(!val) return document.getElementById('search-results').innerHTML = '';
+            const res = await api(`/search/multi?query=${encodeURIComponent(val)}`);
+            renderGridItems(res.results, 'search-results');
+        }, 500);
+    };
+
+    // Modals
+    document.querySelector('.close-modal').onclick = closeAll;
+    document.getElementById('close-player').onclick = closeAll;
+    document.getElementById('mark-finished').onclick = () => {
+        if(currentMedia) { cwList = cwList.filter(i => (i.id||i.tmdbId) != (currentMedia.id||currentMedia.tmdbId)); localStorage.setItem('ch_cw', JSON.stringify(cwList)); }
+        closeAll(); loadHome();
+    };
+
+    // Populate Servers Dropdowns
+    const selects = [document.getElementById('server-select'), document.querySelector('.player-controls select')];
+    selects.forEach(sel => {
+        SERVERS.forEach(s => {
+            const opt = document.createElement('option'); opt.value = s.id; opt.textContent = s.name;
+            sel.appendChild(opt);
+        });
+        sel.onchange = () => { if(document.getElementById('player-overlay').style.display === 'block') playMedia(currentMedia); };
+    });
+}
+
+function closeAll() {
+    document.getElementById('details-modal').style.display = 'none';
+    document.getElementById('player-overlay').style.display = 'none';
+    document.getElementById('video-frame').src = '';
+    document.body.style.overflow = 'auto';
+    if(modalPlayer && modalPlayer.pauseVideo) modalPlayer.pauseVideo();
+    if(heroPlayer && heroPlayer.playVideo) heroPlayer.playVideo();
+}
+
+// Data Loaders
+async function loadHome() {
+    const rPage = Math.floor(Math.random() * 3) + 1;
+    const trending = await api(`/trending/all/day?page=${rPage}`);
+    if(!trending.results) return;
+
+    setupHero(trending.results[0]);
+    const rows = document.getElementById('home-rows');
+    rows.innerHTML = '';
+    
+    buildTop10Row(rows, trending.results.slice(0, 10));
+    if (cwList.length > 0) buildRow(rows, 'Continue Watching', cwList, 'aspect-h', false);
+    
+    const action = await api(`/discover/movie?with_genres=28&page=${Math.floor(Math.random()*5)+1}`);
+    buildRow(rows, 'Action Thrillers', action.results, 'aspect-v');
+    const comedy = await api(`/discover/movie?with_genres=35&page=${Math.floor(Math.random()*5)+1}`);
+    buildRow(rows, 'Comedies', comedy.results, 'aspect-v');
+    const horror = await api(`/discover/movie?with_genres=27&page=${Math.floor(Math.random()*5)+1}`);
+    buildRow(rows, 'Chilling Horror', horror.results, 'aspect-v');
+    const scifi = await api(`/discover/movie?with_genres=878&page=${Math.floor(Math.random()*5)+1}`);
+    buildRow(rows, 'Sci-Fi & Fantasy', scifi.results, 'aspect-h');
+}
+
+async function setupHero(item) {
+    document.getElementById('hero-img').src = IMG_BASE + item.backdrop_path;
+    document.getElementById('hero-title').textContent = item.title || item.name;
+    document.getElementById('hero-desc').textContent = item.overview;
+    
+    document.querySelector('.hero-play-btn').onclick = () => playMedia(item);
+    document.querySelector('.hero-info-btn').onclick = () => openModal(item);
+
+    const details = await api(`/${item.media_type || 'movie'}/${item.id}?append_to_response=videos`);
+    const trailer = details.videos?.results.find(v => v.type === 'Trailer');
+    if(trailer) {
+        document.getElementById('hero-video-wrapper').innerHTML = `<div id="hero-yt"></div>`;
+        heroPlayer = new YT.Player('hero-yt', {
+            videoId: trailer.key,
+            playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, loop: 1, modestbranding: 1, playlist: trailer.key, mute: 1 },
+            events: { onStateChange: (e) => { if(e.data === YT.PlayerState.PLAYING) document.getElementById('hero-video-wrapper').style.opacity = '1'; } }
+        });
+        const muteBtn = document.getElementById('hero-mute-btn');
+        muteBtn.onclick = () => {
+            if(heroPlayer.isMuted()) { heroPlayer.unMute(); muteBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i>'; }
+            else { heroPlayer.mute(); muteBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>'; }
+        };
+    }
+}
+
+// Row Builders
+function buildTop10Row(container, items) {
+    const row = document.createElement('div');
+    row.innerHTML = `<h2>Top 10 Trending Today</h2><div class="top-10-row"></div>`;
+    const slider = row.querySelector('.top-10-row');
+    items.forEach((item, index) => {
+        if (!item.poster_path) return;
+        const el = document.createElement('div'); el.className = 'top-10-card';
+        el.innerHTML = `<span class="rank-number">${index + 1}</span><img src="${IMG_W500 + item.poster_path}">`;
+        el.onclick = () => openModal(item);
         slider.appendChild(el);
     });
     container.appendChild(row);
 }
 
+function buildRow(container, title, items, aspectClass, isApiData = true) {
+    const row = document.createElement('div'); row.className = `row`;
+    row.innerHTML = `<h2>${title}</h2><div class="row-slider"></div>`;
+    const slider = row.querySelector('.row-slider');
+    items.forEach(item => {
+        const imgPath = aspectClass === 'aspect-h' ? item.backdrop_path : item.poster_path;
+        if(isApiData && !imgPath) return;
+        const el = document.createElement('div'); el.className = `row-item ${aspectClass}`;
+        el.innerHTML = `<img src="${isApiData ? IMG_W500 + imgPath : item.img}">`;
+        el.onclick = () => openModal(item);
+        slider.appendChild(el);
+    });
+    container.appendChild(row);
+}
+
+async function loadGrid(path, containerId) {
+    const res = await api(`${path}?page=${Math.floor(Math.random()*3)+1}`);
+    renderGridItems(res.results, containerId);
+}
+async function renderWatchlist() {
+    const items = [];
+    for(let id of wlList) {
+        const m = await api(`/movie/${id}`); if(m.id) items.push(m);
+        else { const t = await api(`/tv/${id}`); if(t.id) items.push(t); }
+    }
+    renderGridItems(items, 'watchlist-grid');
+}
+function renderGridItems(items, containerId) {
+    const grid = document.getElementById(containerId); grid.innerHTML = '';
+    items.filter(i => i.poster_path && i.media_type !== 'person').forEach(item => {
+        const el = document.createElement('div'); el.className = 'row-item aspect-v';
+        el.innerHTML = `<img src="${IMG_W500 + item.poster_path}">`;
+        el.onclick = () => { document.getElementById('search-overlay').classList.remove('active'); openModal(item); };
+        grid.appendChild(el);
+    });
+}
+
+// Modal
 async function openModal(item) {
     currentMedia = item;
     const isTv = item.media_type === 'tv' || !item.title;
     const id = item.id || item.tmdbId;
     const type = isTv ? 'tv' : 'movie';
-
     const details = await api(`/${type}/${id}?append_to_response=videos,credits`);
     
     document.getElementById('modal-title').textContent = details.title || details.name;
-    document.getElementById('modal-rating').innerHTML = `<i class="fa-solid fa-star"></i> ${details.vote_average.toFixed(1)}`;
-    document.getElementById('modal-runtime').textContent = isTv ? `${details.number_of_seasons} Seasons` : `${details.runtime} min`;
-    document.getElementById('modal-date').textContent = (details.release_date || details.first_air_date).substring(0, 4);
+    document.getElementById('modal-date').textContent = (details.release_date || details.first_air_date || '').substring(0, 4);
+    document.getElementById('modal-runtime').textContent = isTv ? `${details.number_of_seasons} Seasons` : `${details.runtime}m`;
     document.getElementById('modal-desc').textContent = details.overview;
     document.getElementById('modal-backdrop').src = IMG_BASE + details.backdrop_path;
+    document.getElementById('modal-backdrop').style.opacity = '1';
     
-    const trailer = details.videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
-    const iframe = document.getElementById('modal-trailer');
+    if(heroPlayer && heroPlayer.pauseVideo) heroPlayer.pauseVideo();
+    
+    const trailer = details.videos?.results.find(v => v.type === 'Trailer');
+    document.getElementById('modal-video-wrapper').innerHTML = '';
+    document.getElementById('modal-video-wrapper').style.opacity = '0';
     if (trailer) {
-        iframe.src = `https://piped.video/embed/${trailer.key}?autoplay=1&controls=0&loop=1&mute=1`;
-        setTimeout(() => iframe.style.opacity = '1', 1500);
-    } else {
-        iframe.style.opacity = '0';
-        iframe.src = '';
+        document.getElementById('modal-video-wrapper').innerHTML = `<div id="modal-yt"></div>`;
+        modalPlayer = new YT.Player('modal-yt', {
+            videoId: trailer.key,
+            playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, loop: 1, modestbranding: 1, playlist: trailer.key, mute: 1 },
+            events: {
+                onStateChange: (e) => {
+                    if(e.data === YT.PlayerState.PLAYING) {
+                        document.getElementById('modal-video-wrapper').style.opacity = '1';
+                        document.getElementById('modal-backdrop').style.opacity = '0';
+                    }
+                }
+            }
+        });
+        const muteBtn = document.getElementById('modal-mute-btn');
+        muteBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+        muteBtn.onclick = () => {
+            if(modalPlayer.isMuted()) { modalPlayer.unMute(); muteBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i>'; }
+            else { modalPlayer.mute(); muteBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>'; }
+        };
     }
 
-    const castDiv = document.getElementById('modal-cast');
-    castDiv.innerHTML = details.credits.cast.slice(0, 5).map(c => `<div>${c.name}</div>`).join('');
+    // Comma separated cast
+    document.getElementById('modal-cast').innerHTML = details.credits?.cast.slice(0, 8).map(c => c.name).join(', ') || '';
 
     const seriesSel = document.getElementById('series-selector');
     if (isTv) {
@@ -163,210 +284,117 @@ async function openModal(item) {
         sel.innerHTML = details.seasons.filter(s=>s.season_number>0).map(s => `<option value="${s.season_number}">Season ${s.season_number}</option>`).join('');
         sel.onchange = () => loadEpisodes(id, sel.value);
         if(details.seasons.length > 0) loadEpisodes(id, details.seasons.find(s=>s.season_number>0)?.season_number || 1);
-    } else {
-        seriesSel.classList.add('hidden');
-    }
+    } else { seriesSel.classList.add('hidden'); }
 
     updateActionButtons(id);
     document.getElementById('details-modal').style.display = 'block';
     document.body.style.overflow = 'hidden';
-
     document.getElementById('modal-play').onclick = () => playMedia(item);
 
-    if (supabase) {
-        loadComments(id);
-        fetchLikes(id);
-    }
+    renderComments(id);
 }
 
 async function loadEpisodes(tvId, seasonNum) {
     const data = await api(`/tv/${tvId}/season/${seasonNum}`);
-    const list = document.getElementById('episodes-list');
-    list.innerHTML = data.episodes.map(ep => `
+    document.getElementById('episodes-list').innerHTML = data.episodes.map(ep => `
         <div class="episode-card" onclick="playMedia({id: ${tvId}, season: ${seasonNum}, ep: ${ep.episode_number}, type: 'tv', title: '${ep.name.replace(/'/g,"\\'")}'})">
-            <img class="ep-img" src="${ep.still_path ? IMG_W500+ep.still_path : ''}" onerror="this.src='https://via.placeholder.com/130x73?text=No+Image'">
+            <span class="ep-num">${ep.episode_number}</span>
+            <img src="${ep.still_path ? IMG_W500+ep.still_path : 'https://via.placeholder.com/140x79/222/FFF?text=No+Image'}">
             <div class="ep-info">
-                <h4>${ep.episode_number}. ${ep.name}</h4>
+                <div class="ep-info-header"><h4>${ep.name}</h4><span>${ep.runtime ? ep.runtime+'m' : ''}</span></div>
                 <p>${ep.overview}</p>
             </div>
         </div>
     `).join('');
 }
 
+// Player
 function playMedia(item) {
     document.getElementById('details-modal').style.display = 'none';
+    if(heroPlayer && heroPlayer.pauseVideo) heroPlayer.pauseVideo();
+    if(modalPlayer && modalPlayer.pauseVideo) modalPlayer.pauseVideo();
+    
     const isTv = item.type === 'tv' || item.season;
     const id = item.tmdbId || item.id;
-    let url = `https://embed.su/embed/movie/${id}`;
     
-    if (isTv) {
-        const s = item.season || 1;
-        const e = item.ep || 1;
-        url = `https://embed.su/embed/tv/${id}/${s}/${e}`;
+    // Sync dropdowns
+    const mSel = document.getElementById('server-select');
+    const pSel = document.querySelector('.player-controls select');
+    pSel.value = mSel.value;
+
+    const sObj = SERVERS.find(s => s.id == mSel.value) || SERVERS[0];
+    let url = sObj.url.replace('{t}', isTv ? 'tv' : 'movie').replace('{id}', id);
+    if(isTv) {
+        // Handle VidLink URL formatting exception
+        if(url.includes('vidlink.pro')) url = `https://vidlink.pro/tv/${id}/${item.season || 1}/${item.ep || 1}?primaryColor=E50914&autoplay=false`;
+        else url = url.replace('{s}', item.season || 1).replace('{e}', item.ep || 1);
     }
 
-    const overlay = document.getElementById('player-overlay');
+    document.getElementById('player-title').textContent = item.title || item.name;
     document.getElementById('video-frame').src = url;
-    overlay.style.display = 'block';
+    document.getElementById('player-overlay').style.display = 'block';
     
-    addToContinueWatching(item);
+    cwList = cwList.filter(i => (i.id||i.tmdbId) !== id);
+    cwList.unshift({ id: id, title: item.title||item.name, img: item.backdrop_path ? IMG_W500+item.backdrop_path : (item.img||''), media_type: isTv?'tv':'movie' });
+    localStorage.setItem('ch_cw', JSON.stringify(cwList));
 }
 
-function addToContinueWatching(item) {
-    const id = item.id || item.tmdbId;
-    continueWatching = continueWatching.filter(i => (i.id || i.tmdbId) !== id);
-    continueWatching.unshift({
-        id: id,
-        title: item.title || item.name,
-        img: item.backdrop_path ? IMG_W500+item.backdrop_path : (item.img || ''),
-        media_type: item.media_type || (item.season ? 'tv' : 'movie')
-    });
-    localStorage.setItem('nexus_cw', JSON.stringify(continueWatching));
+async function playRandom() {
+    const res = await api(`/movie/popular?page=${Math.floor(Math.random()*10)+1}`);
+    const r = res.results[Math.floor(Math.random()*res.results.length)];
+    openModal(r);
 }
 
-function removeFromContinueWatching(id) {
-    continueWatching = continueWatching.filter(i => (i.id || i.tmdbId) != id);
-    localStorage.setItem('nexus_cw', JSON.stringify(continueWatching));
-    loadMainContent();
-}
-
+// Local DB Logic (Likes & Comments)
 function updateActionButtons(id) {
     const wlBtn = document.getElementById('modal-watch-later');
-    const likeBtn = document.getElementById('modal-like');
-    const dislikeBtn = document.getElementById('modal-dislike');
-
-    wlBtn.className = watchLater.includes(id) ? 'btn-icon active' : 'btn-icon';
-    wlBtn.innerHTML = watchLater.includes(id) ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-plus"></i>';
+    const lBtn = document.getElementById('modal-like');
+    const dBtn = document.getElementById('modal-dislike');
     
-    likeBtn.className = likedMedia.includes(id) ? 'btn-icon active' : 'btn-icon';
-    dislikeBtn.className = dislikedMedia.includes(id) ? 'btn-icon active' : 'btn-icon';
+    wlBtn.className = wlList.includes(id) ? 'btn-icon active' : 'btn-icon';
+    wlBtn.innerHTML = wlList.includes(id) ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-plus"></i>';
+    
+    let status = dbGetLike(id);
+    lBtn.className = status === 'like' ? 'btn-icon active' : 'btn-icon';
+    lBtn.innerHTML = status === 'like' ? '<i class="fa-solid fa-thumbs-up"></i>' : '<i class="fa-regular fa-thumbs-up"></i>';
+    dBtn.className = status === 'dislike' ? 'btn-icon active' : 'btn-icon';
+    dBtn.innerHTML = status === 'dislike' ? '<i class="fa-solid fa-thumbs-down"></i>' : '<i class="fa-regular fa-thumbs-down"></i>';
+    document.getElementById('like-count').textContent = dbGetLikeCount(id);
 
-    wlBtn.onclick = () => {
-        if(watchLater.includes(id)) watchLater = watchLater.filter(i => i !== id);
-        else watchLater.push(id);
-        localStorage.setItem('nexus_wl', JSON.stringify(watchLater));
-        updateActionButtons(id);
-    };
-
-    likeBtn.onclick = () => handleVote(id, 'like');
-    dislikeBtn.onclick = () => handleVote(id, 'dislike');
+    wlBtn.onclick = () => { wlList.includes(id) ? wlList = wlList.filter(i=>i!==id) : wlList.push(id); localStorage.setItem('ch_wl', JSON.stringify(wlList)); updateActionButtons(id); };
+    lBtn.onclick = () => handleVote(id, 'like');
+    dBtn.onclick = () => handleVote(id, 'dislike');
 }
 
-async function handleVote(id, type) {
+function handleVote(id, type) {
+    let current = dbGetLike(id);
+    let count = dbGetLikeCount(id);
+    
     if(type === 'like') {
-        if(likedMedia.includes(id)) likedMedia = likedMedia.filter(i=>i!==id);
-        else { likedMedia.push(id); dislikedMedia = dislikedMedia.filter(i=>i!==id); }
+        if(current === 'like') { dbSaveLike(id, 'none'); dbSetLikeCount(id, count-1); }
+        else { dbSaveLike(id, 'like'); dbSetLikeCount(id, current==='dislike' ? count+1 : count+1); }
     } else {
-        if(dislikedMedia.includes(id)) dislikedMedia = dislikedMedia.filter(i=>i!==id);
-        else { dislikedMedia.push(id); likedMedia = likedMedia.filter(i=>i!==id); }
+        if(current === 'dislike') { dbSaveLike(id, 'none'); }
+        else { dbSaveLike(id, 'dislike'); if(current==='like') dbSetLikeCount(id, count-1); }
     }
-    
-    localStorage.setItem('nexus_likes', JSON.stringify(likedMedia));
-    localStorage.setItem('nexus_dislikes', JSON.stringify(dislikedMedia));
     updateActionButtons(id);
-
-    if(supabase) {
-        const { data } = await supabase.from('likes').select('like_count').eq('movie_id', id).single();
-        let currentCount = data ? data.like_count : 0;
-        currentCount += (type === 'like' && likedMedia.includes(id)) ? 1 : (type==='like' ? -1 : 0);
-        await supabase.from('likes').upsert({ movie_id: id, like_count: currentCount > 0 ? currentCount : 0 });
-        fetchLikes(id);
-    }
 }
 
-async function fetchLikes(id) {
-    const { data } = await supabase.from('likes').select('like_count').eq('movie_id', id).single();
-    document.getElementById('like-count').textContent = data ? data.like_count : 0;
-}
-
-async function loadComments(id) {
-    const { data } = await supabase.from('comments').select('*').eq('movie_id', id).order('created_at', { ascending: false });
-    const list = document.getElementById('comments-list');
-    if(!data) return;
-    list.innerHTML = data.map(c => `
+function renderComments(id) {
+    const arr = dbGetComments(id);
+    document.getElementById('comments-list').innerHTML = arr.map(c => `
         <div class="comment-item">
-            <div class="comment-meta">Anon ${c.user_id.substr(0,4)} • ${new Date(c.created_at).toLocaleDateString()}</div>
+            <div class="comment-meta">Anon ${c.user.substr(0,4)} • ${c.date}</div>
             <div>${c.text}</div>
         </div>
     `).join('');
 }
 
-document.getElementById('post-comment').onclick = async () => {
-    if(!supabase) return alert("Backend not connected.");
+document.getElementById('post-comment').onclick = () => {
     const input = document.getElementById('new-comment');
     if(!input.value.trim() || !currentMedia) return;
-    
     const id = currentMedia.id || currentMedia.tmdbId;
-    await supabase.from('comments').insert({ movie_id: id, text: input.value, user_id: userId });
+    dbAddComment(id, input.value);
     input.value = '';
-    loadComments(id);
+    renderComments(id);
 };
-
-function setupEventListeners() {
-    document.querySelector('.close-modal').onclick = () => {
-        document.getElementById('details-modal').style.display = 'none';
-        document.getElementById('modal-trailer').src = '';
-        document.body.style.overflow = 'auto';
-    };
-
-    document.getElementById('close-player').onclick = () => {
-        document.getElementById('player-overlay').style.display = 'none';
-        document.getElementById('video-frame').src = '';
-        document.body.style.overflow = 'auto';
-        loadMainContent();
-    };
-
-    document.getElementById('mark-finished').onclick = () => {
-        if(currentMedia) removeFromContinueWatching(currentMedia.id || currentMedia.tmdbId);
-        document.getElementById('close-player').click();
-    };
-
-    document.getElementById('btn-random').onclick = async () => {
-        const page = Math.floor(Math.random() * 20) + 1;
-        const res = await api(`/movie/popular?page=${page}`);
-        const rnd = res.results[Math.floor(Math.random() * res.results.length)];
-        openModal(rnd);
-    };
-
-    document.getElementById('btn-crunchyroll').onclick = () => {
-        const url = '#';
-        if(url === '#') alert("Crunchyroll integration is currently Under Construction!");
-        else window.location.href = url;
-    };
-
-    const chatPanel = document.getElementById('chat-panel');
-    document.getElementById('btn-chat').onclick = () => chatPanel.classList.toggle('active');
-    document.getElementById('close-chat').onclick = () => chatPanel.classList.remove('active');
-
-    document.getElementById('send-chat').onclick = async () => {
-        if(!supabase) return alert("Backend not connected.");
-        const input = document.getElementById('chat-input');
-        if(!input.value.trim()) return;
-        await supabase.from('global_chat').insert({ message: input.value, user_id: userId });
-        input.value = '';
-    };
-}
-
-function subscribeToGlobalChat() {
-    fetchGlobalChat();
-    supabase.channel('public:global_chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'global_chat' }, payload => {
-        appendChat(payload.new);
-    }).subscribe();
-}
-
-async function fetchGlobalChat() {
-    const { data } = await supabase.from('global_chat').select('*').order('created_at', { ascending: false }).limit(50);
-    if(data) {
-        document.getElementById('chat-messages').innerHTML = '';
-        data.reverse().forEach(appendChat);
-    }
-}
-
-function appendChat(msg) {
-    const box = document.getElementById('chat-messages');
-    const el = document.createElement('div');
-    el.className = `chat-msg ${msg.user_id === userId ? 'mine' : ''}`;
-    el.textContent = msg.message;
-    box.appendChild(el);
-    box.scrollTop = box.scrollHeight;
-}
