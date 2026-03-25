@@ -3,91 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cinehub | Premium Streaming</title>
+    <title>Cine-Hub</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
+    <!-- Audio Gate & Intro -->
+    <div id="enter-gate">
+        <div class="gate-content">
+            <h1>CINE-HUB</h1>
+            <button id="btn-enter">Click to Enter</button>
+        </div>
+    </div>
     <div id="intro-screen">
-        <video id="intro-video" muted playsinline>
+        <video id="intro-video" playsinline>
             <source src="Netflix.mp4" type="video/mp4">
         </video>
     </div>
 
+    <!-- Sidebar -->
     <nav class="sidebar">
-        <div class="logo"><i class="fa-solid fa-n"></i></div>
+        <div class="brand-logo">C</div>
         <div class="nav-links">
-            <a href="#" class="active" title="Home"><i class="fa-solid fa-house"></i></a>
-            <a href="#" id="btn-random" title="Surprise Me"><i class="fa-solid fa-dice"></i></a>
-            <a href="#" id="btn-watch-later" title="Watch Later"><i class="fa-solid fa-clock"></i></a>
-            <a href="#" id="btn-crunchyroll" title="Anime"><i class="fa-solid fa-dragon"></i></a>
-        </div>
-        <div class="nav-bottom">
-            <a href="#" id="btn-chat" title="Global Chat"><i class="fa-solid fa-comment-dots"></i></a>
+            <a href="#" class="nav-btn" data-target="search" title="Search"><i class="fa-solid fa-magnifying-glass"></i></a>
+            <a href="#" class="nav-btn active" data-target="home" title="Home"><i class="fa-solid fa-house"></i></a>
+            <a href="#" class="nav-btn" data-target="series" title="TV Shows"><i class="fa-solid fa-tv"></i></a>
+            <a href="#" class="nav-btn" data-target="movies" title="Movies"><i class="fa-solid fa-film"></i></a>
+            <a href="#" class="nav-btn" data-target="trending" title="New & Popular"><i class="fa-solid fa-fire"></i></a>
+            <a href="#" class="nav-btn" data-target="watchlist" title="My List"><i class="fa-solid fa-plus"></i></a>
+            <a href="#" class="nav-btn" data-target="random" title="Surprise Me"><i class="fa-solid fa-shuffle"></i></a>
         </div>
     </nav>
 
-    <main class="content">
-        <section id="hero" class="hero">
-            <div class="hero-overlay"></div>
-            <div class="hero-content">
-                <h1 id="hero-title"></h1>
-                <div class="hero-meta">
-                    <span id="hero-rating" class="rating"></span>
-                    <span id="hero-year"></span>
-                </div>
-                <p id="hero-desc"></p>
-                <div class="hero-actions">
-                    <button id="hero-play" class="btn-primary"><i class="fa-solid fa-play"></i> Play</button>
-                    <button id="hero-info" class="btn-secondary"><i class="fa-solid fa-circle-info"></i> More Info</button>
-                </div>
-            </div>
-        </section>
+    <!-- Search Overlay -->
+    <div id="search-overlay" class="search-overlay">
+        <div class="search-header">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="search-input" placeholder="Search movies, shows, genres...">
+            <button id="close-search"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="search-results" class="grid-layout"></div>
+    </div>
 
-        <div class="rows-container" id="main-rows"></div>
+    <!-- Main Content -->
+    <main class="content">
+        <div id="view-home" class="view active">
+            <section class="hero" id="home-hero">
+                <div class="hero-bg">
+                    <img id="hero-img" src="" alt="">
+                    <div id="hero-video-wrapper">
+                        <div id="hero-yt"></div>
+                    </div>
+                </div>
+                <div class="hero-vignette"></div>
+                <div class="hero-content">
+                    <div class="hero-brand"><i class="fa-solid fa-n"></i> SERIES</div>
+                    <h1 id="hero-title"></h1>
+                    <div class="hero-badge-row">
+                        <div class="top-10-badge">TOP<br>10</div>
+                        <span id="hero-rank-text">#1 in TV Shows Today</span>
+                    </div>
+                    <p id="hero-desc"></p>
+                    <div class="hero-actions">
+                        <button class="btn-play hero-play-btn"><i class="fa-solid fa-play"></i> Play</button>
+                        <button class="btn-info hero-info-btn"><i class="fa-solid fa-circle-info"></i> More info</button>
+                    </div>
+                </div>
+                <button id="hero-mute-btn" class="mute-btn"><i class="fa-solid fa-volume-xmark"></i></button>
+            </section>
+            <div class="rows-container" id="home-rows"></div>
+        </div>
+
+        <!-- Dynamic Views -->
+        <div id="view-series" class="view"><h1 class="page-title">TV Shows</h1><div class="grid-layout" id="series-grid"></div></div>
+        <div id="view-movies" class="view"><h1 class="page-title">Movies</h1><div class="grid-layout" id="movies-grid"></div></div>
+        <div id="view-trending" class="view"><h1 class="page-title">Trending Now</h1><div class="grid-layout" id="trending-grid"></div></div>
+        <div id="view-watchlist" class="view"><h1 class="page-title">My List</h1><div class="grid-layout" id="watchlist-grid"></div></div>
     </main>
 
+    <!-- Modal (Perfect Fullscreen Trailer) -->
     <div id="details-modal" class="modal">
         <div class="modal-content">
             <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
             <div class="modal-hero">
-                <div class="modal-hero-overlay"></div>
-                <iframe id="modal-trailer" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
                 <img id="modal-backdrop" src="" alt="">
-            </div>
-            <div class="modal-body">
-                <div class="modal-info-left">
+                <div id="modal-video-wrapper">
+                    <div id="modal-yt"></div>
+                </div>
+                <div class="modal-hero-fade"></div>
+                <button id="modal-mute-btn" class="mute-btn modal-mute"><i class="fa-solid fa-volume-xmark"></i></button>
+                <div class="modal-hero-content">
                     <h2 id="modal-title"></h2>
+                    <div class="modal-actions-row">
+                        <button id="modal-play" class="btn-play"><i class="fa-solid fa-play"></i> Play</button>
+                        <button id="modal-watch-later" class="btn-icon"><i class="fa-solid fa-plus"></i></button>
+                        <button id="modal-like" class="btn-icon"><i class="fa-regular fa-thumbs-up"></i></button>
+                        <button id="modal-dislike" class="btn-icon"><i class="fa-regular fa-thumbs-down"></i></button>
+                        <span id="like-count" class="like-counter">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-body">
+                <div class="modal-left">
                     <div class="modal-meta">
-                        <span id="modal-rating" class="rating"></span>
-                        <span id="modal-runtime"></span>
+                        <span class="match-score">98% Match</span>
                         <span id="modal-date"></span>
+                        <span id="modal-runtime" class="rating-box"></span>
+                        <span class="hd-box">HD</span>
                     </div>
                     <p id="modal-desc"></p>
-                    <div class="modal-actions-row">
-                        <button id="modal-play" class="btn-primary"><i class="fa-solid fa-play"></i> Play</button>
-                        <button id="modal-watch-later" class="btn-icon"><i class="fa-solid fa-plus"></i></button>
-                        <button id="modal-like" class="btn-icon"><i class="fa-solid fa-thumbs-up"></i></button>
-                        <span id="like-count" class="count-display">0</span>
-                        <button id="modal-dislike" class="btn-icon"><i class="fa-solid fa-thumbs-down"></i></button>
-                    </div>
-                    <div id="series-selector" class="hidden">
-                        <select id="season-select"></select>
-                        <div id="episodes-list" class="episodes-container"></div>
-                    </div>
                 </div>
-                <div class="modal-info-right">
-                    <div class="cast-section">
-                        <h3>Cast</h3>
-                        <div id="modal-cast" class="cast-list"></div>
-                    </div>
+                <div class="modal-right">
+                    <span class="cast-label">Cast</span>
+                    <div id="modal-cast" class="cast-list"></div>
                 </div>
             </div>
+
+            <!-- Series / Seasons -->
+            <div id="series-selector" class="series-section hidden">
+                <div class="season-header">
+                    <h3 class="section-title">Episodes</h3>
+                    <select id="season-select" class="premium-select"></select>
+                </div>
+                <div id="episodes-list" class="episodes-list"></div>
+            </div>
+
+            <!-- Reliable Comments System -->
             <div class="comments-section">
-                <h3>Discussion</h3>
+                <h3 class="section-title">Community Comments</h3>
                 <div class="comment-input">
-                    <input type="text" id="new-comment" placeholder="What did you think?">
+                    <input type="text" id="new-comment" placeholder="Add a public comment...">
                     <button id="post-comment"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
                 <div id="comments-list"></div>
@@ -95,22 +143,20 @@
         </div>
     </div>
 
+    <!-- Premium Web Player -->
     <div id="player-overlay" class="player-overlay">
-        <button id="close-player"><i class="fa-solid fa-arrow-left"></i> Back</button>
-        <button id="mark-finished" class="btn-secondary" style="position: absolute; top: 20px; right: 20px; z-index: 9999;"><i class="fa-solid fa-check"></i> Mark Finished</button>
+        <div class="player-header">
+            <button id="close-player"><i class="fa-solid fa-arrow-left"></i></button>
+            <h2 id="player-title">Now Playing</h2>
+            <div class="player-controls">
+                <div class="server-dropdown">
+                    <i class="fa-solid fa-server"></i>
+                    <select id="server-select" class="premium-select"></select>
+                </div>
+                <button id="mark-finished" class="btn-info"><i class="fa-solid fa-check"></i> Mark Finished</button>
+            </div>
+        </div>
         <iframe id="video-frame" src="" frameborder="0" allowfullscreen></iframe>
-    </div>
-
-    <div id="chat-panel" class="chat-panel">
-        <div class="chat-header">
-            <h3>CINEHUB</h3>
-            <button id="close-chat"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div id="chat-messages" class="chat-messages"></div>
-        <div class="chat-input-area">
-            <input type="text" id="chat-input" placeholder="Type a message...">
-            <button id="send-chat"><i class="fa-solid fa-paper-plane"></i></button>
-        </div>
     </div>
 
     <script src="script.js"></script>
