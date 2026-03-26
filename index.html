@@ -1,146 +1,349 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="no-referrer">
-    <title>Cine-Hub</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cine-OS V2</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div id="enter-gate">
-        <div class="gate-content">
-            <h1>CINE-HUB</h1>
-            <button id="btn-enter">Click to Enter</button>
-        </div>
+
+<body id="desktop-area">
+
+<div id="mobile-warning">
+  <div class="mobile-box">
+    <i class="fas fa-exclamation-triangle"></i>
+    <h2>Device is not fully supported</h2>
+    <p>Double tap anywhere to continue</p>
+  </div>
+</div>
+
+<div id="top-trigger"></div>
+<div id="bottom-trigger"></div>
+
+<div id="boot-layer">
+  <div id="boot-content">
+    <div class="boot-logo">CINE-OS</div>
+    <div class="boot-sub">Cine-Hub Softwares // V2</div>
+    <button id="boot-btn" onclick="startBootSequence()">Enter CINE</button>
+    <div style="margin-top:20px; font-size:0.8rem; color:#555;">Double-Tap ENTER to skip sequence</div>
+  </div>
+  <video id="boot-video" playsinline><source src="Videos/Boot.mp4" type="video/mp4"></video>
+</div>
+
+<div id="lock-screen" onclick="unlockSystem()">
+  <video id="lock-video" autoplay loop muted playsinline></video>
+  <img id="lock-img" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1;">
+  
+  <div id="lock-ui">
+    <div class="lock-line"></div>
+    <div class="lock-content">
+      <div class="l-greet" id="lock-greet">GOOD AFTERNOON</div>
+      <img class="l-day-img" id="lock-day-img" src="" alt="Day">
+      <div class="l-date" id="lock-date">03 MARCH</div>
+      <div class="l-time" id="lock-time">04:48 PM</div>
+    </div>
+  </div>
+</div>
+
+<video id="bg-video" loop muted playsinline></video>
+<img id="bg-img" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;">
+<canvas id="snow-fx"></canvas>
+
+<div id="hud-top">
+  <img class="hud-day-img" id="lbl-day-img" src="" alt="Day">
+</div>
+
+<div id="right-sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-title">Jump Back In!</div>
+    <div class="sidebar-card" id="last-played-game" onclick="launchLastPlayed()">
+      <img id="last-game-icon" src="https://cdn-icons-png.flaticon.com/512/732/732244.png" alt="Game">
+      <div class="sidebar-info">
+        <div id="last-game-name">No Recent Game</div>
+        <small>PS5 Emu</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-title">Quick Play</div>
+    <div class="sidebar-card" id="spotify-quick-play" onclick="resumeSpotify()">
+      <img id="spotify-album-art" src="https://cdn.pixabay.com/photo/2016/10/22/00/15/spotify-1759471_1280.jpg" alt="Album">
+      <div class="sidebar-info">
+        <div id="spotify-track-name">Not Playing</div>
+        <small>Spotify</small>
+      </div>
+      <i class="fas fa-play play-overlay"></i>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-title">System Status</div>
+    <div class="sidebar-card update-card" onclick="openUpdateLog()">
+      <div class="sidebar-info">
+        <div style="font-weight: bold; color: #fff;">Update Log</div>
+        <small>View latest patches</small>
+      </div>
+      <i class="fas fa-chevron-right" style="color:#888;"></i>
+    </div>
+  </div>
+</div>
+
+<div id="drag-proxy">
+  <div id="folder-badge" style="display:none;">2</div>
+  <img id="proxy-img" src="">
+</div>
+
+<div id="dock-container"></div>
+<div id="windows-layer"></div>
+
+<div id="wallpaper-menu">
+  <div class="wp-modal-header">
+    <h2>WALLPAPER PROTOCOLS</h2>
+    <i class="fas fa-times" style="cursor:pointer; font-size: 1.5rem; color:#fff;" onclick="document.getElementById('wallpaper-menu').classList.remove('open')"></i>
+  </div>
+  
+  <div class="wp-controls-row">
+    <div class="segmented-control">
+      <label><input type="radio" name="wpmd" value="both" checked onclick="window.wpMode='both'"><span>Both</span></label>
+      <label><input type="radio" name="wpmd" value="home" onclick="window.wpMode='home'"><span>Homescreen</span></label>
+      <label><input type="radio" name="wpmd" value="lock" onclick="window.wpMode='lock'"><span>Lockscreen</span></label>
     </div>
     
-    <div id="intro-screen">
-        <video id="intro-video" playsinline>
-            <source src="Netflix.mp4" type="video/mp4">
-        </video>
+    <div class="loop-toggle-container">
+      <span class="loop-label">Loop Wallpaper</span>
+      <label class="switch wp-loop-switch">
+        <input type="checkbox" id="wp-loop-chk">
+        <span class="slider"></span>
+      </label>
     </div>
+  </div>
 
-    <nav class="sidebar">
-        <div class="brand-logo">C</div>
-        <div class="nav-links">
-            <a href="#" class="nav-btn" data-target="search" title="Search"><i class="fa-solid fa-magnifying-glass"></i></a>
-            <a href="#" class="nav-btn active" data-target="home" title="Home"><i class="fa-solid fa-house"></i></a>
-            <a href="#" class="nav-btn" data-target="series" title="TV Shows"><i class="fa-solid fa-tv"></i></a>
-            <a href="#" class="nav-btn" data-target="movies" title="Movies"><i class="fa-solid fa-film"></i></a>
-            <a href="#" class="nav-btn" data-target="trending" title="New & Popular"><i class="fa-solid fa-fire"></i></a>
-            <a href="#" class="nav-btn" data-target="watchlist" title="My List"><i class="fa-solid fa-plus"></i></a>
-            <a href="#" class="nav-btn" data-target="random" title="Surprise Me"><i class="fa-solid fa-shuffle"></i></a>
-        </div>
-    </nav>
+  <div class="wp-grid-container">
+    <div id="wp-grid-unlocked" class="wp-grid"></div>
+    <h3 class="wp-section-title">Encrypted</h3>
+    <div id="wp-grid-locked" class="wp-grid"></div>
+  </div>
+</div>
 
-    <div id="search-overlay" class="search-overlay">
-        <div class="search-header">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="search-input" placeholder="Search movies, shows, genres...">
-            <button id="close-search"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div id="search-results" class="grid-layout"></div>
+<div id="start-menu" class="os-menu">
+  <div class="start-search-bar">
+    <i class="fas fa-search" style="color:#888"></i>
+    <input type="text" id="start-search-input" placeholder="Type secret code to unlock papers..." style="background:transparent; border:none; color:white; width:100%; outline:none;">
+  </div>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+    <h3 style="font-size:15px; color:#fff;">Pinned</h3>
+  </div>
+  <div class="pinned-grid" id="pinned-grid"></div>
+  <div class="start-footer">
+    <div class="user-profile"><div class="user-avatar"><i class="fas fa-user" style="color:#aaa"></i></div><span style="font-size:12px;color:#ddd;">Administrator</span></div>
+    <i class="fas fa-power-off" style="cursor:pointer; color:#fff; font-size:18px;" onclick="location.reload()"></i>
+  </div>
+</div>
+
+<div id="app-drawer" onclick="if(event.target.id==='app-drawer')toggleAppDrawer()">
+  <div class="start-search-bar" style="max-width:600px; margin:0 auto 40px auto; background:#1a1a1a; border:1px solid #333;">
+    <i class="fas fa-search" style="color:#888"></i>
+    <input type="text" placeholder="Search apps..." style="background:transparent; border:none; color:white; width:100%; outline:none;" onkeyup="filterDrawer(this.value)">
+  </div>
+  <div class="drawer-grid" id="drawer-grid"></div>
+</div>
+
+<div id="app-context-menu" class="os-context-menu"></div>
+<div id="desktop-context-menu" class="os-context-menu">
+  <div class="ctx-item" onclick="openWallpaperMenu(); document.getElementById('desktop-context-menu').style.display='none';"><i class="fas fa-image fa-fw"></i> Change Wallpaper</div>
+  <div class="ctx-separator"></div>
+  <div class="ctx-row">
+    <button class="ctx-btn" onclick="toggleDesktopSize(true)" title="Large Icons (Hide Names)"><i class="fas fa-expand-arrows-alt"></i></button>
+    <button class="ctx-btn" onclick="toggleDesktopSize(false)" title="Default Size"><i class="fas fa-compress-arrows-alt"></i></button>
+  </div>
+  <div class="ctx-separator"></div>
+  <div class="ctx-item" onclick="location.reload()"><i class="fas fa-sync fa-fw"></i> Refresh System</div>
+</div>
+
+<div id="toast-container"></div>
+
+<div id="ciri-backdrop" onclick="closeCiri()"></div>
+<div id="ciri-window">
+  <div id="ciri-boot-screen">
+    <div id="boot-ciri-text" class="boot-ciri">CIRI.</div>
+    <div id="boot-sub-text" class="boot-sub">Cine-Hub SOFTWARES</div>
+    <div id="boot-loader" class="boot-loader">
+      <div id="boot-spinner" class="spinner"></div>
+      <div id="boot-status-text" class="boot-status">Connecting To Gemini...</div>
+      <div class="boot-warning">If network restricts Gemini, This webOS needs to be launched through a proxy giving up LIVE mode.</div>
     </div>
+  </div>
 
-    <main class="content">
-        <div id="view-home" class="view active">
-            <section class="hero" id="home-hero">
-                <div class="hero-bg">
-                    <img id="hero-img" src="" alt="">
-                </div>
-                <div class="hero-vignette"></div>
-                <div class="hero-content">
-                    <div class="hero-brand"><i class="fa-solid fa-n"></i> SERIES</div>
-                    <h1 id="hero-title"></h1>
-                    <div class="hero-badge-row">
-                        <div class="top-10-badge">TOP<br>10</div>
-                        <span id="hero-rank-text">#1 in TV Shows Today</span>
-                    </div>
-                    <p id="hero-desc"></p>
-                    <div class="hero-actions">
-                        <button class="btn-play hero-play-btn"><i class="fa-solid fa-play"></i> Play</button>
-                        <button class="btn-info hero-info-btn"><i class="fa-solid fa-circle-info"></i> More info</button>
-                        <button class="btn-icon hero-dl-btn" title="Download"><i class="fa-solid fa-download"></i></button>
-                    </div>
-                </div>
-            </section>
-            <div class="rows-container" id="home-rows"></div>
-        </div>
+  <div id="status-pill">
+    <span>CIRI</span>
+    <div id="status-icon" class="status-icon"></div>
+    <span id="status-text"></span>
+  </div>
+  <div id="chat-history"></div>
 
-        <div id="view-series" class="view"><h1 class="page-title">TV Shows</h1><div class="grid-layout" id="series-grid"></div></div>
-        <div id="view-movies" class="view"><h1 class="page-title">Movies</h1><div class="grid-layout" id="movies-grid"></div></div>
-        <div id="view-trending" class="view"><h1 class="page-title">Trending Now</h1><div class="grid-layout" id="trending-grid"></div></div>
-        <div id="view-watchlist" class="view"><h1 class="page-title">My List</h1><div class="grid-layout" id="watchlist-grid"></div></div>
-    </main>
-
-    <div id="details-modal" class="modal">
-        <div class="modal-content">
-            <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
-            <div class="modal-hero">
-                <img id="modal-backdrop" src="" alt="">
-                <div class="modal-hero-fade"></div>
-                <div class="modal-hero-content">
-                    <h2 id="modal-title"></h2>
-                    <div class="modal-actions-row">
-                        <button id="modal-play" class="btn-play"><i class="fa-solid fa-play"></i> Play</button>
-                        <button id="modal-download" class="btn-icon" title="Download"><i class="fa-solid fa-download"></i></button>
-                        <button id="modal-watch-later" class="btn-icon" title="Add to List"><i class="fa-solid fa-plus"></i></button>
-                        <button id="modal-like" class="btn-icon"><i class="fa-regular fa-thumbs-up"></i></button>
-                        <button id="modal-dislike" class="btn-icon"><i class="fa-regular fa-thumbs-down"></i></button>
-                        <span id="like-count" class="like-counter">0</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="modal-body">
-                <div class="modal-left">
-                    <div class="modal-meta">
-                        <span class="match-score">98% Match</span>
-                        <span id="modal-date"></span>
-                        <span id="modal-runtime" class="rating-box"></span>
-                        <span class="hd-box">HD</span>
-                    </div>
-                    <p id="modal-desc"></p>
-                </div>
-                <div class="modal-right">
-                    <span class="cast-label">Cast</span>
-                    <div id="modal-cast" class="cast-list"></div>
-                </div>
-            </div>
-
-            <div id="series-selector" class="series-section hidden">
-                <div class="season-header">
-                    <h3 class="section-title">Episodes</h3>
-                    <select id="season-select" class="premium-select"></select>
-                </div>
-                <div id="episodes-list" class="episodes-list"></div>
-            </div>
-
-            <div class="comments-section">
-                <h3 class="section-title">Community Comments</h3>
-                <div class="comment-input">
-                    <input type="text" id="new-comment" placeholder="Add a public comment...">
-                    <button id="post-comment"><i class="fa-solid fa-paper-plane"></i></button>
-                </div>
-                <div id="comments-list"></div>
-            </div>
-        </div>
+  <div id="bottom-wrapper">
+    <div id="img-preview-box">
+      <img id="img-preview" src="" alt="preview">
+      <span onclick="clearImage()">✕</span>
     </div>
+    <input type="file" id="file-upload" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
+    <button class="icon-btn" onclick="document.getElementById('file-upload').click()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+    </button>
+    <textarea id="chat-input" placeholder="Message Ciri..." rows="1" oninput="autoGrow(this)"></textarea>
+    <div id="mode-toggle" onclick="cycleMode()">FAST</div>
+    <div id="action-orb" onclick="handleSend()"></div>
+  </div>
+</div>
+<video id="screen-video" autoplay playsinline style="display:none;"></video>
+<canvas id="screen-canvas" style="display:none;"></canvas>
 
-    <div id="player-overlay" class="player-overlay">
-        <div class="player-header">
-            <button id="close-player"><i class="fa-solid fa-arrow-left"></i></button>
-            <h2 id="player-title">Now Playing</h2>
-            <div class="player-controls">
-                <button id="mark-finished" class="btn-info"><i class="fa-solid fa-check"></i> Mark Finished</button>
-            </div>
-        </div>
-        <iframe id="video-frame" src="" frameborder="0" allowfullscreen></iframe>
+<button id="restore-btn" title="Restore Player">
+  <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+</button>
+<div id="cine-noti">
+  <div class="window-actions">
+    <button class="action-btn" id="minimize-noti-btn" title="Minimize">
+      <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </button>
+    <button class="action-btn" id="close-noti-btn" title="Close">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+  </div>
+  <div class="player-main">
+    <img class="album-art" id="noti-album-art" src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=200&auto=format&fit=crop" alt="Album Art">
+    <div class="track-info">
+      <div class="title" id="noti-title">System Audio</div>
+      <div class="artist" id="noti-artist">Now Playing</div>
+      <canvas id="visualizer"></canvas>
     </div>
+  </div>
+  <div class="time-wrapper">
+    <span id="current-time">0:00</span>
+    <div class="progress-hit-area" id="progress-hit-area">
+      <div class="progress-bg">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+    <span id="total-time">LIVE</span>
+  </div>
+  <div class="controls">
+    <button class="ctrl-btn" id="skip-back" title="Back 15s">
+      <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.85 8 12.5 8z"/></svg>
+    </button>
+    <button class="ctrl-btn play-pause-btn" id="play-pause">
+      <svg id="icon-play" viewBox="0 0 24 24" style="width:16px; height:16px; margin-left:2px; display:none;"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="icon-pause" viewBox="0 0 24 24" style="width:16px; height:16px;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+    </button>
+    <button class="ctrl-btn" id="skip-forward" title="Skip 15s">
+      <svg viewBox="0 0 24 24"><path d="M11.5 8c-4.35 0-7.98 2.9-9.98 7.22l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6c-1.84-1.61-4.24-2.6-6.9-2.6z"/></svg>
+    </button>
+  </div>
+</div>
 
-    <script src="script.js"></script>
+<div id="update-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:999999; align-items:center; justify-content:center; backdrop-filter:blur(10px);">
+  <div style="background:#111; border:1px solid #333; border-radius:16px; padding:30px; width:400px; max-width:90%;">
+    <h2 style="margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px; font-family:'Orbitron';">UPDATE LOG v3.0</h2>
+    <ul style="color:#ccc; font-size:14px; margin-left:20px; line-height:1.8; margin-bottom:20px;">
+      <li>Added Right Sidebar for quick game & music access.</li>
+      <li>Dynamic image-based lock screen days.</li>
+      <li>Smooth slide-out lock screen animations.</li>
+      <li>Fixed desktop folder expansion physics.</li>
+      <li>Wallpaper engine now fully supports PNG, MOV, and MP4.</li>
+    </ul>
+    <button style="width:100%; padding:12px; background:#fff; color:#000; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="document.getElementById('update-modal').style.display='none'">Dismiss</button>
+  </div>
+</div>
+
+<template id="code-settings">
+  <div id="faq-modal">
+    <div class="faq-box">
+      <div class="faq-header">
+        <h2 style="margin:0; border:none; padding:0; color:#fff;">SYSTEM FAQ</h2>
+        <i class="fas fa-times" style="font-size:1.5rem; color:#888; cursor:pointer;" onclick="toggleFaq()"></i>
+      </div>
+      <div class="faq-item">
+        <h3 style="color:#fff;">MOVIE NOT WORKING!</h3>
+        <p style="color:#aaa;">If the movies do not work for you, open the Browser app, click on Ultraviolet, and search for anything. This will fix the issue. Go back to Movies and they should play!</p>
+      </div>
+      <div class="faq-item">
+        <h3 style="color:#fff;">TOO MANY GAMES</h3>
+        <p style="color:#aaa;">If you downloaded too many games and want to start fresh, open a new tab in your normal browser, press Ctrl + H, and clear your cache. This resets your saved data so you can start over.</p>
+      </div>
+    </div>
+  </div>
+  
+  <h2 style="color:#fff; border-bottom:2px solid #333; padding-bottom:10px;">SYSTEM CONFIG</h2>
+  <div class="cat" style="color:#fff;"><i class="fas fa-microchip"></i> PERFORMANCE</div>
+  <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
+    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
+      <i class="fas fa-film setting-icon" style="color:#888; font-size:1.5rem;"></i>
+      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Optimized Background</span><small style="display:block; color:#888;">Disables video background to save resources</small></div>
+    </div>
+    <label class="switch"><input type="checkbox" id="chk-bg" onchange="window.parent.updateSysSetting('optBg',this.checked)"><span class="slider"></span></label>
+  </div>
+  <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
+    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
+      <i class="fas fa-bolt setting-icon" style="color:#888; font-size:1.5rem;"></i>
+      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Fast Boot</span><small style="display:block; color:#888;">Skips the startup sequence</small></div>
+    </div>
+    <label class="switch"><input type="checkbox" id="chk-boot" onchange="window.parent.updateSysSetting('shortBoot',this.checked)"><span class="slider"></span></label>
+  </div>
+  <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
+    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
+      <i class="fas fa-lock setting-icon" style="color:#888; font-size:1.5rem;"></i>
+      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Idle Lock Screen</span><small style="display:block; color:#888;">Locks system when away for 3 minutes</small></div>
+    </div>
+    <label class="switch"><input type="checkbox" id="chk-idle" onchange="window.parent.updateSysSetting('idleLock',this.checked)"><span class="slider"></span></label>
+  </div>
+  <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
+    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
+      <i class="fas fa-shield-alt setting-icon" style="color:#888; font-size:1.5rem;"></i>
+      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Redirect Confirmation</span><small style="display:block; color:#888;">Helps protect against GoGuardian</small></div>
+    </div>
+    <label class="switch"><input type="checkbox" id="chk-redir" onchange="window.parent.updateSysSetting('redirectConfirm',this.checked)"><span class="slider"></span></label>
+  </div>
+
+  <div class="cat" style="color:#fff; margin-top:20px;"><i class="fas fa-user-secret"></i> CLOAKING & STEALTH</div>
+  <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
+    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
+      <i class="fas fa-mask setting-icon" style="color:#888; font-size:1.5rem;"></i>
+      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Tab Cloak</span><small style="display:block; color:#888;">Disguises the OS tab name and icon</small></div>
+    </div>
+    <select class="select-input" id="cloak-select" onchange="window.parent.updateCloak(this.value)" style="background:#111; color:#fff; border:1px solid #333; padding:5px; border-radius:5px;">
+      <option value="none">None (Cine-OS)</option><option value="google">Google</option>
+      <option value="drive">Google Drive</option><option value="canvas">Canvas</option>
+      <option value="classroom">Google Classroom</option>
+    </select>
+  </div>
+
+  <div class="cat" style="color:#fff; margin-top:20px;"><i class="fas fa-keyboard"></i> SHORTCUTS & LINKS</div>
+  <div class="setting-card" style="background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
+    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
+      <i class="fas fa-exclamation-triangle setting-icon" style="color:#fff; font-size:1.5rem;"></i>
+      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Panic Key</span><small style="display:block; color:#888;">Quick close tab key</small></div>
+    </div>
+    <input type="text" id="panic-input" maxlength="1" style="width:40px;height:30px;color:#fff;background:#222;border:1px solid #555;text-align:center;font-size:1.2rem;font-weight:bold;outline:none;border-radius:4px;" onkeyup="window.parent.updateSysSetting('panicKey',this.value)">
+  </div>
+  <div class="setting-card" style="cursor:pointer; background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px;" onclick="window.open('https://discord.gg/bQCRJgtC74','_blank')">
+    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
+      <i class="fab fa-discord setting-icon" style="color:#fff; font-size:1.5rem;"></i>
+      <div class="setting-text"><span style="color:#fff; font-weight:bold;">Join Discord</span><small style="display:block; color:#888;">Official Community Hub</small></div>
+    </div>
+  </div>
+  <div class="setting-card" style="cursor:pointer; background:#1a1a1a; border:1px solid #333; padding:15px; border-radius:10px; margin-bottom:10px;" onclick="toggleFaq()">
+    <div class="setting-info" style="display:flex; gap:15px; align-items:center;">
+      <i class="fas fa-question-circle setting-icon" style="color:#fff; font-size:1.5rem;"></i>
+      <div class="setting-text"><span style="color:#fff; font-weight:bold;">System FAQ</span><small style="display:block; color:#888;">Troubleshooting & Help</small></div>
+    </div>
+  </div>
+</template>
+
+<script src="script.js"></script>
 </body>
 </html>
