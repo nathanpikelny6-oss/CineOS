@@ -144,10 +144,113 @@ window.onbeforeunload = function(e) {
 document.addEventListener("DOMContentLoaded", function() {
     applyCloak();
     loadDynamicResources();
-    document.getElementById('boot-layer').style.display = 'flex';
+    initPreBootSequence();
     loadDesktop();
     updateSidebarData();
 });
+
+function initPreBootSequence() {
+    var pbLayer = document.getElementById('pre-boot-layer');
+    if (isMobile) {
+        pbLayer.style.display = 'none';
+        document.getElementById('boot-layer').style.display = 'flex';
+        return;
+    }
+
+    var crWrap = document.getElementById('credits-roll');
+    var skipUi = document.getElementById('skip-ui');
+    var skipFill = document.getElementById('skip-fill');
+    var cFog = document.querySelector('.cr-fog');
+    var pIframe = document.getElementById('proxy-iframe');
+    var pBg = document.getElementById('proxy-bg');
+    var pShield = document.getElementById('proxy-shield');
+    
+    var rv = 0, sk = 0, sq = [], tm, hd = 0;
+    var sc = ['ArrowUp', 'ArrowDown', 'ArrowUp', 'ArrowDown'];
+
+    window.focus();
+    pShield.addEventListener('click', function() { window.focus(); });
+
+    var keydownHandler = function(e) {
+        if (rv) return;
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            sq.push(e.key);
+            sq = sq.slice(-4);
+            if (sq.join('') === sc.join('')) {
+                rv = 1;
+                if (localStorage.getItem('cine_cs_skip')) finishPreBoot();
+                else startCredits();
+            }
+        } else {
+            sq = [];
+        }
+    };
+
+    function startCredits() {
+        pIframe.style.opacity = '0';
+        setTimeout(function(){ pIframe.style.display = 'none'; }, 1000);
+        pBg.style.opacity = '1';
+        cFog.style.opacity = '1';
+        crWrap.style.opacity = '1';
+        setTimeout(function() {
+            crWrap.style.animationPlayState = 'running';
+            skipUi.classList.add('active');
+        }, 1000);
+        
+        setTimeout(finishPreBoot, 14500);
+    }
+
+    var skipDownHandler = function(e) {
+        if (e.key === 'Enter' && rv && !sk && !hd && !localStorage.getItem('cine_cs_skip')) {
+            hd = 1;
+            skipFill.style.transition = 'width 1500ms linear';
+            skipFill.style.width = '100%';
+            tm = setTimeout(finishPreBoot, 1500);
+        }
+    };
+
+    var skipUpHandler = function(e) {
+        if (e.key === 'Enter' && rv && !sk) {
+            hd = 0;
+            clearTimeout(tm);
+            skipFill.style.transition = 'none';
+            skipFill.style.width = '0%';
+        }
+    };
+
+    window.addEventListener('keydown', keydownHandler);
+    window.addEventListener('keydown', skipDownHandler);
+    window.addEventListener('keyup', skipUpHandler);
+
+    function finishPreBoot() {
+        if (sk) return;
+        sk = 1;
+        crWrap.style.opacity = '0';
+        skipUi.style.opacity = '0';
+        cFog.style.opacity = '0';
+        pBg.style.opacity = '0';
+        pShield.style.display = 'none'; 
+        
+        localStorage.setItem('cine_cs_skip', '1');
+        
+        window.removeEventListener('keydown', keydownHandler);
+        window.removeEventListener('keydown', skipDownHandler);
+        window.removeEventListener('keyup', skipUpHandler);
+
+        setTimeout(function() {
+            pbLayer.style.opacity = '0';
+            setTimeout(function() {
+                pbLayer.remove(); 
+                document.getElementById('boot-layer').style.display = 'flex';
+                var bootVid = document.getElementById('boot-video');
+                if(bootVid && sysConfig.shortBoot) {
+                    bootVid.src = "Videos/QuickBoot.mp4";
+                    bootVid.load();
+                }
+            }, 1200);
+        }, 500);
+    }
+}
 
 function renderUI() {
     var dock = document.getElementById('dock-container');
@@ -1363,13 +1466,47 @@ function drawFakeVisualizer() {
     var barWidth = (cvs.width / buffLen) * 2;
     var xPosition = 0;
     
-    for (var i = 0; i < buffLen; i++) {
-        var barHeight = activeMedia && !activeMedia.paused ? (Math.random() * cvs.height) : 2;
-        ctx.fillStyle = "#fff";
-        ctx.beginPath();
-        ctx.roundRect(xPosition, cvs.height - barHeight, barWidth - 1.5, barHeight, 2);
-        ctx.fill();
-        xPosition += barWidth;
+   for (var i = 0; i < buffLen; i++) {
+            var barHeight = activeMedia && !activeMedia.paused ? (Math.random() * cvs.height) : 2;
+            ctx.fillStyle = "#fff";
+            ctx.beginPath();
+            ctx.roundRect(xPosition, cvs.height - barHeight, barWidth - 1.5, barHeight, 2);
+            ctx.fill();
+            xPosition += barWidth;
+        }
     }
-}
 drawFakeVisualizer();
+
+var fpsLastTime = performance.now();
+var fpsFrames = 0;
+var fpsLowCount = 0;
+
+function measureSystemFPS() {
+    var now = performance.now();
+    fpsFrames++;
+    if (now - fpsLastTime >= 1000) {
+        var currentFps = fpsFrames;
+        var fpsVal = document.getElementById('fps-val');
+        if (fpsVal) fpsVal.innerText = currentFps;
+
+        if (currentFps <= 20) {
+            fpsLowCount++;
+            if (fpsLowCount >= 5 && !sysConfig.optBg) {
+                sysConfig.optBg = true;
+                localStorage.setItem('cine_sys_config', JSON.stringify(sysConfig));
+                var bgV = document.getElementById('bg-video');
+                var lV = document.getElementById('lock-video');
+                if (bgV) bgV.pause();
+                if (lV) lV.pause();
+                showNotification("System Optimized", "Low FPS detected. Backgrounds paused.");
+            }
+        } else {
+            fpsLowCount = 0;
+        }
+        
+        fpsFrames = 0;
+        fpsLastTime = now;
+    }
+    requestAnimationFrame(measureSystemFPS);
+}
+requestAnimationFrame(measureSystemFPS); 
