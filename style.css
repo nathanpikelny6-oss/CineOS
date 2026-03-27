@@ -79,6 +79,27 @@ body {
 .mobile-box h2 { font-family: var(--font-header); font-size: 1.2rem; color: #fff; margin-bottom: 10px; }
 .mobile-box p { color: #888; font-size: 1rem; font-weight: 600; }
 
+#pre-boot-layer { position: fixed; inset: 0; z-index: 999999; background: #000; display: flex; justify-content: center; overflow: hidden; transition: opacity 1.2s, visibility 1.2s; color: #fff; }
+#proxy-iframe { width: 100%; height: 100%; border: none; position: absolute; z-index: 20; transition: opacity 1s; }
+#proxy-shield { position: absolute; inset: 0; z-index: 25; background: rgba(0,0,0,0.01); cursor: default; }
+#proxy-bg { position: absolute; inset: 0; z-index: 1; background: linear-gradient(-45deg, #111, #222, #0a0a0a, #1a1a1a); background-size: 400% 400%; animation: prebg 15s ease infinite; opacity: 0; transition: opacity 1s; }
+@keyframes prebg { 0% { background-position: 0% 50% } 50% { background-position: 100% 50% } 100% { background-position: 0% 50% } }
+.cr-fog { position: absolute; inset: 0; background: linear-gradient(to bottom, #000 0%, transparent 20%, transparent 80%, #000 100%); pointer-events: none; z-index: 10; opacity: 0; transition: opacity 1s; }
+.cr-wrap { position: absolute; top: 100%; width: 100%; max-width: 800px; text-align: center; display: flex; flex-direction: column; gap: 5.5rem; padding-bottom: 50vh; z-index: 15; animation: cr-scroll 14s linear forwards; animation-play-state: paused; opacity: 0; transition: opacity 1s; }
+@keyframes cr-scroll { 0% { transform: translateY(0) } 100% { transform: translateY(-150%) } }
+.cr-box { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+.cr-role { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.4em; color: #888; font-weight: 300; border-bottom: 1px solid #333; padding-bottom: 0.5rem; font-family: 'Rajdhani', sans-serif; }
+.cr-name { font-size: 2.8rem; font-weight: 600; letter-spacing: 0.05em; font-family: 'Azonix', sans-serif; }
+.cr-sub { font-size: 1.8rem; font-style: italic; font-weight: 300; color: #ccc; letter-spacing: 0.05em; font-family: 'Rajdhani', sans-serif; }
+.skip-ui { position: absolute; bottom: 20px; right: 20px; display: flex; align-items: center; gap: 10px; background: rgba(20,20,20,0.8); padding: 8px 12px; border-radius: 6px; border: 1px solid #333; z-index: 60; opacity: 0; visibility: hidden; transition: opacity 1s; }
+.skip-ui.active { opacity: 1; visibility: visible; }
+.skip-icon { width: 16px; height: 16px; fill: #fff; }
+.skip-text { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; display: flex; flex-direction: column; gap: 4px; font-family: 'Rajdhani', sans-serif; }
+.skip-bar { width: 100%; height: 3px; background: #333; border-radius: 2px; overflow: hidden; }
+.skip-fill { width: 0%; height: 100%; background: #fff; }
+
+#fps-counter { position: fixed; bottom: 24px; left: 24px; background: #111; border: 1px solid #333; padding: 6px 12px; border-radius: 8px; font-family: var(--font-main); font-size: 12px; font-weight: bold; color: #fff; z-index: 99999; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.9); }
+
 #boot-layer {
     position: fixed;
     inset: 0;
