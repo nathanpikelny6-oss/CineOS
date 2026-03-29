@@ -1,13 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viewer</title>
     <style>
-        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: #000; }
-        iframe { width: 100%; height: 100%; border: none; }
+        * {
+            box-sizing: border-box;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background: #000000;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #050505;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            z-index: 100;
+        }
+        .modal {
+            background: #0f0f0f;
+            border: 1px solid #222222;
+            border-radius: 8px;
+            padding: 32px;
+            max-width: 440px;
+            width: 100%;
+        }
+        .title {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 500;
+            margin: 0 0 16px 0;
+            letter-spacing: 0.5px;
+        }
+        .message {
+            color: #999999;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0 0 28px 0;
+        }
+        .btn {
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s ease;
+        }
+        .btn:hover {
+            background: #e0e0e0;
+        }
+        #frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <iframe src="https://cine-browser-2.b-cdn.net/embed.html?url=https://cineby.gd" allowfullscreen></iframe>
+    <div id="overlay">
+        <div class="modal">
+            <h1 class="title">Attention!</h1>
+            <p class="message">According to a fair vote in my server I was forced to release v2. Meaning some areas like this won’t be finished. The movies no matter what will not work, even if launched another site through our proxy it will not work. Meaning fixes may come in further updates or v3!</p>
+            <button class="btn" id="btn">Understand</button>
+        </div>
+    </div>
+
+    <iframe id="frame" src="https://cine-browser-2.b-cdn.net/embed.html?url=https://cinehublite.netlify.app" allowfullscreen></iframe>
+
+    <script>
+        const btn = document.getElementById('btn');
+        const overlay = document.getElementById('overlay');
+        const frame = document.getElementById('frame');
+
+        btn.addEventListener('click', () => {
+            overlay.style.display = 'none';
+            frame.style.display = 'block';
+        });
+    </script>
 </body>
 </html>
