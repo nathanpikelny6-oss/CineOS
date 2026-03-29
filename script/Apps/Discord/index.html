@@ -3,190 +3,287 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invite</title>
+    <title>Discord Invite</title>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            background-color: #000000;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #313338;
+            font-family: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #ffffff;
+            color: #dbdee1;
         }
-        .card {
-            background-color: #0c0c0c;
-            border: 1px solid #222222;
-            border-radius: 8px;
+        .message-container {
             display: flex;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-        }
-        .invite-part {
+            width: 100%;
+            max-width: 650px;
             padding: 16px;
-            width: 432px;
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+            background-color: #313338;
         }
-        .header {
-            color: #888888;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-bottom: 12px;
-            letter-spacing: 0.5px;
+        .message-container:hover {
+            background-color: #2e3035;
         }
-        .content {
-            display: flex;
-            align-items: center;
-        }
-        .icon {
-            width: 50px;
-            height: 50px;
-            background-color: #1a1a1a;
-            border-radius: 16px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #5865F2;
+            margin-right: 16px;
             flex-shrink: 0;
-            border: 1px solid #333333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .icon svg {
+        .avatar svg {
             width: 24px;
             height: 24px;
-            color: #ffffff;
+            fill: #ffffff;
         }
-        .info {
-            margin-left: 16px;
-            flex-grow: 1;
+        .content {
+            flex: 1;
+            min-width: 0;
+        }
+        .header {
             display: flex;
-            flex-direction: column;
-            gap: 4px;
+            align-items: center;
+            margin-bottom: 4px;
         }
-        .name {
+        .username {
+            color: #f2f3f5;
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.375;
+            cursor: pointer;
+        }
+        .username:hover {
+            text-decoration: underline;
+        }
+        .bot-tag {
+            background-color: #5865F2;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 500;
+            line-height: 1.3;
+            padding: 1px 4px;
+            border-radius: 3px;
+            margin-left: 4px;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+        }
+        .bot-tag svg {
+            width: 14px;
+            height: 14px;
+            margin-right: 2px;
+        }
+        .timestamp {
+            color: #949ba4;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        .message-text {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #dbdee1;
+            margin-bottom: 8px;
+        }
+        .invite-embed {
+            background-color: #2b2d31;
+            border-radius: 4px;
+            padding: 16px;
+            max-width: 432px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .invite-header {
+            color: #b5bac1;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 16px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .invite-body {
+            display: flex;
+            align-items: center;
+        }
+        .server-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            background-color: #1e1f22;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .server-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: #f2f3f5;
+        }
+        .server-details {
+            margin-left: 16px;
+            flex: 1;
+            min-width: 0;
+        }
+        .server-name {
+            color: #f2f3f5;
             font-size: 16px;
             font-weight: 600;
-            color: #ffffff;
+            line-height: 20px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 2px;
         }
-        .stats {
+        .server-stats {
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        .stat {
+        .stat-item {
             display: flex;
             align-items: center;
             gap: 6px;
         }
-        .dot {
+        .status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
         }
-        .dot.online {
-            background-color: #ffffff;
+        .status-dot.online {
+            background-color: #23a559;
         }
-        .dot.offline {
-            background-color: #555555;
+        .status-dot.offline {
+            background-color: #80848e;
         }
-        .stat-text {
-            color: #999999;
+        .stat-value {
+            color: #b5bac1;
             font-size: 14px;
+            font-weight: 500;
+            line-height: 16px;
         }
-        .join-btn {
-            background-color: #ffffff;
-            color: #000000;
+        .btn-join {
+            background-color: #248046;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 16px;
+            padding: 2px 16px;
+            height: 32px;
+            border-radius: 3px;
             text-decoration: none;
-            padding: 10px 16px;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            transition: background-color 0.17s ease;
             margin-left: 16px;
-            transition: background-color 0.2s ease;
+            flex-shrink: 0;
         }
-        .join-btn:hover {
-            background-color: #cccccc;
+        .btn-join:hover {
+            background-color: #1a6334;
         }
-        .divider {
-            width: 1px;
-            background-color: #222222;
-        }
-        .qr-part {
-            padding: 16px 24px;
+        .qr-section {
+            margin-top: 12px;
+            background-color: #2b2d31;
+            border-radius: 4px;
+            padding: 16px;
+            max-width: 432px;
+            width: 100%;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            background-color: #050505;
+            align-items: flex-start;
         }
-        .qr-img {
-            width: 80px;
-            height: 80px;
-            border-radius: 4px;
-            background-color: #ffffff;
-            padding: 4px;
-        }
-        .qr-text {
-            color: #666666;
-            font-size: 11px;
+        .qr-title {
+            color: #b5bac1;
+            font-size: 12px;
             font-weight: 700;
+            line-height: 16px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            margin-bottom: 12px;
         }
-        @media (max-width: 650px) {
-            .card {
+        .qr-container {
+            background-color: #ffffff;
+            padding: 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .qr-image {
+            width: 120px;
+            height: 120px;
+            display: block;
+        }
+        @media (max-width: 500px) {
+            .invite-body {
                 flex-direction: column;
-                width: 90%;
-                max-width: 432px;
+                align-items: flex-start;
             }
-            .invite-part {
-                width: 100%;
+            .server-details {
+                margin-left: 0;
+                margin-top: 12px;
+                margin-bottom: 12px;
             }
-            .divider {
+            .btn-join {
+                margin-left: 0;
                 width: 100%;
-                height: 1px;
+                justify-content: center;
             }
         }
     </style>
 </head>
 <body>
-    <div class="card">
-        <div class="invite-part">
-            <div class="header">You've been invited to join a server</div>
-            <div class="content">
-                <div class="icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                        <polyline points="2 17 12 22 22 17"></polyline>
-                        <polyline points="2 12 12 17 22 12"></polyline>
-                    </svg>
-                </div>
-                <div class="info">
-                    <div class="name">Community Server</div>
-                    <div class="stats">
-                        <div class="stat">
-                            <div class="dot online"></div>
-                            <span class="stat-text">142 Online</span>
-                        </div>
-                        <div class="stat">
-                            <div class="dot offline"></div>
-                            <span class="stat-text">843 Members</span>
+    <div class="message-container">
+        <div class="avatar">
+            <svg viewBox="0 0 127.14 96.36">
+                <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1,105.25,105.25,0,0,0,32.19-16.14c2.64-27.38-4.51-51.11-19.32-72.1ZM42.61,65.37c-5.36,0-9.76-4.82-9.76-10.74s4.34-10.74,9.76-10.74,9.81,4.82,9.76,10.74C52.36,60.55,48.05,65.37,42.61,65.37Zm41.9,0c-5.36,0-9.76-4.82-9.76-10.74s4.34-10.74,9.76-10.74,9.81,4.82,9.76,10.74C84.32,60.55,80,65.37,84.51,65.37Z"/>
+            </svg>
+        </div>
+        <div class="content">
+            <div class="header">
+                <span class="username">System</span>
+                <span class="bot-tag">
+                    <svg viewBox="0 0 16 16"><path fill="currentColor" d="M7.4 4.8C7.4 4.3 7.8 4 8.2 4H14.8C15.3 4 15.6 4.3 15.6 4.8V11.2C15.6 11.7 15.3 12 14.8 12H8.2C7.8 12 7.4 11.7 7.4 11.2V4.8Z"></path><path fill="currentColor" d="M1 4.8C1 4.3 1.4 4 1.8 4H4.2C4.7 4 5 4.3 5 4.8V11.2C5 11.7 4.7 12 4.2 12H1.8C1.4 12 1 11.7 1 11.2V4.8Z"></path><path fill="currentColor" d="M9.7 10.3C9.5 10.5 9.2 10.5 9 10.3L7.7 9C7.5 8.8 7.5 8.5 7.7 8.3C7.9 8.1 8.2 8.1 8.4 8.3L9.3 9.2L12.6 5.7C12.8 5.5 13.1 5.5 13.3 5.7C13.5 5.9 13.5 6.2 13.3 6.4L9.7 10.3Z"></path></svg>
+                    APP
+                </span>
+                <span class="timestamp">Today at 12:00 PM</span>
+            </div>
+            <div class="message-text">Scan the QR code or click the invite below to join!</div>
+
+            <div class="invite-embed">
+                <div class="invite-header">You've been invited to join a server</div>
+                <div class="invite-body">
+                    <div class="server-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM17.92 14.61C17.92 14.61 16.71 17.15 12 17.15C7.29 17.15 6.08 14.61 6.08 14.61C6.08 14.61 5.56 10.63 7.33 8.35C8.82 6.43 11 6.13 11 6.13L11.36 6.55C9.4 7.07 8.08 8.05 8.08 8.05C8.08 8.05 8.5 7.81 9.07 7.57C10 7.15 10.96 6.95 12 6.95C13.04 6.95 14 7.15 14.93 7.57C15.5 7.81 15.92 8.05 15.92 8.05C15.92 8.05 14.6 7.07 12.64 6.55L13 6.13C13 6.13 15.18 6.43 16.67 8.35C18.44 10.63 17.92 14.61 17.92 14.61Z"></path></svg>
+                    </div>
+                    <div class="server-details">
+                        <div class="server-name">Community Server</div>
+                        <div class="server-stats">
+                            <div class="stat-item">
+                                <div class="status-dot online"></div>
+                                <span class="stat-value">1,245 Online</span>
+                            </div>
+                            <div class="stat-item">
+                                <div class="status-dot offline"></div>
+                                <span class="stat-value">6,802 Members</span>
+                            </div>
                         </div>
                     </div>
+                    <a href="https://discord.gg/YE6ZrFC6y" class="btn-join">Join</a>
                 </div>
-                <a href="https://discord.gg/YE6ZrFC6y" class="join-btn">Join</a>
             </div>
-        </div>
-        <div class="divider"></div>
-        <div class="qr-part">
-            <img class="qr-img" src="https://quickchart.io/qr?text=https://discord.gg/YE6ZrFC6y&size=100&margin=0&dark=000000&light=ffffff" alt="QR Code">
-            <span class="qr-text">Scan to join</span>
+
+            <div class="qr-section">
+                <div class="qr-title">Or scan to join</div>
+                <div class="qr-container">
+                    <img class="qr-image" src="https://quickchart.io/qr?text=https://discord.gg/YE6ZrFC6y&size=120&margin=0&dark=000000&light=ffffff" alt="Join QR Code">
+                </div>
+            </div>
         </div>
     </div>
 </body>
