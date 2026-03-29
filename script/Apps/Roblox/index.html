@@ -10,22 +10,159 @@
             padding: 0;
             width: 100%;
             height: 100%;
+            background-color: #050505;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden;
-            background-color: #000;
+        }
+        #ui {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            padding: 24px;
+        }
+        .card {
+            background: #0f0f0f;
+            border: 1px solid #222222;
+            border-radius: 8px;
+            width: 320px;
+            padding: 32px 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .card:hover {
+            background: #151515;
+            border-color: #444444;
+            transform: translateY(-2px);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .header svg {
+            width: 24px;
+            height: 24px;
+            color: #ffffff;
+        }
+        .title {
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section:last-child {
+            margin-bottom: 0;
+        }
+        .section-title {
+            font-size: 11px;
+            color: #777777;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+        }
+        .list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .list li {
+            font-size: 14px;
+            color: #bbbbbb;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: flex-start;
+            line-height: 1.5;
+        }
+        .list li span {
+            color: #ffffff;
+            margin-right: 12px;
+            font-weight: 500;
         }
         iframe {
+            display: none;
             width: 100%;
             height: 100%;
             border: none;
-            display: block;
         }
     </style>
 </head>
 <body>
-    <iframe 
-        src="https://cine-browser-2.b-cdn.net/embed.html?url=https://nowgg.fun/apps/a/19900/b.html" 
-        allow="autoplay; fullscreen; microphone; camera; display-capture" 
-        allowfullscreen>
-    </iframe>
+    <div id="ui">
+        <div class="card" data-url="https://cine-browser-2.b-cdn.net/embed.html?url=https://nowgg.fun/apps/a/19900/b.html">
+            <div class="header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                    <path d="M6 12h4m-2-2v4m8-2h.01M16 10h.01"></path>
+                </svg>
+                <div class="title">Now.gg</div>
+            </div>
+            <div class="section">
+                <div class="section-title">Pros</div>
+                <ul class="list">
+                    <li><span>+</span>Best Compatibility</li>
+                    <li><span>+</span>By Froggie</li>
+                    <li><span>+</span>Better Controls</li>
+                </ul>
+            </div>
+            <div class="section">
+                <div class="section-title">Cons</div>
+                <ul class="list">
+                    <li><span>-</span>15 Min Window (refresh to renew)</li>
+                    <li><span>-</span>lag</li>
+                    <li><span>-</span>unreliable</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card" data-url="https://cine-browser-2.b-cdn.net/embed.html?url=https://www.easyfun.gg/cloud-games/roblox.html">
+            <div class="header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                </svg>
+                <div class="title">EasyFun</div>
+            </div>
+            <div class="section">
+                <div class="section-title">Pros</div>
+                <ul class="list">
+                    <li><span>+</span>Quality Adjustments</li>
+                    <li><span>+</span>One Day 3 Hour Window</li>
+                    <li><span>+</span>Less Lag</li>
+                </ul>
+            </div>
+            <div class="section">
+                <div class="section-title">Cons</div>
+                <ul class="list">
+                    <li><span>-</span>Login Required</li>
+                    <li><span>-</span>Worse Controls</li>
+                    <li><span>-</span>Sometimes High Ping</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <iframe id="frame" allow="autoplay; fullscreen; microphone; camera; display-capture" allowfullscreen></iframe>
+
+    <script>
+        const ui = document.getElementById('ui');
+        const frame = document.getElementById('frame');
+        const cards = document.querySelectorAll('.card');
+
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                frame.src = card.getAttribute('data-url');
+                ui.style.display = 'none';
+                frame.style.display = 'block';
+            });
+        });
+    </script>
 </body>
 </html>
