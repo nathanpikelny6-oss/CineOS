@@ -5,34 +5,34 @@ var APPS = {
     'cine': {title: 'CINE // HUB', path: 'script/Apps/Cine/index.html', icon: 'https://cdn.worldvectorlogo.com/logos/netflix-logo-icon.svg', pinned: true},
     'term': {title: 'Spotify', path: 'script/Apps/Spotify/index.html', icon: 'https://cdn.pixabay.com/photo/2016/10/22/00/15/spotify-1759471_1280.jpg', pinned: true},
     'files': {title: 'PS5 Emu', path: 'script/Apps/Ps5/index.html', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-OeL_be7RFaoHi3PswkuAR5XcMgBNRDynsg&s', pinned: true},
-    'android': {title: 'Android', path: 'script/Apps/Android/index.html', icon: 'https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/android-icon.png', pinned: false},
     'web': {title: 'Cine-Web', path: 'script/Apps/Web/index.html', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSeD89ZcX5W1FBtal7RerasT27q-OmZqnBixQ&s', pinned: true},
-    'roblox': {title: 'Roblox', path: 'script/Apps/Roblox/index.html', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS9KvNyFWMg_bjo_q_1IVLKFWbfCeonn2qDow&s', pinned: false},
-    'ciniai': {title: 'Cini AI', path: 'script/Apps/Cini/index.html', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRkLXhvns5Rrdf-XBNlWcPIRh0hlJfWnEtBWg&s', pinned: false},
     'settings': {title: 'CONFIG', internal: true, icon: 'https://cdn.iconscout.com/icon/free/png-256/free-apple-settings-icon-svg-download-png-493162.png', pinned: true},
-    'discord': {title: 'Discord', path: 'script/Apps/Discord/index.html', icon: 'https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png', pinned: false}
+    'discord': {title: 'Discord', path: 'https://discord.com/app', icon: 'https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png', pinned: false},
+    'roblox': {title: 'Roblox', path: 'https://www.roblox.com/home', icon: 'https://cdn.icon-icons.com/icons2/3915/PNG/512/roblox_logo_icon_249221.png', pinned: false},
+    'android': {title: 'Android', path: 'script/Apps/Android/index.html', icon: 'https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/android-icon.png', pinned: false},
+    'ciniai': {title: 'Cini AI', path: 'script/Apps/Cini/index.html', icon: 'https://img.icons8.com/androidL/512/FFFFFF/arch-linux.png', pinned: false}
 };
 
 var wallpaperRegistry = {
     "Default": {id: "Default", name: "Snake Skeleton", url: "Videos/default.mp4", locked: false},
     "green": {id: "green", name: "Green Anime", url: "Videos/green.mp4", locked: false},
-    "#33A56": {id: "hunt_trait", name: "Hunt Showdown", url: "Videos/33A56.mp4", locked: true},
-    "#45E33": {id: "45E33", name: "45E33", url: "Videos/45E33.mp4", locked: true},
-    "#55Cine": {id: "55Cine", name: "Cine 55", url: "Videos/55Cine.PNG", locked: true},
-    "#99Med": {id: "99Med", name: "99 Med", url: "Videos/99Med.mp4", locked: true},
-    "#Brother": {id: "Brother", name: "Brother", url: "Videos/Brother.mp4", locked: true},
-    "#F-1": {id: "F-1", name: "F-1 Formula", url: "Videos/F-1.mp4", locked: true},
-    "#Gojo-Sukuna": {id: "Gojo-Sukuna", name: "Gojo vs Sukuna", url: "Videos/Gojo-Sukuna.mp4", locked: true},
-    "#Hunt": {id: "Hunt", name: "Hunt Showdown 2", url: "Videos/Hunt.mp4", locked: true},
-    "#Minecraft01": {id: "Minecraft01", name: "Minecraft 01", url: "Videos/Minecraft01.mp4", locked: true},
-    "#Minecraft02": {id: "Minecraft02", name: "Minecraft 02", url: "Videos/Minecraft02.mp4", locked: true},
-    "#Minecraft03": {id: "Minecraft03", name: "Minecraft 03", url: "Videos/Minecraft03.mp4", locked: true},
-    "#Monkey": {id: "Monkey", name: "Monkey", url: "Videos/Monkey.mp4", locked: true},
-    "#Skello": {id: "Skello", name: "Skello", url: "Videos/Skello.MP4", locked: true},
-    "#SnowFox": {id: "SnowFox", name: "Snow Fox", url: "Videos/SnowFox.mp4", locked: true},
-    "#Supra": {id: "Supra", name: "Supra Drift", url: "Videos/Supra.PNG", locked: true},
-    "#Yuji52": {id: "Yuji52", name: "Yuji 52", url: "Videos/Yuji52.mp4", locked: true},
-    "#sukuna-fire": {id: "sukuna-fire", name: "Sukuna Fire", url: "Videos/sukuna-fire.mp4", locked: true}
+    "33A56": {id: "hunt_trait", name: "Hunt Showdown", url: "Videos/33A56.mp4", locked: true},
+    "45E33": {id: "45E33", name: "45E33", url: "Videos/45E33.mp4", locked: false},
+    "55Cine": {id: "55Cine", name: "Cine 55", url: "Videos/55Cine.PNG", locked: false},
+    "99Med": {id: "99Med", name: "99 Med", url: "Videos/99Med.mp4", locked: false},
+    "Brother": {id: "Brother", name: "Brother", url: "Videos/Brother.mp4", locked: false},
+    "F-1": {id: "F-1", name: "F-1 Formula", url: "Videos/F-1.mp4", locked: false},
+    "Gojo-Sukuna": {id: "Gojo-Sukuna", name: "Gojo vs Sukuna", url: "Videos/Gojo-Sukuna.mp4", locked: false},
+    "Hunt": {id: "Hunt", name: "Hunt Showdown 2", url: "Videos/Hunt.mp4", locked: false},
+    "Minecraft01": {id: "Minecraft01", name: "Minecraft 01", url: "Videos/Minecraft01.mp4", locked: false},
+    "Minecraft02": {id: "Minecraft02", name: "Minecraft 02", url: "Videos/Minecraft02.mp4", locked: false},
+    "Minecraft03": {id: "Minecraft03", name: "Minecraft 03", url: "Videos/Minecraft03.mp4", locked: false},
+    "Monkey": {id: "Monkey", name: "Monkey", url: "Videos/Monkey.mp4", locked: false},
+    "Skello": {id: "Skello", name: "Skello", url: "Videos/Skello.MP4", locked: false},
+    "SnowFox": {id: "SnowFox", name: "Snow Fox", url: "Videos/SnowFox.mp4", locked: false},
+    "Supra": {id: "Supra", name: "Supra Drift", url: "Videos/Supra.PNG", locked: false},
+    "Yuji52": {id: "Yuji52", name: "Yuji 52", url: "Videos/Yuji52.mp4", locked: false},
+    "sukuna-fire": {id: "sukuna-fire", name: "Sukuna Fire", url: "Videos/sukuna-fire.mp4", locked: false}
 };
 
 var sysConfig = JSON.parse(localStorage.getItem('cine_sys_config')) || {};
@@ -112,23 +112,6 @@ if (isMobile) {
 }
 
 async function loadDynamicResources() {
-    try {
-        var resp = await fetch('Videos/');
-        if (resp.ok) {
-            var text = await resp.text();
-            var matches = text.match(/href="([^"]+\.(mp4|mov|png|jpg|jpeg))"/gi);
-            if (matches) {
-                for (var i = 0; i < matches.length; i++) {
-                    var filename = matches[i].replace(/href="|"/g, '');
-                    if (filename.startsWith('#')) {
-                        var cleanName = filename.replace('#', '').split('.')[0];
-                        wallpaperRegistry[filename] = { id: cleanName, name: cleanName, url: "Videos/" + filename, locked: true };
-                    }
-                }
-            }
-        }
-    } catch (e) {}
-    
     renderUI();
     initWallpapers();
     setupAppContextMenu();
@@ -145,113 +128,10 @@ window.onbeforeunload = function(e) {
 document.addEventListener("DOMContentLoaded", function() {
     applyCloak();
     loadDynamicResources();
-    initPreBootSequence();
+    document.getElementById('boot-layer').style.display = 'flex';
     loadDesktop();
     updateSidebarData();
 });
-
-function initPreBootSequence() {
-    var pbLayer = document.getElementById('pre-boot-layer');
-    if (isMobile) {
-        pbLayer.style.display = 'none';
-        document.getElementById('boot-layer').style.display = 'flex';
-        return;
-    }
-
-    var crWrap = document.getElementById('credits-roll');
-    var skipUi = document.getElementById('skip-ui');
-    var skipFill = document.getElementById('skip-fill');
-    var cFog = document.querySelector('.cr-fog');
-    var pIframe = document.getElementById('proxy-iframe');
-    var pBg = document.getElementById('proxy-bg');
-    var pShield = document.getElementById('proxy-shield');
-    
-    var rv = 0, sk = 0, sq = [], tm, hd = 0;
-    var sc = ['ArrowUp', 'ArrowDown', 'ArrowUp', 'ArrowDown'];
-
-    window.focus();
-    pShield.addEventListener('click', function() { window.focus(); });
-
-    var keydownHandler = function(e) {
-        if (rv) return;
-        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-            sq.push(e.key);
-            sq = sq.slice(-4);
-            if (sq.join('') === sc.join('')) {
-                rv = 1;
-                if (localStorage.getItem('cine_cs_skip')) finishPreBoot();
-                else startCredits();
-            }
-        } else {
-            sq = [];
-        }
-    };
-
-    function startCredits() {
-        pIframe.style.opacity = '0';
-        setTimeout(function(){ pIframe.style.display = 'none'; }, 1000);
-        pBg.style.opacity = '1';
-        cFog.style.opacity = '1';
-        crWrap.style.opacity = '1';
-        setTimeout(function() {
-            crWrap.style.animationPlayState = 'running';
-            skipUi.classList.add('active');
-        }, 1000);
-        
-        setTimeout(finishPreBoot, 14500);
-    }
-
-    var skipDownHandler = function(e) {
-        if (e.key === 'Enter' && rv && !sk && !hd && !localStorage.getItem('cine_cs_skip')) {
-            hd = 1;
-            skipFill.style.transition = 'width 1500ms linear';
-            skipFill.style.width = '100%';
-            tm = setTimeout(finishPreBoot, 1500);
-        }
-    };
-
-    var skipUpHandler = function(e) {
-        if (e.key === 'Enter' && rv && !sk) {
-            hd = 0;
-            clearTimeout(tm);
-            skipFill.style.transition = 'none';
-            skipFill.style.width = '0%';
-        }
-    };
-
-    window.addEventListener('keydown', keydownHandler);
-    window.addEventListener('keydown', skipDownHandler);
-    window.addEventListener('keyup', skipUpHandler);
-
-    function finishPreBoot() {
-        if (sk) return;
-        sk = 1;
-        crWrap.style.opacity = '0';
-        skipUi.style.opacity = '0';
-        cFog.style.opacity = '0';
-        pBg.style.opacity = '0';
-        pShield.style.display = 'none'; 
-        
-        localStorage.setItem('cine_cs_skip', '1');
-        
-        window.removeEventListener('keydown', keydownHandler);
-        window.removeEventListener('keydown', skipDownHandler);
-        window.removeEventListener('keyup', skipUpHandler);
-
-        setTimeout(function() {
-            pbLayer.style.opacity = '0';
-            setTimeout(function() {
-                pbLayer.remove(); 
-                document.getElementById('boot-layer').style.display = 'flex';
-                var bootVid = document.getElementById('boot-video');
-                if(bootVid && sysConfig.shortBoot) {
-                    bootVid.src = "Videos/QuickBoot.mp4";
-                    bootVid.load();
-                }
-            }, 1200);
-        }, 500);
-    }
-}
 
 function renderUI() {
     var dock = document.getElementById('dock-container');
@@ -1467,15 +1347,15 @@ function drawFakeVisualizer() {
     var barWidth = (cvs.width / buffLen) * 2;
     var xPosition = 0;
     
-   for (var i = 0; i < buffLen; i++) {
-            var barHeight = activeMedia && !activeMedia.paused ? (Math.random() * cvs.height) : 2;
-            ctx.fillStyle = "#fff";
-            ctx.beginPath();
-            ctx.roundRect(xPosition, cvs.height - barHeight, barWidth - 1.5, barHeight, 2);
-            ctx.fill();
-            xPosition += barWidth;
-        }
+    for (var i = 0; i < buffLen; i++) {
+        var barHeight = activeMedia && !activeMedia.paused ? (Math.random() * cvs.height) : 2;
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.roundRect(xPosition, cvs.height - barHeight, barWidth - 1.5, barHeight, 2);
+        ctx.fill();
+        xPosition += barWidth;
     }
+}
 drawFakeVisualizer();
 
 var fpsLastTime = performance.now();
@@ -1510,4 +1390,4 @@ function measureSystemFPS() {
     }
     requestAnimationFrame(measureSystemFPS);
 }
-requestAnimationFrame(measureSystemFPS); 
+requestAnimationFrame(measureSystemFPS);
