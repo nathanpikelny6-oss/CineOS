@@ -1,0 +1,21 @@
+Cine-OS Proprietary License
+
+Copyright (c) 2026 Cine-OS. All rights reserved.
+
+This website, including all of its source code, design, structure, features, and content (collectively referred to as the “Software”), is the exclusive property of Cine-OS and its owner.
+
+Permission is granted to view and use the Software for personal, non-commercial purposes only.
+
+You are strictly prohibited from:
+- Copying, reproducing, or redistributing any part of the Software
+- Modifying, adapting, reverse engineering, or creating derivative works based on the Software
+- Hosting, mirroring, or re-uploading the Software to any platform or service
+- Using the Software or any part of it for commercial purposes without explicit written permission
+
+Any unauthorized use of this Software is strictly prohibited and may result in legal action.
+
+This license does not grant you any ownership rights to the Software.
+
+For permissions or inquiries, contact the owner of Cine-OS directly.
+
+By accessing or using this Software, you agree to be bound by the terms of this license.
