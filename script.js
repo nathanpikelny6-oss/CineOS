@@ -366,30 +366,21 @@ function updateClock() {
     let dArr = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
     let mArr = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
     
-    let hrs = n.getHours();
-    let grt = 'GOOD EVENING';
-    if(hrs < 12) grt = 'GOOD MORNING';
-    else if(hrs < 18) grt = 'GOOD AFTERNOON';
-    
-    let h12 = hrs % 12 || 12;
-    let am = hrs >= 12 ? 'PM' : 'AM';
+    let hrs = n.getHours().toString().padStart(2, '0');
     let min = n.getMinutes().toString().padStart(2, '0');
     let dNum = n.getDate().toString().padStart(2, '0');
     let dName = dArr[n.getDay()];
+    let yr = n.getFullYear();
     
-    let eg = document.getElementById('lock-greet');
-    let et = document.getElementById('lock-time');
-    let ed = document.getElementById('lock-date');
-    let eli = document.getElementById('lock-day-img');
-    let ehi = document.getElementById('lbl-day-img');
+    let lDay = document.getElementById('lock-day-large');
+    let lDat = document.getElementById('lock-date');
+    let lTim = document.getElementById('lock-time');
+    let hDay = document.getElementById('lbl-day');
     
-    if(eg) eg.innerText = grt;
-    if(et) et.innerText = h12 + ':' + min + ' ' + am;
-    if(ed) ed.innerText = dNum + ' ' + mArr[n.getMonth()];
-    
-    let path = "Videos/" + dName + ".png";
-    if(eli) { eli.src = path; eli.alt = dName; }
-    if(ehi) { ehi.src = path; ehi.alt = dName; }
+    if(lDay) lDay.innerText = dName;
+    if(hDay) hDay.innerText = dName;
+    if(lDat) lDat.innerText = dNum + ' ' + mArr[n.getMonth()] + ', ' + yr + '.';
+    if(lTim) lTim.innerText = '- ' + hrs + ':' + min + ' -';
 }
 setInterval(updateClock, 1000);
 
