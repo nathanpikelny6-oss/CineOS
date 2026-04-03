@@ -81,18 +81,14 @@ body {
 .mobile-box p { color: #888; font-size: 1rem; font-weight: 600; }
 
 #boot-layer {
-    position: fixed;
-    inset: 0;
-    background: #000;
-    z-index: var(--z-boot);
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center; 
-    transition: opacity 0.6s ease;
+    position: fixed; inset: 0; background: #000; z-index: var(--z-boot);
+    display: none; transition: opacity 0.6s ease;
 }
 
-#boot-content { text-align: center; }
+#boot-content { 
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    text-align: center; z-index: 2; width: 100%;
+}
 
 .boot-logo {
     font-family: var(--font-header);
@@ -186,63 +182,41 @@ body {
 
 #lock-ui {
     position: absolute;
-    right: 8%;
+    left: 50%;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translate(-50%, -50%);
     z-index: 10;
-    display: flex;
-    gap: 30px;
-    align-items: center;
-}
-
-.lock-line {
-    width: 4px;
-    background: #fff;
-    height: 0;
-    border-radius: 4px;
-    box-shadow: 0 0 15px rgba(255,255,255,0.5);
-}
-
-#lock-screen.active .lock-line {
-    animation: growLine 0.6s cubic-bezier(0.8, 0, 0.2, 1) forwards;
+    width: 100%;
 }
 
 .lock-content {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
-    text-align: right;
+    align-items: center;
+    text-align: center;
     text-shadow: 0 5px 25px rgba(0,0,0,0.9);
 }
 
-.l-greet, .l-day-img, .l-date, .l-time {
+.l-day, .l-date, .l-time {
     opacity: 0;
-    transform: translateX(40px);
+    transform: translateY(30px);
 }
 
-#lock-screen.active .l-greet { animation: slideInText 0.5s forwards 0.3s; }
-#lock-screen.active .l-day-img { animation: slideInText 0.5s forwards 0.45s; }
-#lock-screen.active .l-date { animation: slideInText 0.5s forwards 0.6s; }
-#lock-screen.active .l-time { animation: slideInText 0.5s forwards 0.75s; }
+#lock-screen.active .l-day { animation: slideUpTxt 0.6s cubic-bezier(0.2,0.8,0.2,1) forwards 0.2s; }
+#lock-screen.active .l-date { animation: slideUpTxt 0.6s cubic-bezier(0.2,0.8,0.2,1) forwards 0.35s; }
+#lock-screen.active .l-time { animation: slideUpTxt 0.6s cubic-bezier(0.2,0.8,0.2,1) forwards 0.5s; }
 
-@keyframes growLine {
-    0% { height: 0; opacity: 0; }
-    100% { height: 250px; opacity: 1; }
+@keyframes slideUpTxt {
+    to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes slideInText {
-    0% { opacity: 0; transform: translateX(40px); }
-    100% { opacity: 1; transform: translateX(0); }
-}
-
-.l-greet { font-family: 'Rajdhani', sans-serif; font-size: 1.4rem; letter-spacing: 6px; font-weight: 700; color: #ccc; }
-.l-day-img { max-height: 200px; margin: 15px 0; object-fit: contain; }
-.l-date { font-family: 'Rajdhani', sans-serif; font-size: 1.6rem; letter-spacing: 3px; margin-bottom: 8px; text-transform: uppercase; color: #aaa; }
-.l-time { font-family: 'Rajdhani', sans-serif; font-size: 1.4rem; letter-spacing: 2px; color: #888; }
+.l-day { font-family: 'Azonix', sans-serif; font-size: 5rem; letter-spacing: 12px; color: #fff; margin: 0 0 10px 0; text-transform: uppercase; font-weight: normal; }
+.l-date { font-family: var(--font-main); font-size: 1.3rem; letter-spacing: 4px; font-weight: 700; color: #fff; margin-bottom: 8px; text-transform: uppercase; }
+.l-time { font-family: var(--font-main); font-size: 1.1rem; letter-spacing: 3px; font-weight: 700; color: #fff; }
 
 #hud-top {
     position: absolute;
-    top: 3%;
+    top: 5%;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
@@ -251,7 +225,7 @@ body {
     text-shadow: 0 10px 40px rgba(0,0,0,0.8);
 }
 
-.hud-day-img { max-height: 200px; object-fit: contain; opacity: 0.8; }
+.hud-day { font-family: 'Azonix', sans-serif; font-size: 3rem; color: rgba(255,255,255,0.7); letter-spacing: 10px; text-transform: uppercase; }
 
 #right-sidebar {
     position: fixed;
