@@ -5,29 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crunchy Roll</title>
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-            background-color: #000;
+        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: #000; font-family: 'Inter', system-ui, sans-serif; }
+        iframe { width: 100%; height: 100%; border: none; display: none; }
+        #notif {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(20, 20, 20, 0.85); color: #fff; padding: 10px 18px;
+            border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px); z-index: 1000; display: flex;
+            align-items: center; gap: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+        #notif.hide { opacity: 0; transform: translate(-50%, -30px); pointer-events: none; }
+        #notif b { color: #f39c12; font-weight: 600; }
+        #btn {
+            background: rgba(255,255,255,0.1); border: none; color: #eee;
+            padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 11px;
+            font-weight: bold; transition: 0.2s;
         }
+        #btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+        .ld { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #555; background: #000; z-index: 9; }
     </style>
 </head>
 <body>
+    <div id="notif" class="hide"><span id="txt"></span><button id="btn">DISMISS</button></div>
+    <div id="ld" class="ld">Connecting...</div>
+    <iframe id="ifr" allowfullscreen allow="autoplay; fullscreen; gamepad; microphone; camera"></iframe>
 
-    <iframe 
-        src="https://cine-browser-2.b-cdn.net/embed.html?url=https://senshi.live"
-        frameborder="0" 
-        allowfullscreen
-        allow="autoplay; fullscreen; gamepad; microphone; camera">
-    </iframe>
+    <script>
+        const $ = (id) => document.getElementById(id);
+        const srvs = ["cine-browser-1.b-cdn.net", "cine-browser-2.b-cdn.net", "cine-browser-3.b-cdn.net"];
+        const ping = async (d) => { try { await fetch(`https://${d}`, { mode: 'no-cors', cache: 'no-store' }); return true; } catch { return false; } };
 
+        async function start() {
+            let idx = Math.floor(Math.random() * srvs.length), sel = srvs[idx];
+            if (!(await ping(sel))) {
+                for (let s of srvs) { if (await ping(s)) { sel = s; break; } }
+            }
+            $('ifr').src = `https://${sel}/embed.html?url=https://senshi.live`;
+            $('ifr').style.display = 'block';
+            $('ld').style.display = 'none';
+            $('txt').innerHTML = `Server: <b>${sel}</b>`;
+            $('notif').classList.remove('hide');
+            $('btn').onclick = () => $('notif').classList.add('hide');
+            setTimeout(() => $('notif').classList.add('hide'), 5000);
+        }
+        start();
+    </script>
 </body>
 </html>
