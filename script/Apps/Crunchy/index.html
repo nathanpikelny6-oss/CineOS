@@ -13,26 +13,35 @@
             border-radius: 12px; border: 1px solid #333; z-index: 99;
             display: none; align-items: center; gap: 12px; backdrop-filter: blur(5px);
         }
-        #ntf b { color: #f39c12; }
+        #ntf b { color: #2ecc71; }
         #btn { background: #333; border: none; color: #fff; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; }
-        .ld { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #444; background: #000; }
+        #ld { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #444; background: #000; }
     </style>
 </head>
 <body>
-    <div id="ntf"><span>Connected to <b>Server <span id="num"></span></b></span><button id="btn">DISMISS</button></div>
-    <div id="ld">Loading...</div>
+    <div id="ntf"><span>Using <b>Server <span id="num"></span></b></span><button id="btn">DISMISS</button></div>
+    <div id="ld">Initialising...</div>
     <iframe id="ifr" allowfullscreen allow="autoplay; fullscreen; gamepad; microphone; camera"></iframe>
+
     <script>
         const srvs = ["cine-browser-1.b-cdn.net", "cine-browser-2.b-cdn.net", "cine-browser-3.b-cdn.net"];
         const ping = async (d) => { try { await fetch(`https://${d}`, { mode: 'no-cors' }); return true; } catch { return false; } };
+        
         async function go() {
-            let i = Math.floor(Math.random()*srvs.length), s = srvs[i];
-            if (!(await ping(s))) { for (let x=0; x<srvs.length; x++) { if (await ping(srvs[x])) { s=srvs[x]; i=x; break; } } }
+            let i = Math.floor(Math.random() * srvs.length), s = srvs[i];
+            if (!(await ping(s))) { 
+                for (let x = 0; x < srvs.length; x++) { 
+                    if (await ping(srvs[x])) { s = srvs[x]; i = x; break; } 
+                } 
+            }
+            
+            // Link updated for Crunchy Roll
             document.getElementById('ifr').src = `https://${s}/embed.html?url=https://senshi.live`;
             document.getElementById('ifr').style.display = 'block';
             document.getElementById('ld').style.display = 'none';
             document.getElementById('num').innerText = i + 1;
             document.getElementById('ntf').style.display = 'flex';
+            
             document.getElementById('btn').onclick = () => document.getElementById('ntf').style.display = 'none';
             setTimeout(() => document.getElementById('ntf').style.display = 'none', 5000);
         }
