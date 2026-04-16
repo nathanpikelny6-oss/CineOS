@@ -5,51 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Android Emulator</title>
     <style>
-        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: #000; font-family: 'Inter', system-ui, sans-serif; }
+        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
         iframe { width: 100%; height: 100%; border: none; display: none; }
-        #notif {
+        #ntf {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(20, 20, 20, 0.85); color: #fff; padding: 10px 18px;
-            border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(12px); z-index: 1000; display: flex;
-            align-items: center; gap: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(20,20,20,0.9); color: #fff; padding: 10px 18px;
+            border-radius: 12px; border: 1px solid #333; z-index: 99;
+            display: none; align-items: center; gap: 12px; backdrop-filter: blur(5px);
         }
-        #notif.hide { opacity: 0; transform: translate(-50%, -30px); pointer-events: none; }
-        #notif b { color: #3498db; font-weight: 600; }
-        #btn {
-            background: rgba(255,255,255,0.1); border: none; color: #eee;
-            padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 11px;
-            font-weight: bold; transition: 0.2s;
-        }
-        #btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
-        .ld { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #555; background: #000; z-index: 9; }
+        #ntf b { color: #3498db; }
+        #btn { background: #333; border: none; color: #fff; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; }
+        .ld { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #444; background: #000; }
     </style>
 </head>
 <body>
-    <div id="notif" class="hide"><span id="txt"></span><button id="btn">DISMISS</button></div>
-    <div id="ld" class="ld">Booting Emulator...</div>
+    <div id="ntf"><span>Active: <b>Server <span id="num"></span></b></span><button id="btn">DISMISS</button></div>
+    <div id="ld">Booting...</div>
     <iframe id="ifr" allowfullscreen allow="autoplay; fullscreen; gamepad; microphone; camera"></iframe>
-
     <script>
-        const $ = (id) => document.getElementById(id);
         const srvs = ["cine-browser-1.b-cdn.net", "cine-browser-2.b-cdn.net", "cine-browser-3.b-cdn.net"];
-        const ping = async (d) => { try { await fetch(`https://${d}`, { mode: 'no-cors', cache: 'no-store' }); return true; } catch { return false; } };
-
-        async function start() {
-            let idx = Math.floor(Math.random() * srvs.length), sel = srvs[idx];
-            if (!(await ping(sel))) {
-                for (let s of srvs) { if (await ping(s)) { sel = s; break; } }
-            }
-            $('ifr').src = `https://${sel}/embed.html?url=https://nowgg.fun/apps/uncube/7074/now.html`;
-            $('ifr').style.display = 'block';
-            $('ld').style.display = 'none';
-            $('txt').innerHTML = `Proxy: <b>${sel}</b>`;
-            $('notif').classList.remove('hide');
-            $('btn').onclick = () => $('notif').classList.add('hide');
-            setTimeout(() => $('notif').classList.add('hide'), 5000);
+        const ping = async (d) => { try { await fetch(`https://${d}`, { mode: 'no-cors' }); return true; } catch { return false; } };
+        async function go() {
+            let i = Math.floor(Math.random()*srvs.length), s = srvs[i];
+            if (!(await ping(s))) { for (let x=0; x<srvs.length; x++) { if (await ping(srvs[x])) { s=srvs[x]; i=x; break; } } }
+            document.getElementById('ifr').src = `https://${s}/embed.html?url=https://nowgg.fun/apps/uncube/7074/now.html`;
+            document.getElementById('ifr').style.display = 'block';
+            document.getElementById('ld').style.display = 'none';
+            document.getElementById('num').innerText = i + 1;
+            document.getElementById('ntf').style.display = 'flex';
+            document.getElementById('btn').onclick = () => document.getElementById('ntf').style.display = 'none';
+            setTimeout(() => document.getElementById('ntf').style.display = 'none', 5000);
         }
-        start();
+        go();
     </script>
 </body>
 </html>
