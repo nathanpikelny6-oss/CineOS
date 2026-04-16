@@ -5,95 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viewer</title>
     <style>
-        * {
-            box-sizing: border-box;
+        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
+        iframe { width: 100%; height: 100%; border: none; display: none; }
+        #ntf {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(20,20,20,0.9); color: #fff; padding: 10px 18px;
+            border-radius: 12px; border: 1px solid #333; z-index: 99;
+            display: none; align-items: center; gap: 12px; backdrop-filter: blur(5px);
         }
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-            background: #000000;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-        #overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #050505;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 24px;
-            z-index: 100;
-        }
-        .modal {
-            background: #0f0f0f;
-            border: 1px solid #222222;
-            border-radius: 8px;
-            padding: 32px;
-            max-width: 440px;
-            width: 100%;
-        }
-        .title {
-            color: #ffffff;
-            font-size: 22px;
-            font-weight: 500;
-            margin: 0 0 16px 0;
-            letter-spacing: 0.5px;
-        }
-        .message {
-            color: #999999;
-            font-size: 14px;
-            line-height: 1.6;
-            margin: 0 0 28px 0;
-        }
-        .btn {
-            background: #ffffff;
-            color: #000000;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: background-color 0.2s ease;
-        }
-        .btn:hover {
-            background: #e0e0e0;
-        }
-        #frame {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: none;
-        }
+        #ntf b { color: #2ecc71; }
+        #btn { background: #333; border: none; color: #fff; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; }
+        .ld { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #444; background: #000; }
     </style>
 </head>
 <body>
-    <div id="overlay">
-        <div class="modal">
-            <h1 class="title">Attention!</h1>
-            <p class="message">According to a fair vote in my server I was forced to release v2. Meaning some areas like this won’t be finished. The movies no matter what will not work, even if launched another site through our proxy it will not work. Meaning fixes may come in further updates or v3!</p>
-            <button class="btn" id="btn">Understand</button>
-        </div>
-    </div>
-
-    <iframe id="frame" src="https://cine-browser-2.b-cdn.net/embed.html?url=http://streamex.sh" allowfullscreen></iframe>
-
+    <div id="ntf"><span>Using <b>Server <span id="num"></span></b></span><button id="btn">DISMISS</button></div>
+    <div id="ld">Initialising...</div>
+    <iframe id="ifr" allowfullscreen allow="autoplay; fullscreen; gamepad; microphone; camera"></iframe>
     <script>
-        const btn = document.getElementById('btn');
-        const overlay = document.getElementById('overlay');
-        const frame = document.getElementById('frame');
-
-        btn.addEventListener('click', () => {
-            overlay.style.display = 'none';
-            frame.style.display = 'block';
-        });
+        const srvs = ["cine-browser-1.b-cdn.net", "cine-browser-2.b-cdn.net", "cine-browser-3.b-cdn.net"];
+        const ping = async (d) => { try { await fetch(`https://${d}`, { mode: 'no-cors' }); return true; } catch { return false; } };
+        async function go() {
+            let i = Math.floor(Math.random()*srvs.length), s = srvs[i];
+            if (!(await ping(s))) { for (let x=0; x<srvs.length; x++) { if (await ping(srvs[x])) { s=srvs[x]; i=x; break; } } }
+            document.getElementById('ifr').src = `https://${s}/embed.html?url=http://streamex.sh`;
+            document.getElementById('ifr').style.display = 'block';
+            document.getElementById('ld').style.display = 'none';
+            document.getElementById('num').innerText = i + 1;
+            document.getElementById('ntf').style.display = 'flex';
+            document.getElementById('btn').onclick = () => document.getElementById('ntf').style.display = 'none';
+            setTimeout(() => document.getElementById('ntf').style.display = 'none', 5000);
+        }
+        go();
     </script>
 </body>
 </html>
