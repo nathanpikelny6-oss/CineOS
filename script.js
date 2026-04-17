@@ -52,7 +52,13 @@ var wallpaperRegistry = {
     "SnowFox": {id: "SnowFox", name: "Snow Fox", url: "Videos/SnowFox.mp4", locked: false},
     "Supra": {id: "Supra", name: "Supra Drift", url: "Videos/Supra.PNG", locked: false},
     "Yuji52": {id: "Yuji52", name: "Yuji 52", url: "Videos/Yuji52.mp4", locked: false},
-    "sukuna-fire": {id: "sukuna-fire", name: "Sukuna Fire", url: "Videos/sukuna-fire.mp4", locked: false}
+    "sukuna-fire": {id: "sukuna-fire", name: "Sukuna Fire", url: "Videos/sukuna-fire.mp4", locked: false},
+    "CozyFox": {id: "CozyFox", name: "Cozy Fox", url: "Videos/CozyFox.mp4", locked: false},
+    "RainyCity": {id: "RainyCity", name: "Rainy City", url: "Videos/RainyCity.mp4", locked: false},
+    "Gojo": {id: "Gojo", name: "Gojo", url: "Videos/Gojo.mp4", locked: false},
+    "BlackHole": {id: "BlackHole", name: "Black Hole", url: "Videos/BlackHole.mp4", locked: false},
+    "Yuta": {id: "Yuta", name: "Yuta", url: "Videos/Yuta.mp4", locked: false},
+    "Desktop": {id: "Desktop", name: "Desktop Lines", url: "Videos/Desktop.mp4", locked: false}
 };
 
 var sysConfig = JSON.parse(localStorage.getItem('cine_sys_config')) || {};
