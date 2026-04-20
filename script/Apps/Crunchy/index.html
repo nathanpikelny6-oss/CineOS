@@ -19,33 +19,13 @@
     </style>
 </head>
 <body>
-    <div id="ntf"><span>Using <b>Server <span id="num"></span></b></span><button id="btn">DISMISS</button></div>
     <div id="ld">Initialising...</div>
     <iframe id="ifr" allowfullscreen allow="autoplay; fullscreen; gamepad; microphone; camera"></iframe>
 
     <script>
-        const srvs = ["cine-browser-1.b-cdn.net", "cine-browser-2.b-cdn.net", "cine-browser-3.b-cdn.net"];
-        const ping = async (d) => { try { await fetch(`https://${d}`, { mode: 'no-cors' }); return true; } catch { return false; } };
-        
-        async function go() {
-            let i = Math.floor(Math.random() * srvs.length), s = srvs[i];
-            if (!(await ping(s))) { 
-                for (let x = 0; x < srvs.length; x++) { 
-                    if (await ping(srvs[x])) { s = srvs[x]; i = x; break; } 
-                } 
-            }
-            
-            // Link updated for Crunchy Roll
-            document.getElementById('ifr').src = `https://${s}/embed.html?url=https://senshi.live`;
-            document.getElementById('ifr').style.display = 'block';
-            document.getElementById('ld').style.display = 'none';
-            document.getElementById('num').innerText = i + 1;
-            document.getElementById('ntf').style.display = 'flex';
-            
-            document.getElementById('btn').onclick = () => document.getElementById('ntf').style.display = 'none';
-            setTimeout(() => document.getElementById('ntf').style.display = 'none', 5000);
-        }
-        go();
+        document.getElementById('ifr').src = "https://senshi.live";
+        document.getElementById('ifr').style.display = 'block';
+        document.getElementById('ld').style.display = 'none';
     </script>
 </body>
 </html>
