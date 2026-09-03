@@ -1,0 +1,74 @@
+<!-- diagnostics.html - simple diagnostics page to try loading games and capture console/network errors -->
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Oblivian Diagnostics</title>
+    <style>
+      body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:20px}
+      pre{background:#111;color:#fff;padding:12px}
+      .game{margin-bottom:16px}
+    </style>
+  </head>
+  <body>
+    <h1>Oblivian Game Diagnostics</h1>
+    <p>Click a game to attempt to load it and capture console/network errors. Open your browser console (F12) to see captured messages.</p>
+
+    <div id="games"></div>
+
+    <script>
+      const gamesToTest = [
+        // Add relative paths or URLs to the games you want to test (example):
+        // "games/game1/index.html",
+      ];
+
+      const container = document.getElementById('games');
+
+      gamesToTest.forEach((g, i) => {
+        const div = document.createElement('div');
+        div.className = 'game';
+        div.innerHTML = `<strong>Game ${i+1}:</strong> ${g} <button data-src="${g}">Load</button><div class="result" id="res-${i}"></div>`;
+        container.appendChild(div);
+      });
+
+      container.addEventListener('click', e => {
+        if (e.target.tagName !== 'BUTTON') return;
+        const src = e.target.getAttribute('data-src');
+        const res = e.target.nextElementSibling;
+        res.innerHTML = '';
+
+        const iframe = document.createElement('iframe');
+        iframe.src = src;
+        iframe.width = '800';
+        iframe.height = '450';
+        iframe.onload = () => res.appendChild(iframe);
+        iframe.onerror = (err) => {
+          const pre = document.createElement('pre');
+          pre.textContent = 'Failed to load: ' + err;
+          res.appendChild(pre);
+        };
+
+        // Try to capture messages from the iframe (limited by same-origin policies)
+        window.addEventListener('message', ev => {
+          const pre = document.createElement('pre');
+          pre.textContent = 'Message from iframe: ' + JSON.stringify(ev.data);
+          res.appendChild(pre);
+        });
+
+      });
+
+      // Log global errors to the page
+      window.addEventListener('error', e => {
+        const p = document.createElement('pre');
+        p.textContent = '[Error] ' + e.message + ' @ ' + e.filename + ':' + e.lineno;
+        container.appendChild(p);
+      });
+
+      window.addEventListener('unhandledrejection', e => {
+        const p = document.createElement('pre');
+        p.textContent = '[UnhandledRejection] ' + e.reason;
+        container.appendChild(p);
+      });
+    </script>
+  </body>
+</html>
